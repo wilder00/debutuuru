@@ -1,0 +1,19 @@
+# Automated versioning. See docs/VERSIONING.md.
+# release-plz reads Conventional Commits, opens a "release" PR that bumps the
+# workspace version + CHANGELOG.md, and tags `vX.Y.Z` when that PR is merged.
+
+[workspace]
+changelog_update = true
+publish = false            # not published to crates.io
+git_release_enable = false # the Release workflow builds installers and creates the GitHub Release
+git_tag_enable = false     # only the CLI package creates the product tag (below)
+semver_check = false
+
+# The product is versioned as one unit; the `debutuuru` package carries the tag
+# and the changelog for the whole workspace.
+[[package]]
+name = "debutuuru"
+git_tag_enable = true
+git_tag_name = "v{{ version }}"
+changelog_path = "CHANGELOG.md"
+changelog_include = ["debutuuru-core", "debutuuru-desktop"]
