@@ -32,6 +32,11 @@ fn agent_over_stdio() {
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
     git_in(&dir, &["init", "-q", "-b", "main"]);
+    // The agent commits with the repo's own config: CI runners have no
+    // global identity, and the user's signing setup must not apply here.
+    git_in(&dir, &["config", "user.name", "t"]);
+    git_in(&dir, &["config", "user.email", "t@t"]);
+    git_in(&dir, &["config", "commit.gpgsign", "false"]);
     std::fs::write(dir.join("f.txt"), "x\n").unwrap();
     git_in(&dir, &["add", "."]);
     git_in(&dir, &["commit", "-q", "-m", "one"]);

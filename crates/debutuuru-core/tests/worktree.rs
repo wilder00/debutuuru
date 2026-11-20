@@ -41,6 +41,10 @@ fn main_repo_and_linked_worktree() {
     std::fs::create_dir_all(&main).unwrap();
 
     git(&main, &["init", "-q", "-b", "main"]);
+    // Repo::commit uses the repo's own config: CI runners have no global identity.
+    git(&main, &["config", "user.name", "t"]);
+    git(&main, &["config", "user.email", "t@t"]);
+    git(&main, &["config", "commit.gpgsign", "false"]);
     std::fs::write(main.join("a.txt"), "hello\n").unwrap();
     git(&main, &["add", "."]);
     git(&main, &["commit", "-q", "-m", "first"]);
