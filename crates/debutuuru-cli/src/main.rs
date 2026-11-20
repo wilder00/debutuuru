@@ -57,6 +57,12 @@ enum Cmd {
 }
 
 fn main() -> ExitCode {
+    // Started by git/ssh as GIT_ASKPASS/SSH_ASKPASS during a remote operation
+    // of the agent: forward the prompt to the app and print the answer.
+    let args: Vec<String> = std::env::args().collect();
+    if debutuuru_agent::askpass::is_askpass_invocation(&args) {
+        return ExitCode::from(debutuuru_agent::askpass::client_main(&args[1]) as u8);
+    }
     let cli = Cli::parse();
     match run(cli) {
         Ok(()) => ExitCode::SUCCESS,
@@ -75,9 +81,24 @@ fn run(cli: Cli) -> Result<(), String> {
     };
     match command {
         Cmd::Open { path } => open(Some(path.unwrap_or_else(|| ".".into()))),
-        Cmd::Agent { .. } => debutuuru_agent::Agent::with_default_modules()
-            .serve_stdio()
-            .map_err(s),
+        Cmd::Agent { .. } => {
+            // Inside WSL the agent is started without the user's rc files;
+            // import ssh-agent/PATH/proxy settings from their login shell so
+            // git and ssh behave exactly as in their terminal.
+            #[cfg(unix)]
+            if in_wsl() || std::env::var_os("DEBUTUURU_IMPORT_SHELL_ENV").is_some() {
+                let imported = debutuuru_agent::shellenv::import_login_shell_env();
+                if !imported.is_empty() {
+                    eprintln!(
+                        "debutuuru agent: imported {} from login shell",
+                        imported.join(", ")
+                    );
+                }
+            }
+            debutuuru_agent::Agent::with_default_modules()
+                .serve_stdio()
+                .map_err(s)
+        }
         Cmd::Info { path } => {
             let repo = repo(path)?;
             if json {

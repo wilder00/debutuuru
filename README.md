@@ -17,10 +17,12 @@ runner, GitHub/GitLab integration, containers and more.
   Warp-style background images, fonts and density (Ctrl+,). See
   [docs/DESIGN.md](docs/DESIGN.md).
 
-Status: **Phase 1** is done. Local and WSL repos open in tabs, with graph,
-branches, worktrees, stage/commit/diff and auto-refresh, and `debutuuru .`
-works from Windows and WSL terminals. Next is Phase 2: fetch, pull and push
-with in-app credential prompts. See the roadmap in
+Status: **Phase 2** is done. Local and WSL repos open in tabs with graph,
+branches, worktrees, stage/commit/diff, auto-refresh, and fetch/pull/push.
+Your SSH setup is used as-is: passwordless keys and ssh-agent just work, and
+passphrases or unknown host keys are asked for in an in-app dialog. Keys that
+live only in WSL can also be used for Windows repos (Settings › Git & SSH).
+Next is Phase 3: installers and updates. See the roadmap in
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ```bash

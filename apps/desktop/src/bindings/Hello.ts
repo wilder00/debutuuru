@@ -13,4 +13,9 @@ os: string,
 /**
  * Set when the agent runs inside WSL.
  */
-wsl_distro: string | null, modules: Array<ModuleInfo>, };
+wsl_distro: string | null, modules: Array<ModuleInfo>, 
+/**
+ * An ssh-agent socket is reachable (`SSH_AUTH_SOCK`), possibly imported
+ * from the user's login shell. Additive field: older agents omit it.
+ */
+ssh_agent: boolean, };

@@ -1,6 +1,28 @@
 # Debutuuru architecture
 
-Status (2026-11-20): **Phase 0 and Phase 1 done.** Next: Phase 2 (remotes).
+Status (2026-11-20): **Phases 0–2 done.** Next: Phase 3 (distribution).
+
+Phase 2 (remotes), verified in the app with real SSH to GitHub:
+- Fetch, pull (default / ff-only / rebase / merge) and push (publishing new
+  branches with `-u`; force-with-lease behind a second click), with streamed
+  progress, cancel, and failures classified into actionable advice.
+- **SSH is never overridden by default.** Passwordless keys, ssh-agent,
+  `~/.ssh/config`, `core.sshCommand` and credential managers work exactly as
+  in the terminal. Verified: a WSL repo fetches with a passphrase-less key and
+  no prompt at all.
+- The WSL agent imports `SSH_AUTH_SOCK`, `PATH` and proxy variables from the
+  user's login shell (`$SHELL -ilc`, 5 s timeout), because `wsl.exe -e` skips
+  rc files where ssh-agents are usually started.
+- Only when git/ssh really need input (a key passphrase, an unknown host key,
+  an HTTPS password) do they call `GIT_ASKPASS`/`SSH_ASKPASS` (our own binary,
+  `SSH_ASKPASS_REQUIRE=force`). The prompt goes over a token-authenticated
+  loopback socket to the agent, then to an in-app dialog, and back. Answers
+  are never logged or stored. Verified with a local HTTP server (credentials
+  arrive intact, never in logs) and GitHub's real host-key prompt.
+- Opt-in "Use WSL's SSH keys for Windows repositories" (`GIT_SSH_COMMAND=wsl.exe
+  -e ssh`), for machines where keys live only in WSL. Verified fetching a
+  Windows repo over SSH with the WSL key.
+- git children get `stdin = null`, so nothing can read the agent's protocol pipe.
 
 Phase 1, verified end to end on Windows 11 + Ubuntu (WSL2):
 - The Linux agent is cross-built on Windows (`x86_64-unknown-linux-musl`,
@@ -108,10 +130,11 @@ means adding a module, not a new transport.
 
 - Always uses the user's existing setup (ssh keys, ssh-agent, Git Credential
   Manager). The app never stores secrets.
-- Remote operations run with `GIT_ASKPASS` / `SSH_ASKPASS` pointing to
-  `debutuuru askpass`, plus `SSH_ASKPASS_REQUIRE=force`. The helper sends the
-  prompt to the UI through the agent, the user answers in a dialog, and the
-  answer goes back to git. This works the same inside WSL.
+- Remote operations run with `GIT_ASKPASS` / `SSH_ASKPASS` pointing to the
+  agent's own executable (the desktop app for host repos, the agent binary in
+  WSL), plus `SSH_ASKPASS_REQUIRE=force`. Started that way, the binary only
+  forwards the prompt to the agent and prints the answer. This works the same
+  inside WSL.
 - Fetch, pull and push stream progress and can be cancelled.
 
 ## Versioning

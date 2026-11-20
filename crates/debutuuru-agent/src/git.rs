@@ -1,8 +1,9 @@
 //! `git.*` methods. Repos are opened with plain local paths: the agent always
 //! runs on the same OS as the repository (that's the point of the agent).
 
+use crate::remote::{self, Ops, RemoteOp};
 use crate::watch::{self, RepoWatch};
-use crate::{handle_with, Events, Module};
+use crate::{askpass, handle_with, Events, Module};
 use debutuuru_core::{Location, Repo};
 use debutuuru_protocol::git::*;
 use debutuuru_protocol::{ModuleInfo, RpcError};
@@ -15,6 +16,7 @@ pub struct GitModule {
     repos: Mutex<HashMap<String, Arc<Repo>>>,
     /// Active file watchers, keyed like `repos`. Dropping one stops it.
     watches: Mutex<HashMap<String, RepoWatch>>,
+    ops: Ops,
     events: Events,
 }
 
@@ -23,8 +25,124 @@ impl GitModule {
         Self {
             repos: Mutex::default(),
             watches: Mutex::default(),
+            ops: Ops::default(),
             events,
         }
+    }
+
+    fn remote_op(
+        &self,
+        repo_key: &str,
+        options: &RemoteOptions,
+        args: Vec<String>,
+    ) -> Result<OpOutcome, String> {
+        let repo = self.repo(repo_key).map_err(|e| e.to_string())?;
+        Ok(remote::run(
+            RemoteOp {
+                repo: &repo,
+                repo_key,
+                options,
+                args,
+            },
+            &self.events,
+            &self.ops,
+        ))
+    }
+
+    fn fetch(&self, p: FetchParams) -> Result<OpOutcome, String> {
+        let mut args = vec!["fetch".to_string(), "--progress".into(), "--prune".into()];
+        match &p.remote {
+            Some(r) => args.push(r.clone()),
+            None => args.push("--all".into()),
+        }
+        let mut out = self.remote_op(&p.repo, &p.options, args)?;
+        if out.ok {
+            out.summary = match &p.remote {
+                Some(r) => format!("Fetched {r}"),
+                None => "Fetched all remotes".into(),
+            };
+        }
+        Ok(out)
+    }
+
+    fn pull(&self, p: PullParams) -> Result<OpOutcome, String> {
+        let repo = self.repo(&p.repo).map_err(|e| e.to_string())?;
+        let Some(upstream) = repo.upstream().map_err(|e| e.to_string())? else {
+            return Ok(OpOutcome {
+                ok: false,
+                summary: "This branch has no upstream to pull from. Push it first, or set one with `git branch -u`.".into(),
+                hint: Some(FailureHint::NoRemote),
+                log: String::new(),
+            });
+        };
+        let mut args = vec!["pull".to_string(), "--progress".into()];
+        match p.mode {
+            PullMode::Default => {}
+            PullMode::FfOnly => args.push("--ff-only".into()),
+            PullMode::Rebase => args.push("--rebase".into()),
+            PullMode::Merge => args.push("--no-rebase".into()),
+        }
+        let mut out = self.remote_op(&p.repo, &p.options, args)?;
+        if out.ok {
+            out.summary = if out.log.contains("Already up to date") {
+                "Already up to date".into()
+            } else {
+                format!("Pulled {upstream}")
+            };
+        }
+        Ok(out)
+    }
+
+    fn push(&self, p: PushParams) -> Result<OpOutcome, String> {
+        let repo = self.repo(&p.repo).map_err(|e| e.to_string())?;
+        let branch = repo
+            .head_branch()
+            .map_err(|e| e.to_string())?
+            .ok_or("HEAD is detached: check out a branch to push")?;
+        let upstream = repo.upstream().map_err(|e| e.to_string())?;
+        let mut args = vec!["push".to_string(), "--progress".into()];
+        if p.force_with_lease {
+            args.push("--force-with-lease".into());
+        }
+        // New branch: publish it to the obvious remote and track it.
+        let target = match &upstream {
+            Some(u) => u.clone(),
+            None => {
+                let remotes = repo.remotes().map_err(|e| e.to_string())?;
+                let remote = remotes
+                    .iter()
+                    .find(|r| r.name == "origin")
+                    .or(if remotes.len() == 1 {
+                        remotes.first()
+                    } else {
+                        None
+                    })
+                    .map(|r| r.name.clone());
+                let Some(remote) = remote else {
+                    return Ok(OpOutcome {
+                        ok: false,
+                        summary: if remotes.is_empty() {
+                            "This repository has no remote. Add one with `git remote add origin <url>`.".into()
+                        } else {
+                            "Several remotes and no upstream: choose one with `git push -u <remote> HEAD`.".into()
+                        },
+                        hint: Some(FailureHint::NoRemote),
+                        log: String::new(),
+                    });
+                };
+                args.extend(["-u".into(), remote.clone(), "HEAD".into()]);
+                format!("{remote}/{branch}")
+            }
+        };
+        let mut out = self.remote_op(&p.repo, &p.options, args)?;
+        if out.ok {
+            out.summary = if out.log.contains("Everything up-to-date") {
+                "Nothing to push".into()
+            } else {
+                format!("Pushed {branch} → {target}")
+            };
+        }
+        Ok(out)
     }
 
     fn repo(&self, path: &str) -> Result<Arc<Repo>, debutuuru_core::Error> {
@@ -80,7 +198,21 @@ impl Module for GitModule {
                     status: r.status()?,
                     branches: r.branches()?,
                     worktrees: r.worktrees()?,
+                    remotes: r.remotes()?,
+                    upstream: r.upstream()?,
                 })
+            }),
+            FETCH => handle_with(params, |p: FetchParams| self.fetch(p)),
+            PULL => handle_with(params, |p: PullParams| self.pull(p)),
+            PUSH => handle_with(params, |p: PushParams| self.push(p)),
+            CANCEL => handle_with(params, |p: CancelParams| {
+                self.ops.cancel(&p.op_id);
+                Ok::<_, String>(())
+            }),
+            PROMPT_REPLY => handle_with(params, |p: PromptReply| {
+                let server = askpass::server(&self.events).map_err(|e| e.to_string())?;
+                server.reply(&p.id, p.answer);
+                Ok::<_, String>(())
             }),
             LOG => handle_with(params, |p: LogParams| self.repo(&p.repo)?.log(p.limit)),
             STAGE => handle_with(params, |p: PathsParams| self.repo(&p.repo)?.stage(&p.paths)),

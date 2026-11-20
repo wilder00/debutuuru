@@ -1,5 +1,5 @@
 use crate::{Error, Location, Result};
-use std::process::{Command, Output};
+use std::process::{Command, Output, Stdio};
 
 /// Runs git for a [`Location`], either directly or through `wsl.exe`.
 #[derive(Debug, Clone)]
@@ -12,7 +12,9 @@ impl GitRunner {
         Self { location }
     }
 
-    fn command(&self, args: &[&str]) -> Command {
+    /// A ready-to-run git command. Callers may add env/pipes (remote
+    /// operations stream progress and set up credential prompts).
+    pub fn command(&self, args: &[&str]) -> Command {
         let mut cmd;
         match &self.location.wsl_distro {
             Some(distro) => {
@@ -26,6 +28,9 @@ impl GitRunner {
         }
         // Never hang waiting for credentials on a terminal that isn't there.
         cmd.env("GIT_TERMINAL_PROMPT", "0");
+        // Never let git (or ssh, hooks…) read our stdin: in `agent --stdio`
+        // that is the protocol pipe.
+        cmd.stdin(Stdio::null());
         cmd.args(args);
         #[cfg(windows)]
         {

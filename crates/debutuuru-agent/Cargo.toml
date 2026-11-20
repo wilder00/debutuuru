@@ -16,3 +16,5 @@ serde_json.workspace = true
 # Default features only: inotify on Linux (works in a static musl build),
 # ReadDirectoryChangesW on Windows.
 notify = "8.2"
+# OS randomness for the askpass bridge token.
+getrandom = "0.4"

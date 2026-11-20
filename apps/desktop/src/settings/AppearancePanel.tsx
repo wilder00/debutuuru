@@ -1,7 +1,8 @@
 import { invoke } from "@tauri-apps/api/core";
 import { Check, ImagePlus, Trash2, X } from "lucide-react";
-import { useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { ImportedBackground } from "../bindings/ImportedBackground";
+import { wslDistros } from "../lib/rpc";
 import { generateTheme } from "../theme/generate";
 import { CUSTOM, PRESETS, resolveInputs } from "../theme/presets";
 import { useSettings } from "./SettingsProvider";
@@ -28,9 +29,9 @@ export function AppearancePanel({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="drawer-backdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <aside className="drawer" role="dialog" aria-label="Appearance" onKeyDown={(e) => e.key === "Escape" && onClose()}>
+      <aside className="drawer" role="dialog" aria-label="Settings" onKeyDown={(e) => e.key === "Escape" && onClose()}>
         <header className="drawer-head">
-          <h2>Appearance</h2>
+          <h2>Settings</h2>
           <button className="icon-btn" onClick={onClose} title="Close (Esc)" autoFocus>
             <X size={16} />
           </button>
@@ -127,8 +128,56 @@ export function AppearancePanel({ onClose }: { onClose: () => void }) {
             ))}
           </div>
         </Section>
+
+        <GitSshSection />
       </aside>
     </div>
+  );
+}
+
+/** How Windows repositories authenticate over SSH. WSL repos always use their
+ *  own distro's ssh, keys and ssh-agent, so nothing to configure for them. */
+function GitSshSection() {
+  const { git: g, updateGit } = useSettings();
+  const [distros, setDistros] = useState<string[]>([]);
+  useEffect(() => {
+    wslDistros().then(setDistros).catch(() => {});
+  }, []);
+  if (!navigator.userAgent.includes("Windows")) return null;
+  return (
+    <Section title="Git & SSH">
+      <label className="check toggle-row">
+        <input
+          type="checkbox"
+          checked={g.windows_ssh === "wsl"}
+          disabled={distros.length === 0}
+          onChange={(e) => updateGit({ windows_ssh: e.target.checked ? "wsl" : "system" })}
+        />
+        <span>
+          Use WSL's SSH keys for Windows repositories
+          <span className="hint block">
+            Push/pull of Windows repos runs <code className="mono">wsl.exe -e ssh</code>, so the keys, ssh-agent and <code className="mono">~/.ssh/config</code> from
+            your distro work here too. Off: your normal Git for Windows setup (keys in <code className="mono">%USERPROFILE%\.ssh</code>, Credential Manager for
+            HTTPS).
+          </span>
+        </span>
+      </label>
+      {g.windows_ssh === "wsl" && distros.length > 1 && (
+        <div className="field-grid">
+          <label>
+            Distro
+            <select value={g.wsl_distro ?? ""} onChange={(e) => updateGit({ wsl_distro: e.target.value || null })}>
+              <option value="">Default distro</option>
+              {distros.map((d) => (
+                <option key={d}>{d}</option>
+              ))}
+            </select>
+          </label>
+        </div>
+      )}
+      {distros.length === 0 && <p className="hint">No WSL distro found.</p>}
+      <p className="hint">Repositories inside WSL always use that distro's own ssh. Passwordless keys and ssh-agent need no setup; when a passphrase or password is needed, Debutuuru asks in a dialog and never stores it.</p>
+    </Section>
   );
 }
 

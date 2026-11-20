@@ -65,7 +65,15 @@ cargo run -p debutuuru -- info .             # CLI
 cargo build -p debutuuru --target x86_64-unknown-linux-musl --release
 ```
 
-Testing tips: in Git Bash set `MSYS_NO_PATHCONV=1` before passing Linux paths
+- Remote operations must never override the user's SSH/credential setup by
+  default (no `GIT_SSH_COMMAND`, no `-i`, no stored secrets). Prompts go
+  through the askpass bridge (`crates/debutuuru-agent/src/askpass.rs`) only.
+  Never log prompt answers.
+
+Testing tips: to drive the real app UI, start the dev build with
+`WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--remote-debugging-port=9222` and send
+`Runtime.evaluate` over the DevTools WebSocket (Node ≥ 22 has `WebSocket`
+built in). In Git Bash set `MSYS_NO_PATHCONV=1` before passing Linux paths
 to `wsl.exe`. In PowerShell, run multi-line WSL commands from a script file
 (`wsl -e sh <file>`), because PowerShell 5.1 mangles inner quotes.
 

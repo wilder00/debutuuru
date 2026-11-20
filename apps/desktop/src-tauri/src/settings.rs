@@ -24,6 +24,30 @@ pub struct Settings {
     pub appearance: Appearance,
     /// Added without a schema bump: missing in older files → default.
     pub session: Session,
+    /// Added without a schema bump.
+    pub git: GitSettings,
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, TS)]
+#[serde(default)]
+#[ts(export)]
+pub struct GitSettings {
+    /// Which SSH Windows repositories use for push/pull/fetch.
+    pub windows_ssh: WindowsSsh,
+    /// Distro whose SSH keys to use with [`WindowsSsh::Wsl`]; `None` = default distro.
+    pub wsl_distro: Option<String>,
+}
+
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export)]
+pub enum WindowsSsh {
+    /// Whatever git is configured to use (default): Git for Windows' ssh,
+    /// `core.sshCommand`, etc.
+    #[default]
+    System,
+    /// `wsl.exe -e ssh`: reuse the keys, agent and ~/.ssh/config from WSL.
+    Wsl,
 }
 
 /// Open repository tabs, restored on the next start.
@@ -98,6 +122,7 @@ impl Default for Settings {
             schema_version: SCHEMA_VERSION,
             appearance: Appearance::default(),
             session: Session::default(),
+            git: GitSettings::default(),
         }
     }
 }
@@ -171,6 +196,15 @@ impl Settings {
         s.open_repos.truncate(50);
         if s.active.as_ref().is_some_and(|a| !s.open_repos.contains(a)) {
             s.active = s.open_repos.first().cloned();
+        }
+        // The distro name ends up in a command line: only plain names.
+        if self.git.wsl_distro.as_deref().is_some_and(|d| {
+            d.is_empty()
+                || !d
+                    .chars()
+                    .all(|c| c.is_ascii_alphanumeric() || "._-".contains(c))
+        }) {
+            self.git.wsl_distro = None;
         }
         self.schema_version = SCHEMA_VERSION;
         self
@@ -421,11 +455,13 @@ mod tests {
             file: "../../etc/passwd".into(),
             ..Default::default()
         });
+        s.git.wsl_distro = Some("Ubuntu; rm -rf ~".into());
         let s = s.sanitized();
         assert_eq!(s.appearance.font_size, 16);
         assert_eq!(s.appearance.custom.accent, ThemeInputs::default().accent);
         assert_eq!(s.appearance.ui_font, None);
         assert_eq!(s.appearance.background, None);
+        assert_eq!(s.git.wsl_distro, None);
     }
 
     #[test]

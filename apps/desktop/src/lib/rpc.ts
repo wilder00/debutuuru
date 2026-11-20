@@ -38,6 +38,7 @@ export const agentHello = (repo: string) => call<Hello>("agent_hello", { repo })
 /** Canonical tab key for a typed path (absolute, or `\\wsl.localhost\…`). */
 export const resolvePath = (input: string) => invoke<string>("resolve_path", { input });
 export const initialPath = () => invoke<string | null>("initial_path");
+export const wslDistros = () => invoke<string[]>("wsl_distros");
 
 /** Emitted when a WSL agent process exits; payload `{ distro }`. */
 export const AGENT_DISCONNECTED = "agent.disconnected";

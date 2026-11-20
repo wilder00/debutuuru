@@ -4,6 +4,10 @@ import { rpc, type Params } from "../../lib/rpc";
 import type { CheckoutParams } from "../../bindings/CheckoutParams";
 import type { CommitParams } from "../../bindings/CommitParams";
 import type { DiffParams } from "../../bindings/DiffParams";
+import type { FetchParams } from "../../bindings/FetchParams";
+import type { OpOutcome } from "../../bindings/OpOutcome";
+import type { PullParams } from "../../bindings/PullParams";
+import type { PushParams } from "../../bindings/PushParams";
 import type { LogEntry } from "../../bindings/LogEntry";
 import type { LogParams } from "../../bindings/LogParams";
 import type { PathsParams } from "../../bindings/PathsParams";
@@ -20,7 +24,14 @@ export const git = {
   /** Idempotent: the agent emits `git.changed` for this repo until unwatched. */
   watch: (repo: string) => rpc<null>(repo, "git.watch"),
   unwatch: (repo: string) => rpc<null>(repo, "git.unwatch"),
+  fetch: (repo: string, p: Params<FetchParams>) => rpc<OpOutcome>(repo, "git.fetch", p),
+  pull: (repo: string, p: Params<PullParams>) => rpc<OpOutcome>(repo, "git.pull", p),
+  push: (repo: string, p: Params<PushParams>) => rpc<OpOutcome>(repo, "git.push", p),
+  cancel: (repo: string, opId: string) => rpc<null>(repo, "git.cancel", { op_id: opId }),
+  promptReply: (repo: string, id: string, answer: string | null) => rpc<null>(repo, "git.prompt_reply", { id, answer }),
 };
 
-/** Event topic emitted by the agent's watcher. */
+/** Event topics emitted by the git module. */
 export const GIT_CHANGED = "git.changed";
+export const GIT_PROGRESS = "git.progress";
+export const GIT_PROMPT = "git.prompt";

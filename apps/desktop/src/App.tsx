@@ -4,6 +4,7 @@ import type { Hello } from "./bindings/Hello";
 import type { Snapshot } from "./bindings/Snapshot";
 import { AgentError, agentHello, initialPath, onOpenRepo, resolvePath } from "./lib/rpc";
 import { GitView } from "./modules/git/GitView";
+import { PromptDialog } from "./modules/git/PromptDialog";
 import { AppearancePanel } from "./settings/AppearancePanel";
 import { BackgroundLayer } from "./settings/BackgroundLayer";
 import { useSettings } from "./settings/SettingsProvider";
@@ -122,6 +123,7 @@ export function App() {
         <StatusBar snapshot={snapshot} agent={agent} />
       </div>
       {appearanceOpen && <AppearancePanel onClose={() => setAppearanceOpen(false)} />}
+      <PromptDialog />
     </>
   );
 }

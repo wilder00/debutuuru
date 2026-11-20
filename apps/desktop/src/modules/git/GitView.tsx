@@ -7,6 +7,8 @@ import { git, GIT_CHANGED } from "./api";
 import { ChangesPanel, type FileSelection } from "./ChangesPanel";
 import { CommitGraph } from "./CommitGraph";
 import { DiffView } from "./DiffView";
+import { RemoteBar } from "./RemoteBar";
+import { useSettings } from "../../settings/SettingsProvider";
 import { Sidebar } from "./Sidebar";
 
 const LOG_LIMIT = 2000; // paginated loading comes with a later phase
@@ -23,6 +25,7 @@ type Props = {
 };
 
 export function GitView({ repo, active, refreshKey, onError, onOpen, onLoaded }: Props) {
+  const { git: gitSettings } = useSettings();
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
   const [log, setLog] = useState<LogEntry[]>([]);
   const [commit, setCommit] = useState<string | null>(null);
@@ -140,6 +143,7 @@ export function GitView({ repo, active, refreshKey, onError, onOpen, onLoaded }:
         onOpenWorktree={(p) => onOpen(agentPathToRepo(repo, p))}
       />
       <div className="center">
+        <RemoteBar repo={repo} snapshot={snapshot} settings={gitSettings} onDone={() => void reload().catch(onError)} />
         <CommitGraph log={log} selected={commit} onSelect={setCommit} />
         {file && (
           <DiffView

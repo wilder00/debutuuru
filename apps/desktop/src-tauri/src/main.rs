@@ -85,6 +85,14 @@ fn repo_arg(args: impl Iterator<Item = String>, cwd: &std::path::Path) -> Option
     Some(resolve_in(&arg, cwd).user_string())
 }
 
+/// WSL distros for the "use WSL's SSH keys" setting.
+#[tauri::command]
+async fn wsl_distros() -> Vec<String> {
+    tauri::async_runtime::spawn_blocking(wsl::list_distros)
+        .await
+        .unwrap_or_default()
+}
+
 #[tauri::command]
 fn get_settings(state: tauri::State<'_, SettingsState>) -> LoadedSettings {
     let loaded = state.store.load();
@@ -130,10 +138,20 @@ fn import_background(
 }
 
 fn main() {
+    // The in-process agent points git/ssh at this executable for credential
+    // prompts. In that role we must not start a window (or the single-instance
+    // check): forward the prompt to the running app and exit.
+    let args: Vec<String> = std::env::args().collect();
+    if debutuuru_agent::askpass::is_askpass_invocation(&args) {
+        std::process::exit(debutuuru_agent::askpass::client_main(&args[1]));
+    }
+
     tauri::Builder::default()
         // Must be first: a second launch (`debutuuru .` while the app runs)
         // forwards its path here instead of opening another window.
         .plugin(tauri_plugin_single_instance::init(|app, argv, cwd| {
+            #[cfg(debug_assertions)]
+            eprintln!("[single-instance] argv={argv:?} cwd={cwd}");
             if let Some(repo) = repo_arg(argv.into_iter().skip(1), std::path::Path::new(&cwd)) {
                 let _ = app.emit(OPEN_REPO, repo);
             }
@@ -158,6 +176,7 @@ fn main() {
             agent_hello,
             resolve_path,
             initial_path,
+            wsl_distros,
             get_settings,
             save_settings,
             import_background

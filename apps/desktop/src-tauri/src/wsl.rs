@@ -115,6 +115,37 @@ pub fn find_agent_binary(resource_dir: Option<PathBuf>) -> Option<PathBuf> {
     None
 }
 
+/// Installed WSL distros (`wsl.exe -l -q`), without Docker's internal ones.
+pub fn list_distros() -> Vec<String> {
+    if !cfg!(windows) {
+        return vec![];
+    }
+    let Ok(out) = Command::new("wsl.exe")
+        .args(["-l", "-q"])
+        .output()
+        .map_err(drop)
+    else {
+        return vec![];
+    };
+    parse_distros(&out.stdout)
+}
+
+/// `wsl.exe -l` prints UTF-16LE.
+fn parse_distros(bytes: &[u8]) -> Vec<String> {
+    let units: Vec<u16> = bytes
+        .chunks_exact(2)
+        .map(|c| u16::from_le_bytes([c[0], c[1]]))
+        .collect();
+    String::from_utf16_lossy(&units)
+        .lines()
+        .map(|l| {
+            l.trim_matches(|c: char| c.is_whitespace() || c == '\u{feff}' || c == '\0')
+                .to_string()
+        })
+        .filter(|l| !l.is_empty() && !l.starts_with("docker-desktop"))
+        .collect()
+}
+
 pub const BUILD_HINT: &str = "The Linux agent isn't built. Run: cargo build -p debutuuru --target x86_64-unknown-linux-musl --release";
 
 /// Stable content hash (FNV-1a 64), so the deployed name changes with the build.
@@ -126,6 +157,13 @@ fn fnv1a(bytes: &[u8]) -> u64 {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn parses_utf16_distro_list() {
+        let text = "Ubuntu\r\ndocker-desktop\r\nDebian\r\n";
+        let bytes: Vec<u8> = text.encode_utf16().flat_map(|u| u.to_le_bytes()).collect();
+        assert_eq!(super::parse_distros(&bytes), vec!["Ubuntu", "Debian"]);
+    }
+
     #[test]
     fn fnv_is_stable() {
         assert_eq!(super::fnv1a(b""), 0xcbf2_9ce4_8422_2325);

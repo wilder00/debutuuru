@@ -104,6 +104,10 @@ pub struct Hello {
     /// Set when the agent runs inside WSL.
     pub wsl_distro: Option<String>,
     pub modules: Vec<ModuleInfo>,
+    /// An ssh-agent socket is reachable (`SSH_AUTH_SOCK`), possibly imported
+    /// from the user's login shell. Additive field: older agents omit it.
+    #[serde(default)]
+    pub ssh_agent: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]

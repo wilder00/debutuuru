@@ -29,15 +29,20 @@ export function Sidebar({ snapshot, onCheckout, onOpenWorktree }: Props) {
           </li>
         ))}
       </Group>
-      {remote.length > 0 && (
-        <Group title="Remotes" count={remote.length} icon={<Cloud size={13} />} initiallyOpen={false}>
-          {remote.map((b) => (
-            <li key={b.name} className="item" title={b.subject}>
-              <span className="label">{b.name}</span>
-            </li>
-          ))}
-        </Group>
-      )}
+      <Group title="Remotes" count={snapshot.remotes.length} icon={<Cloud size={13} />}>
+        {snapshot.remotes.length === 0 && <li className="empty-line">No remotes</li>}
+        {snapshot.remotes.map((r) => (
+          <li key={r.name} className="item" title={`fetch: ${r.fetch_url}\npush:  ${r.push_url}`}>
+            <span className="label">{r.name}</span>
+            <span className={`transport t-${r.transport}`}>{r.transport}</span>
+          </li>
+        ))}
+        {remote.map((b) => (
+          <li key={b.name} className="item sub" title={b.subject}>
+            <span className="label">{b.name}</span>
+          </li>
+        ))}
+      </Group>
       <Group title="Worktrees" count={snapshot.worktrees.length} icon={<FolderGit2 size={13} />}>
         {snapshot.worktrees.map((w) => {
           const current = w.path === root;

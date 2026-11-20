@@ -92,6 +92,7 @@ impl StdioClient {
                 os: String::new(),
                 wsl_distro: None,
                 modules: vec![],
+                ssh_agent: false,
             },
         };
         let hello: Hello = serde_json::from_value(client.call(HELLO, Value::Null)?)

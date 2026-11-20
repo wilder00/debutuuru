@@ -3,6 +3,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { Appearance } from "../bindings/Appearance";
+import type { GitSettings } from "../bindings/GitSettings";
 import type { LoadedSettings } from "../bindings/LoadedSettings";
 import type { Session } from "../bindings/Session";
 import type { Settings } from "../bindings/Settings";
@@ -14,12 +15,14 @@ type Ctx = {
   ready: boolean;
   appearance: Appearance;
   session: Session;
+  git: GitSettings;
   backgroundPath: string | null;
   readOnly: boolean;
   notice: string | null;
   report: ThemeReport;
   update: (patch: Partial<Appearance>) => void;
   updateSession: (session: Session) => void;
+  updateGit: (patch: Partial<GitSettings>) => void;
   setBackground: (bg: Appearance["background"], path: string | null) => void;
   dismissNotice: () => void;
 };
@@ -39,6 +42,7 @@ export const DEFAULT_SETTINGS: Settings = {
     density: "compact",
   },
   session: { open_repos: [], active: null },
+  git: { windows_ssh: "system", wsl_distro: null },
 };
 
 /** Font names come from the user; keep only characters valid in a family name. */
@@ -104,6 +108,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
 
   const update = useCallback((patch: Partial<Appearance>) => change((s) => ({ ...s, appearance: { ...s.appearance, ...patch } })), [change]);
   const updateSession = useCallback((session: Session) => change((s) => ({ ...s, session })), [change]);
+  const updateGit = useCallback((patch: Partial<GitSettings>) => change((s) => ({ ...s, git: { ...s.git, ...patch } })), [change]);
   const setBackground = useCallback(
     (bg: Appearance["background"], path: string | null) => {
       setBackgroundPath(path);
@@ -116,12 +121,14 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     ready,
     appearance: settings.appearance,
     session: settings.session,
+    git: settings.git,
     backgroundPath,
     readOnly,
     notice,
     report,
     update,
     updateSession,
+    updateGit,
     setBackground,
     dismissNotice: () => setNotice(null),
   };

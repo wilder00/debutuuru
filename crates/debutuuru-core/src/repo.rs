@@ -91,6 +91,16 @@ pub struct Status {
     pub files: Vec<FileChange>,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct Remote {
+    pub name: String,
+    pub fetch_url: String,
+    pub push_url: String,
+    /// `ssh` (git@host:… or ssh://), `https`, `http`, `file`, or `other`.
+    pub transport: String,
+}
+
 pub struct Repo {
     runner: GitRunner,
     pub info: RepoInfo,
@@ -168,6 +178,54 @@ impl Repo {
             .status
             .success()
             .then(|| String::from_utf8_lossy(&head.stdout).trim().to_string()))
+    }
+
+    /// The underlying runner (for operations that need streaming or custom env).
+    pub fn runner(&self) -> &GitRunner {
+        &self.runner
+    }
+
+    pub fn remotes(&self) -> Result<Vec<Remote>> {
+        let out = self.runner.git(&["remote", "-v"])?;
+        let mut list: Vec<Remote> = Vec::new();
+        for line in out.lines() {
+            // "origin\tgit@github.com:me/x.git (fetch)"
+            let Some((name, rest)) = line.split_once('\t') else {
+                continue;
+            };
+            let Some((url, kind)) = rest.rsplit_once(' ') else {
+                continue;
+            };
+            let r = match list.iter_mut().find(|r| r.name == name) {
+                Some(r) => r,
+                None => {
+                    list.push(Remote {
+                        name: name.to_string(),
+                        fetch_url: String::new(),
+                        push_url: String::new(),
+                        transport: transport_of(url).to_string(),
+                    });
+                    list.last_mut().expect("just pushed")
+                }
+            };
+            if kind == "(push)" {
+                r.push_url = url.to_string();
+            } else {
+                r.fetch_url = url.to_string();
+            }
+        }
+        Ok(list)
+    }
+
+    /// `origin/main` if the current branch tracks something.
+    pub fn upstream(&self) -> Result<Option<String>> {
+        let out =
+            self.runner
+                .output(&["rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}"])?;
+        Ok(out
+            .status
+            .success()
+            .then(|| String::from_utf8_lossy(&out.stdout).trim().to_string()))
     }
 
     pub fn worktrees(&self) -> Result<Vec<Worktree>> {
@@ -359,6 +417,33 @@ impl Repo {
     }
 }
 
+/// Classifies a remote URL the way git does (scp-like `user@host:path` is ssh).
+pub fn transport_of(url: &str) -> &'static str {
+    let lower = url.to_ascii_lowercase();
+    if lower.starts_with("ssh://") || lower.starts_with("git+ssh://") {
+        "ssh"
+    } else if lower.starts_with("https://") {
+        "https"
+    } else if lower.starts_with("http://") {
+        "http"
+    } else if lower.starts_with("file://")
+        || url.starts_with('/')
+        || url.starts_with('.')
+        || url.get(1..3) == Some(":\\")
+        || url.get(1..3) == Some(":/")
+    {
+        "file"
+    } else if !url.contains("://")
+        && url
+            .split_once(':')
+            .is_some_and(|(host, _)| !host.contains('/'))
+    {
+        "ssh"
+    } else {
+        "other"
+    }
+}
+
 fn parse_branch_line(b: &str, status: &mut Status) {
     let (name_part, tracking) = match b.split_once(" [") {
         Some((n, t)) => (n, Some(t.trim_end_matches(']'))),
@@ -385,6 +470,17 @@ fn parse_branch_line(b: &str, status: &mut Status) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn transports() {
+        assert_eq!(transport_of("git@github.com:wilder00/debutuuru.git"), "ssh");
+        assert_eq!(transport_of("ssh://git@host:22/x.git"), "ssh");
+        assert_eq!(transport_of("https://github.com/x/y.git"), "https");
+        assert_eq!(transport_of("/srv/git/x.git"), "file");
+        assert_eq!(transport_of("C:\\repos\\x.git"), "file");
+        assert_eq!(transport_of("C:/repos/x.git"), "file");
+        assert_eq!(transport_of("../other"), "file");
+    }
 
     #[test]
     fn branch_line_variants() {

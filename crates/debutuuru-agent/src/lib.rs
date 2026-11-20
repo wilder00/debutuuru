@@ -9,9 +9,13 @@
 //! [`Agent::with_default_modules`]. Its methods are namespaced (`git.status`,
 //! `term.spawn`, …) and announced in the [`Hello`] handshake.
 
+pub mod askpass;
 pub mod client;
 pub mod events;
 pub mod git;
+pub mod remote;
+#[cfg(unix)]
+pub mod shellenv;
 pub mod watch;
 
 use debutuuru_protocol::{
@@ -64,6 +68,7 @@ impl Agent {
             os: std::env::consts::OS.to_string(),
             wsl_distro: std::env::var("WSL_DISTRO_NAME").ok(),
             modules: self.modules.iter().map(|m| m.info()).collect(),
+            ssh_agent: std::env::var_os("SSH_AUTH_SOCK").is_some_and(|s| !s.is_empty()),
         }
     }
 

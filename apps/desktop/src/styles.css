@@ -271,3 +271,51 @@ ul { list-style: none; margin: 0; padding: 0; }
 .tab:hover .tab-close, .tab.on .tab-close { visibility: visible; }
 [hidden] { display: none !important; }
 .graph-empty { padding: 16px 14px; }
+
+/* Remote operations */
+.remote-area { position: relative; flex: none; border-bottom: 1px solid var(--border-subtle); background: var(--bg-panel); backdrop-filter: blur(var(--panel-blur)); }
+.remote-bar { display: flex; align-items: center; gap: 6px; height: 40px; padding: 0 10px; }
+.remote-bar > button, .split > button { height: 28px; }
+.split { position: relative; display: inline-flex; }
+.split > button:first-child { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.split-more { width: 24px; padding: 0; justify-content: center; border-left: 0; border-top-left-radius: 0; border-bottom-left-radius: 0; }
+.badge-count { min-width: 18px; padding: 0 5px; border-radius: 99px; background: var(--accent-soft); color: var(--accent); font: 600 .78em var(--font-mono); text-align: center; }
+.upstream { margin-left: 6px; color: var(--text-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.menu {
+  position: absolute; top: calc(100% + 4px); left: 0; z-index: 5; min-width: 200px; display: flex; flex-direction: column; padding: 4px;
+  background: var(--bg-solid); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow);
+}
+.menu button { justify-content: flex-start; background: none; border: 0; height: 30px; }
+.menu button:hover:not(:disabled) { background: var(--bg-hover); border: 0; }
+.menu button.danger { color: var(--danger); }
+.op-progress { display: inline-flex; align-items: center; gap: 6px; max-width: 45%; color: var(--text-muted); font-size: .9em; }
+.op-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.op-meter { position: absolute; left: 0; bottom: -1px; height: 2px; background: var(--accent); transition: width .2s; }
+.spin { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.op-result { display: flex; align-items: flex-start; gap: 8px; padding: 8px 10px; border-top: 1px solid var(--border-subtle); }
+.op-result.ok { color: var(--ok); }
+.op-result.bad { color: var(--danger); background: color-mix(in srgb, var(--danger) 7%, transparent); }
+.op-result-body { flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0; color: var(--text); }
+.op-help { color: var(--text-muted); }
+.op-log { max-height: 180px; overflow: auto; margin: 4px 0 0; padding: 8px; border-radius: var(--radius); background: var(--bg-solid); color: var(--text-muted); white-space: pre-wrap; font-size: .85em; }
+.transport { font: 600 .72em var(--font-mono); padding: 0 5px; border-radius: 4px; color: var(--text-muted); background: var(--bg-raised); }
+.t-ssh { color: var(--ok); } .t-https { color: var(--info); }
+.item.sub { padding-left: 36px; font-size: .92em; }
+
+/* Prompt dialog */
+.modal-backdrop { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; background: rgb(0 0 0 / .45); }
+.modal {
+  width: 460px; max-width: 92vw; display: flex; flex-direction: column; gap: 10px; padding: 18px 20px;
+  background: var(--bg-solid); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow);
+  animation: slide-in .14s ease-out;
+}
+.modal header { display: flex; align-items: center; gap: 10px; color: var(--accent); }
+.modal h2 { font-size: 1.1em; color: var(--text); }
+.modal .hint { margin: 0; }
+.prompt-text { margin: 0; padding: 10px; border-radius: var(--radius); background: var(--bg-raised); white-space: pre-wrap; word-break: break-word; font-size: .88em; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
+select { height: 28px; background: var(--bg-raised); border: 1px solid var(--border); border-radius: var(--radius); padding: 0 6px; }
+.toggle-row { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; }
+.toggle-row input { margin-top: 3px; }
+.hint.block { display: block; margin-top: 4px; }
