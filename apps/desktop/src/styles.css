@@ -26,6 +26,9 @@ body {
   user-select: none;
 }
 input, textarea, .diff-body, .label, .subject { user-select: text; }
+/* Messages people copy into bug reports or chats: results, git output, prompts. */
+.op-result-body, .op-log, .prompt-text, .modal .hint { user-select: text; cursor: text; }
+.op-result-body button { cursor: pointer; }
 .mono, code, .diff-body { font-family: var(--font-mono); font-size: .92em; }
 .diff-body { font-variant-ligatures: var(--code-ligatures); }
 h1, h2, h3 { margin: 0; font-weight: 600; }
