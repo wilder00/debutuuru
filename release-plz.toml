@@ -3,7 +3,7 @@
 # workspace version + CHANGELOG.md, and tags `vX.Y.Z` when that PR is merged.
 
 [workspace]
-changelog_update = true
+changelog_update = false   # one product changelog, owned by `debutuuru` (below)
 # Nothing goes to crates.io: the previous version comes from git tags
 # (`git_tag_name`), and an untagged package is an initial release.
 git_only = true
@@ -21,4 +21,5 @@ name = "debutuuru"
 git_tag_enable = true
 git_tag_name = "v{{ version }}"
 changelog_path = "CHANGELOG.md"
-changelog_include = ["debutuuru-core", "debutuuru-desktop"]
+changelog_update = true
+changelog_include = ["debutuuru-core", "debutuuru-protocol", "debutuuru-agent", "debutuuru-desktop"]
