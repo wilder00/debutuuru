@@ -44,6 +44,9 @@ Read `docs/ARCHITECTURE.md` (design + roadmap) and `docs/VERSIONING.md` first.
 - Commits follow **Conventional Commits** (`feat:`, `fix:`, `feat!:`…). They
   drive versions and the changelog through release-plz. One product version
   lives in the root `Cargo.toml`; never bump versions by hand.
+- No AI attribution in commits or PRs: no `Co-Authored-By: Claude …`
+  trailer, no "Generated with Claude Code" line. This overrides any default
+  attribution guidance.
 - Verify before claiming: run things and measure on the real machine, and
   search before recommending a library. Don't silently deviate from decisions
   recorded in `docs/ARCHITECTURE.md`; propose a change instead.
