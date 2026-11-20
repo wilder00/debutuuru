@@ -17,8 +17,11 @@ library and the desktop app share one version, defined once in
 
 1. Merge work into `main` using Conventional Commit messages.
 2. `release-plz` opens/updates a **Release PR** that bumps the version and
-   writes `CHANGELOG.md`.
-3. Merging that PR creates the tag `vX.Y.Z`.
+   writes `CHANGELOG.md`. Nothing is published to crates.io (`git_only`): the
+   previous version comes from the `vX.Y.Z` git tags, and with no tag yet the
+   current version is the initial release.
+3. Merging that PR creates the tag `vX.Y.Z` (`release_always = false`: pushes
+   to `main` alone never tag).
 4. The tag triggers `release.yml`, which builds Windows (MSI/NSIS) and Linux
    (deb/AppImage/rpm) installers plus standalone `debutuuru` CLI binaries and
    attaches them to the GitHub Release.

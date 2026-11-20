@@ -4,7 +4,12 @@
 
 [workspace]
 changelog_update = true
-publish = false            # not published to crates.io
+# Nothing goes to crates.io: the previous version comes from git tags
+# (`git_tag_name`), and an untagged package is an initial release.
+git_only = true
+publish = false            # never cargo publish
+# Tag only when the release PR is merged, never on every push to main.
+release_always = false
 git_release_enable = false # the Release workflow builds installers and creates the GitHub Release
 git_tag_enable = false     # only the CLI package creates the product tag (below)
 semver_check = false
