@@ -12,6 +12,10 @@ All notable changes are recorded here by release-plz from Conventional Commits.
 - WSL agents, live auto-refresh, single instance with repo tabs
 - agent architecture, React UI and personalizable design system
 
+### Fixed
+
+- result messages, git output and prompt text can be selected and copied
+
 ### Other
 
 - give test repos a local git identity so CI runners without one pass
