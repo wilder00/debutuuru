@@ -5,6 +5,7 @@
 //! Windows app installed, it hands the repo over as `\\wsl.localhost\<distro>\...`.
 
 use clap::{Parser, Subcommand};
+use debutuuru_core::location::resolve;
 use debutuuru_core::{Location, Repo};
 use serde_json::to_string_pretty;
 use std::path::{Path, PathBuf};
@@ -28,6 +29,12 @@ struct Cli {
 enum Cmd {
     /// Open the desktop app on a repository (default: current directory).
     Open { path: Option<String> },
+    /// Run the agent (started by the desktop app, e.g. inside WSL).
+    Agent {
+        /// Speak the protocol over stdin/stdout (the only transport for now).
+        #[arg(long, required = true)]
+        stdio: bool,
+    },
     /// Show repository info (worktree detection, HEAD, WSL location).
     Info { path: Option<String> },
     /// Show working tree status.
@@ -59,6 +66,9 @@ fn run(cli: Cli) -> Result<(), String> {
     let json = cli.json;
     match cli.command {
         Cmd::Open { path } => open(path),
+        Cmd::Agent { .. } => debutuuru_agent::Agent::with_default_modules()
+            .serve_stdio()
+            .map_err(s),
         Cmd::Info { path } => {
             let repo = repo(path)?;
             if json {
@@ -159,23 +169,6 @@ fn s<E: std::fmt::Display>(e: E) -> String {
 
 fn repo(path: Option<String>) -> Result<Repo, String> {
     Repo::open(resolve(path.as_deref().unwrap_or("."))).map_err(s)
-}
-
-/// Turns a user-supplied path into a [`Location`], absolute and without the
-/// Windows `\\?\` verbatim prefix.
-fn resolve(input: &str) -> Location {
-    let direct = Location::parse(input);
-    if direct.wsl_distro.is_some() {
-        return direct;
-    }
-    let abs = std::fs::canonicalize(input).unwrap_or_else(|_| PathBuf::from(input));
-    let text = abs.to_string_lossy().to_string();
-    let text = if let Some(rest) = text.strip_prefix(r"\\?\UNC\") {
-        format!(r"\\{rest}")
-    } else {
-        text.strip_prefix(r"\\?\").map(String::from).unwrap_or(text)
-    };
-    Location::parse(&text)
 }
 
 fn open(path: Option<String>) -> Result<(), String> {

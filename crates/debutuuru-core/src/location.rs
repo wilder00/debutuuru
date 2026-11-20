@@ -1,13 +1,15 @@
 //! A `Location` says *where* a repository lives: on the host OS, or inside a
 //! WSL distro (reached from Windows through `\\wsl.localhost\<distro>\...`).
 //!
-//! For WSL locations we never touch files through the slow UNC share: git is
-//! executed inside the distro via `wsl.exe`, so the repo is handled by native
-//! Linux git (correct permissions, line endings, speed).
+//! The desktop app uses it to route a request: `wsl_distro: None` goes to the
+//! local agent, `Some(distro)` goes to the agent running inside that distro,
+//! which receives `path` (a Linux path) and runs native git there.
 
 use serde::{Deserialize, Serialize};
+use ts_rs::TS;
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct Location {
     /// `Some("Ubuntu")` when the repo lives inside that WSL distro.
     pub wsl_distro: Option<String>,
@@ -67,8 +69,33 @@ impl Location {
     }
 }
 
+/// Turns user input (possibly relative) into a [`Location`]: absolute, without
+/// the Windows `\\?\` verbatim prefix, WSL UNC paths recognised.
+pub fn resolve(input: &str) -> Location {
+    let direct = Location::parse(input);
+    if direct.wsl_distro.is_some() {
+        return direct;
+    }
+    let abs = std::fs::canonicalize(input).unwrap_or_else(|_| std::path::PathBuf::from(input));
+    let text = abs.to_string_lossy().to_string();
+    let text = if let Some(rest) = text.strip_prefix(r"\\?\UNC\") {
+        format!(r"\\{rest}")
+    } else {
+        text.strip_prefix(r"\\?\").map(String::from).unwrap_or(text)
+    };
+    Location::parse(&text)
+}
+
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn resolve_makes_relative_paths_absolute() {
+        let l = resolve(".");
+        assert!(l.wsl_distro.is_none());
+        assert!(std::path::Path::new(&l.path).is_absolute());
+        assert!(!l.path.starts_with(r"\\?\"));
+    }
+
     use super::*;
 
     #[test]

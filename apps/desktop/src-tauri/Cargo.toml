@@ -17,6 +17,10 @@ tauri-build = { version = "2", features = [] }
 
 [dependencies]
 debutuuru-core.workspace = true
+debutuuru-protocol.workspace = true
+debutuuru-agent.workspace = true
 serde.workspace = true
 serde_json.workspace = true
-tauri = { version = "2", features = [] }
+ts-rs.workspace = true
+# protocol-asset: serves the user's background image from the app data folder.
+tauri = { version = "2", features = ["protocol-asset"] }

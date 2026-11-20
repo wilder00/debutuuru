@@ -1,0 +1,5 @@
+# The repo is used from Windows and WSL: keep LF everywhere in the repo and
+# working tree so shell scripts and generated files don't flip-flop.
+* text=auto eol=lf
+*.ico binary
+*.png binary

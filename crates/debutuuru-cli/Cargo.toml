@@ -1,6 +1,6 @@
 [package]
 name = "debutuuru"
-description = "Debutuuru command line: inspect repos and open the desktop app from any terminal (Windows, Linux, WSL)"
+description = "Debutuuru command line: open the desktop app from any terminal (Windows, Linux, WSL), run the agent, inspect repos"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -14,5 +14,9 @@ path = "src/main.rs"
 
 [dependencies]
 debutuuru-core.workspace = true
+debutuuru-agent.workspace = true
 serde_json.workspace = true
 clap = { version = "4", features = ["derive"] }
+
+[dev-dependencies]
+debutuuru-protocol.workspace = true

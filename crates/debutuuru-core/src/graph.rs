@@ -10,15 +10,18 @@
 //! * `outgoing` – edges from the node to the bottom of the row (one per parent)
 //! * `lane`     – the column of the node itself
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
+use ts_rs::TS;
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct Edge {
     pub from: usize,
     pub to: usize,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct GraphRow {
     pub lane: usize,
     pub incoming: Vec<usize>,

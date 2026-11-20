@@ -3,21 +3,28 @@
   "productName": "Debutuuru",
   "identifier": "dev.wilder00.debutuuru",
   "build": {
-    "frontendDist": "../ui"
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
   },
   "app": {
-    "withGlobalTauri": true,
     "windows": [
       {
         "title": "Debutuuru",
         "width": 1280,
         "height": 800,
-        "minWidth": 800,
-        "minHeight": 500
+        "minWidth": 900,
+        "minHeight": 560,
+        "backgroundColor": "#101318"
       }
     ],
     "security": {
-      "csp": "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:"
+      "csp": "default-src 'self' ipc: http://ipc.localhost; style-src 'self' 'unsafe-inline'; img-src 'self' data: asset: http://asset.localhost; font-src 'self' data:",
+      "assetProtocol": {
+        "enable": true,
+        "scope": ["$APPDATA/backgrounds/*"]
+      }
     }
   },
   "bundle": {

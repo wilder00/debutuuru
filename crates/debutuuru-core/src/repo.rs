@@ -9,9 +9,11 @@
 use crate::graph::{self, GraphRow};
 use crate::runner::GitRunner;
 use crate::{Error, Location, Result};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
+use ts_rs::TS;
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct RepoInfo {
     pub location: Location,
     /// Top-level directory of this working tree (git dir for bare repos).
@@ -24,7 +26,8 @@ pub struct RepoInfo {
     pub head_branch: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct Worktree {
     pub path: String,
     pub head: Option<String>,
@@ -35,7 +38,8 @@ pub struct Worktree {
     pub prunable: bool,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct Branch {
     pub name: String,
     pub is_remote: bool,
@@ -45,25 +49,30 @@ pub struct Branch {
     pub subject: String,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct Commit {
     pub hash: String,
     pub parents: Vec<String>,
     pub author: String,
     pub email: String,
+    /// Unix seconds. Exposed to TS as `number` (safe until year 285 million).
+    #[ts(type = "number")]
     pub time: i64,
     pub refs: Vec<String>,
     pub subject: String,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct LogEntry {
     #[serde(flatten)]
     pub commit: Commit,
     pub graph: GraphRow,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct FileChange {
     pub path: String,
     pub orig_path: Option<String>,
@@ -73,7 +82,8 @@ pub struct FileChange {
     pub worktree: char,
 }
 
-#[derive(Debug, Clone, Serialize, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, TS, Default)]
+#[ts(export)]
 pub struct Status {
     pub branch: String,
     pub ahead: u32,
@@ -147,6 +157,17 @@ impl Repo {
             head_branch,
         };
         Ok(Self { runner, info })
+    }
+
+    /// Current branch, read live (the value in `info` is from open time).
+    pub fn head_branch(&self) -> Result<Option<String>> {
+        let head = self
+            .runner
+            .output(&["symbolic-ref", "--short", "-q", "HEAD"])?;
+        Ok(head
+            .status
+            .success()
+            .then(|| String::from_utf8_lossy(&head.stdout).trim().to_string()))
     }
 
     pub fn worktrees(&self) -> Result<Vec<Worktree>> {

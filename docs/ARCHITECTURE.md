@@ -1,7 +1,7 @@
 # Debutuuru architecture
 
-Status: **proposal, pending approval** (2026-11-20). Replaces the first prototype,
-whose git core (worktrees, graph lanes, WSL path parsing) is kept.
+Status: approved 2026-11-20. **Phase 0 done**: protocol, agent with git module,
+stdio transport and handshake, React UI on generated types. Next: Phase 1.
 
 ## Goals
 
