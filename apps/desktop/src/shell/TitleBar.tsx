@@ -10,8 +10,10 @@ type Props = {
 };
 
 export function TitleBar({ repo, info, onOpen, onRefresh }: Props) {
+  // Shows the active tab's path in the form the user can type back
+  // (for WSL repos the UNC path, not the Linux path the agent reports).
   const [input, setInput] = useState(repo ?? "");
-  useEffect(() => setInput(info?.root ?? repo ?? ""), [repo, info?.root]);
+  useEffect(() => setInput(repo ?? ""), [repo]);
 
   return (
     <header className="titlebar">
@@ -30,7 +32,7 @@ export function TitleBar({ repo, info, onOpen, onRefresh }: Props) {
         <input
           value={input}
           spellCheck={false}
-          placeholder="Open a repository: C:\code\app, /home/me/app…"
+          placeholder="Open a repository: C:\code\app or \\wsl.localhost\Ubuntu\home\me\app"
           aria-label="Repository path"
           onChange={(e) => setInput(e.target.value)}
         />

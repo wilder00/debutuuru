@@ -60,6 +60,13 @@ cargo clippy --workspace --all-targets -- -D warnings
 cd apps/desktop && npm ci && npm run build   # typecheck + bundle UI
 cd apps/desktop && npm run tauri dev         # run the app with hot reload
 cargo run -p debutuuru -- info .             # CLI
+# Linux agent for WSL repos (needs `rustup target add x86_64-unknown-linux-musl`).
+# Dev builds of the app find it in target/ automatically.
+cargo build -p debutuuru --target x86_64-unknown-linux-musl --release
 ```
+
+Testing tips: in Git Bash set `MSYS_NO_PATHCONV=1` before passing Linux paths
+to `wsl.exe`. In PowerShell, run multi-line WSL commands from a script file
+(`wsl -e sh <file>`), because PowerShell 5.1 mangles inner quotes.
 
 Linux build deps: `libwebkit2gtk-4.1-dev libgtk-3-dev librsvg2-dev`.

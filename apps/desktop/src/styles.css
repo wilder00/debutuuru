@@ -249,3 +249,25 @@ ul { list-style: none; margin: 0; padding: 0; }
 .note { margin: 8px 0 0; font-size: .88em; }
 
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+
+/* Repo tabs */
+.tabbar {
+  display: flex; align-items: flex-end; gap: 2px; height: 34px; padding: 0 8px; overflow-x: auto; flex: none;
+  border-bottom: 1px solid var(--border-subtle); background: var(--bg-panel); backdrop-filter: blur(var(--panel-blur));
+}
+.tabbar::-webkit-scrollbar { height: 0; }
+.tab {
+  display: flex; align-items: center; gap: 6px; height: 28px; padding: 0 4px 0 12px; max-width: 220px; flex: none;
+  border: 1px solid transparent; border-bottom: 0; border-radius: var(--radius) var(--radius) 0 0;
+  color: var(--text-muted); cursor: default; position: relative;
+}
+.tab:hover { color: var(--text); background: var(--bg-hover); }
+.tab.on { color: var(--text); background: var(--bg-app); border-color: var(--border-subtle); }
+.tab.on::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px; background: var(--bg-app); }
+.tab.on::before { content: ""; position: absolute; left: 10px; right: 10px; top: -1px; height: 2px; border-radius: 2px; background: var(--accent); }
+.tab-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
+.tab-tag { padding: 0 5px; border-radius: 4px; font: 600 .72em var(--font-mono); color: var(--info); background: color-mix(in srgb, var(--info) 14%, transparent); }
+.tab-close { width: 20px; height: 20px; visibility: hidden; }
+.tab:hover .tab-close, .tab.on .tab-close { visibility: visible; }
+[hidden] { display: none !important; }
+.graph-empty { padding: 16px 14px; }

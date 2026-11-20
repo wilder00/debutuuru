@@ -1,8 +1,9 @@
 //! `debutuuru` command line.
 //!
-//! Works the same on Windows, Linux and inside WSL. `debutuuru open [path]`
-//! launches the desktop app on a repository; from inside WSL with only the
-//! Windows app installed, it hands the repo over as `\\wsl.localhost\<distro>\...`.
+//! Works the same on Windows, Linux and inside WSL. `debutuuru .` (or
+//! `debutuuru open [path]`) opens a repository in the desktop app, like
+//! `code .`. Inside WSL it hands the repo to the Windows app as
+//! `\\wsl.localhost\<distro>\...`; the app then talks to its agent in WSL.
 
 use clap::{Parser, Subcommand};
 use debutuuru_core::location::resolve;
@@ -15,14 +16,18 @@ use std::process::{Command, ExitCode, Stdio};
 #[command(
     name = "debutuuru",
     version,
-    about = "Developer tools: git client and more"
+    about = "Developer tools: git client and more",
+    args_conflicts_with_subcommands = true,
+    after_help = "Examples:\n  debutuuru .            open the current repository in the app\n  debutuuru log -n 5     last 5 commits"
 )]
 struct Cli {
     /// Print machine-readable JSON instead of text.
     #[arg(long, global = true)]
     json: bool,
     #[command(subcommand)]
-    command: Cmd,
+    command: Option<Cmd>,
+    /// Repository to open in the desktop app (same as `open <PATH>`).
+    path: Option<String>,
 }
 
 #[derive(Subcommand)]
@@ -64,8 +69,12 @@ fn main() -> ExitCode {
 
 fn run(cli: Cli) -> Result<(), String> {
     let json = cli.json;
-    match cli.command {
-        Cmd::Open { path } => open(path),
+    let Some(command) = cli.command else {
+        // `debutuuru` alone opens the app; `debutuuru <path>` opens that repo.
+        return open(cli.path);
+    };
+    match command {
+        Cmd::Open { path } => open(Some(path.unwrap_or_else(|| ".".into()))),
         Cmd::Agent { .. } => debutuuru_agent::Agent::with_default_modules()
             .serve_stdio()
             .map_err(s),
@@ -171,25 +180,30 @@ fn repo(path: Option<String>) -> Result<Repo, String> {
     Repo::open(resolve(path.as_deref().unwrap_or("."))).map_err(s)
 }
 
+/// Opens the app, on `path` if given. If the app already runs, it receives
+/// the path and opens it in a tab (single instance).
 fn open(path: Option<String>) -> Result<(), String> {
-    let loc = resolve(path.as_deref().unwrap_or("."));
-    let (exe, windows_gui_from_wsl) = find_desktop().ok_or(
+    let exe = find_desktop().ok_or(
         "could not find the desktop app (`debutuuru-desktop`). Install it, or set DEBUTUURU_DESKTOP to its path.",
     )?;
+    let windows_gui_from_wsl = in_wsl()
+        && exe
+            .extension()
+            .is_some_and(|e| e.eq_ignore_ascii_case("exe"));
 
-    let arg = if windows_gui_from_wsl {
-        // The Windows GUI can't take a Linux path; give it the UNC form.
-        let distro = std::env::var("WSL_DISTRO_NAME")
-            .map_err(|_| "WSL_DISTRO_NAME is not set".to_string())?;
-        Location::from_inside_wsl(&distro, &loc.path)
-            .windows_unc()
-            .unwrap_or(loc.path.clone())
-    } else {
-        loc.windows_unc().unwrap_or(loc.path.clone())
-    };
+    let arg = path.map(|p| {
+        let loc = resolve(&p);
+        match std::env::var("WSL_DISTRO_NAME") {
+            // The Windows app can't use a Linux path; give it the UNC form.
+            Ok(distro) if windows_gui_from_wsl => {
+                Location::from_inside_wsl(&distro, &loc.path).user_string()
+            }
+            _ => loc.user_string(),
+        }
+    });
 
     let mut cmd = Command::new(&exe);
-    cmd.arg(&arg)
+    cmd.args(arg)
         .stdin(Stdio::null())
         .stdout(Stdio::null())
         .stderr(Stdio::null());
@@ -198,39 +212,69 @@ fn open(path: Option<String>) -> Result<(), String> {
         use std::os::windows::process::CommandExt;
         cmd.creation_flags(0x0000_0008 | 0x0800_0000); // DETACHED_PROCESS | CREATE_NO_WINDOW
     }
-    cmd.spawn()
+    let mut child = cmd
+        .spawn()
         .map_err(|e| format!("failed to start {}: {e}", exe.display()))?;
+
+    // If the app is already running, this new process only forwards the path
+    // to it and exits within milliseconds. Wait for that: when called from
+    // WSL, returning immediately can tear the Windows process down before it
+    // delivered the path. If it keeps running, it is the first instance:
+    // leave it open and return.
+    let deadline = std::time::Instant::now() + std::time::Duration::from_secs(3);
+    while std::time::Instant::now() < deadline {
+        match child.try_wait() {
+            Ok(Some(status)) if !status.success() => {
+                return Err(format!("{} exited with {status}", exe.display()))
+            }
+            Ok(Some(_)) => return Ok(()),
+            Ok(None) => std::thread::sleep(std::time::Duration::from_millis(50)),
+            Err(e) => return Err(e.to_string()),
+        }
+    }
     Ok(())
 }
 
-/// Returns the desktop executable and whether it is the *Windows* GUI being
-/// launched from inside WSL.
-fn find_desktop() -> Option<(PathBuf, bool)> {
+fn in_wsl() -> bool {
+    !cfg!(windows) && std::env::var_os("WSL_DISTRO_NAME").is_some()
+}
+
+/// Finds the desktop executable: env override, the Windows app that installed
+/// this agent (inside WSL), next to this binary, or on PATH.
+fn find_desktop() -> Option<PathBuf> {
     if let Ok(p) = std::env::var("DEBUTUURU_DESKTOP") {
-        return Some((PathBuf::from(p), false));
+        return Some(PathBuf::from(p));
+    }
+    if in_wsl() {
+        // Written by the Windows app when it deploys its agent into this distro.
+        let home = std::env::var_os("HOME").map(PathBuf::from)?;
+        if let Ok(p) = std::fs::read_to_string(home.join(".local/share/debutuuru/desktop-path")) {
+            let p = PathBuf::from(p.trim());
+            if p.is_file() {
+                return Some(p);
+            }
+        }
     }
     let name = if cfg!(windows) {
         "debutuuru-desktop.exe"
     } else {
         "debutuuru-desktop"
     };
-    if let Ok(me) = std::env::current_exe() {
-        if let Some(dir) = me.parent() {
-            let cand = dir.join(name);
-            if cand.is_file() {
-                return Some((cand, false));
-            }
+    if let Some(dir) = std::env::current_exe()
+        .ok()
+        .and_then(|me| me.parent().map(Path::to_path_buf))
+    {
+        let cand = dir.join(name);
+        if cand.is_file() {
+            return Some(cand);
         }
     }
     if on_path(name) {
-        return Some((PathBuf::from(name), false));
+        return Some(PathBuf::from(name));
     }
-    // Inside WSL with only the Windows app installed: use Windows interop.
-    if !cfg!(windows)
-        && std::env::var_os("WSL_DISTRO_NAME").is_some()
-        && on_path("debutuuru-desktop.exe")
-    {
-        return Some((PathBuf::from("debutuuru-desktop.exe"), true));
+    // Inside WSL with the Windows app on the Windows PATH (interop).
+    if in_wsl() && on_path("debutuuru-desktop.exe") {
+        return Some(PathBuf::from("debutuuru-desktop.exe"));
     }
     None
 }

@@ -22,5 +22,6 @@ debutuuru-agent.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 ts-rs.workspace = true
+tauri-plugin-single-instance = "2.5"
 # protocol-asset: serves the user's background image from the app data folder.
 tauri = { version = "2", features = ["protocol-asset"] }

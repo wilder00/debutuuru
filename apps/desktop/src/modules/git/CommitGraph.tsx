@@ -72,6 +72,7 @@ export function CommitGraph({ log, selected, onSelect }: Props) {
         <span className="c-date">Date</span>
         <span className="c-sha">Commit</span>
       </div>
+      {log.length === 0 && <div className="empty-line graph-empty">No commits yet. Stage files and make the first commit.</div>}
       <div ref={scrollRef} className="commit-scroll" tabIndex={0} onKeyDown={onKey} role="grid" aria-label="Commit history">
         <div style={{ height: virtualizer.getTotalSize(), position: "relative" }}>
           {virtualizer.getVirtualItems().map((item) => {

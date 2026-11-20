@@ -1,7 +1,25 @@
 # Debutuuru architecture
 
-Status: approved 2026-11-20. **Phase 0 done**: protocol, agent with git module,
-stdio transport and handshake, React UI on generated types. Next: Phase 1.
+Status (2026-11-20): **Phase 0 and Phase 1 done.** Next: Phase 2 (remotes).
+
+Phase 1, verified end to end on Windows 11 + Ubuntu (WSL2):
+- The Linux agent is cross-built on Windows (`x86_64-unknown-linux-musl`,
+  `rust-lld`, no C toolchain), deployed into the distro under a versioned,
+  content-hashed name, and reached over one long-lived `wsl.exe` pipe.
+- Agent file watchers (`notify`: inotify / ReadDirectoryChangesW) push
+  `git.changed` events, so the UI refreshes by itself, also for WSL repos.
+- A killed WSL agent is detected (`agent.disconnected`), restarted on the next
+  call, and watchers are re-armed automatically.
+- Single instance: `debutuuru <path>` hands the path to the running app,
+  which opens it in a tab. Tabs persist in settings (`session`, an additive
+  field with no schema bump).
+- Inside WSL, `debutuuru .` works through a shim the app installs at
+  `~/.local/bin/debutuuru`. It only replaces a file it wrote itself.
+
+Known gaps: the native Linux desktop build hasn't been run yet (only built in
+CI). On Windows, `debutuuru` gets onto PATH with the installer (Phase 3).
+Watching repos under `/mnt/c` from WSL misses Windows-side edits (drvfs has
+no inotify); open those as Windows paths instead.
 
 ## Goals
 

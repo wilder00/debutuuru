@@ -17,4 +17,10 @@ export const git = {
   commit: (repo: string, p: Params<CommitParams>) => rpc<string>(repo, "git.commit", p),
   checkout: (repo: string, p: Params<CheckoutParams>) => rpc<null>(repo, "git.checkout", p),
   diff: (repo: string, p: Params<DiffParams>) => rpc<string>(repo, "git.diff", p),
+  /** Idempotent: the agent emits `git.changed` for this repo until unwatched. */
+  watch: (repo: string) => rpc<null>(repo, "git.watch"),
+  unwatch: (repo: string) => rpc<null>(repo, "git.unwatch"),
 };
+
+/** Event topic emitted by the agent's watcher. */
+export const GIT_CHANGED = "git.changed";

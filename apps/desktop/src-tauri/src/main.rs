@@ -2,46 +2,36 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 //! Desktop shell. The UI never talks to git directly: every request goes
-//! through `rpc`, which picks the agent responsible for the repository
-//! (local for host repos; WSL agents arrive in Phase 1) and forwards it.
-//! The shell also owns app-level state: settings and personalization.
+//! through `rpc`, which picks the agent responsible for the repository (the
+//! in-process agent for host repos, an agent inside WSL for WSL repos) and
+//! forwards it. The shell also owns app-level state: settings, the single
+//! running instance, and opening repos passed from terminals.
 
+mod agents;
 mod settings;
+mod wsl;
 
-use debutuuru_agent::{Agent, Transport};
-use debutuuru_core::location::resolve;
+use agents::Agents;
+use debutuuru_core::location::{resolve, resolve_in};
 use debutuuru_core::Location;
 use debutuuru_protocol::{ErrorCode, Hello, RpcError};
 use serde::Serialize;
 use serde_json::Value;
 use settings::{LoadedSettings, Settings, Store};
 use std::sync::{Arc, Mutex};
-use tauri::Manager;
+use tauri::{Emitter, Manager};
 use ts_rs::TS;
 
-struct Agents {
-    local: Arc<Agent>,
-}
-
-impl Agents {
-    /// Returns the agent for `loc` (Phase 0: host repos only).
-    fn for_location(&self, loc: &Location) -> Result<Arc<dyn Transport>, RpcError> {
-        match &loc.wsl_distro {
-            None => Ok(self.local.clone()),
-            Some(distro) => Err(RpcError::new(
-                ErrorCode::Unsupported,
-                format!(
-                    "Repositories inside WSL ({distro}) aren't supported in this build yet \
-                     (planned for Phase 1). Local repositories work."
-                ),
-            )),
-        }
-    }
-}
+/// Event sent when another `debutuuru` invocation asks this instance to open a repo.
+const OPEN_REPO: &str = "open-repo";
 
 struct SettingsState {
     store: Store,
     read_only: Mutex<bool>,
+}
+
+fn blocking_err(e: impl std::fmt::Display) -> RpcError {
+    RpcError::new(ErrorCode::Transport, e.to_string())
 }
 
 /// Generic entry point for every module: `rpc("git.status", {...})`.
@@ -49,35 +39,50 @@ struct SettingsState {
 /// `\\wsl.localhost\Distro\…`); it is translated and injected into `params`.
 #[tauri::command]
 async fn rpc(
-    agents: tauri::State<'_, Agents>,
+    agents: tauri::State<'_, Arc<Agents>>,
     repo: String,
     method: String,
     params: Option<Value>,
 ) -> Result<Value, RpcError> {
+    let agents = agents.inner().clone();
     let loc = Location::parse(&repo);
-    let agent = agents.for_location(&loc)?;
-    let mut params = params.unwrap_or_else(|| Value::Object(Default::default()));
-    params
-        .as_object_mut()
-        .ok_or_else(|| RpcError::new(ErrorCode::InvalidParams, "params must be an object"))?
-        .insert("repo".into(), Value::String(loc.path));
-    tauri::async_runtime::spawn_blocking(move || agent.call(&method, params))
+    let params = params.unwrap_or_else(|| Value::Object(Default::default()));
+    tauri::async_runtime::spawn_blocking(move || agents.call(&loc, &method, params))
         .await
-        .map_err(|e| RpcError::new(ErrorCode::Transport, e.to_string()))?
+        .map_err(blocking_err)?
 }
 
-/// Handshake info of the local agent (versions, available modules).
+/// Handshake of the agent serving `repo` (local agent when `repo` is empty).
 #[tauri::command]
-fn hello(agents: tauri::State<'_, Agents>) -> Hello {
-    agents.local.hello()
+async fn agent_hello(
+    agents: tauri::State<'_, Arc<Agents>>,
+    repo: String,
+) -> Result<Hello, RpcError> {
+    let agents = agents.inner().clone();
+    tauri::async_runtime::spawn_blocking(move || agents.hello(&Location::parse(&repo)))
+        .await
+        .map_err(blocking_err)?
 }
 
-/// Repository passed on the command line (`debutuuru open <path>`), absolute.
+/// Canonical form of a user-typed path, used as the tab key: absolute local
+/// path, or `\\wsl.localhost\Distro\…` for WSL.
+#[tauri::command]
+fn resolve_path(input: String) -> String {
+    resolve(input.trim()).user_string()
+}
+
+/// Repository passed on the command line (`debutuuru open <path>`), canonical.
 #[tauri::command]
 fn initial_path() -> Option<String> {
-    let arg = std::env::args().skip(1).find(|a| !a.starts_with('-'))?;
-    let loc = resolve(&arg);
-    Some(loc.windows_unc().unwrap_or(loc.path))
+    repo_arg(
+        std::env::args().skip(1),
+        &std::env::current_dir().unwrap_or_default(),
+    )
+}
+
+fn repo_arg(args: impl Iterator<Item = String>, cwd: &std::path::Path) -> Option<String> {
+    let arg = args.into_iter().find(|a| !a.starts_with('-'))?;
+    Some(resolve_in(&arg, cwd).user_string())
 }
 
 #[tauri::command]
@@ -126,9 +131,17 @@ fn import_background(
 
 fn main() {
     tauri::Builder::default()
-        .manage(Agents {
-            local: Arc::new(Agent::with_default_modules()),
-        })
+        // Must be first: a second launch (`debutuuru .` while the app runs)
+        // forwards its path here instead of opening another window.
+        .plugin(tauri_plugin_single_instance::init(|app, argv, cwd| {
+            if let Some(repo) = repo_arg(argv.into_iter().skip(1), std::path::Path::new(&cwd)) {
+                let _ = app.emit(OPEN_REPO, repo);
+            }
+            if let Some(w) = app.get_webview_window("main") {
+                let _ = w.unminimize();
+                let _ = w.set_focus();
+            }
+        }))
         .setup(|app| {
             let config = app.path().app_config_dir()?;
             let data = app.path().app_data_dir()?;
@@ -136,11 +149,14 @@ fn main() {
                 store: Store::new(&config, &data),
                 read_only: Mutex::new(false),
             });
+            let linux_agent = wsl::find_agent_binary(app.path().resource_dir().ok());
+            app.manage(Arc::new(Agents::new(app.handle().clone(), linux_agent)));
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
             rpc,
-            hello,
+            agent_hello,
+            resolve_path,
             initial_path,
             get_settings,
             save_settings,

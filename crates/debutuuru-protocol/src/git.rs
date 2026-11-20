@@ -6,7 +6,8 @@ use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
 pub const MODULE: &str = "git";
-pub const MODULE_VERSION: u32 = 1;
+/// 2: added `git.watch` / `git.unwatch` and the `git.changed` event.
+pub const MODULE_VERSION: u32 = 2;
 
 /// [`RepoParams`] → [`Snapshot`]
 pub const SNAPSHOT: &str = "git.snapshot";
@@ -22,6 +23,21 @@ pub const COMMIT: &str = "git.commit";
 pub const CHECKOUT: &str = "git.checkout";
 /// [`DiffParams`] → `string` (unified diff)
 pub const DIFF: &str = "git.diff";
+/// [`RepoParams`] → `null`. Starts emitting [`CHANGED`] for this repo (idempotent).
+pub const WATCH: &str = "git.watch";
+/// [`RepoParams`] → `null`
+pub const UNWATCH: &str = "git.unwatch";
+
+/// Event topic, payload [`ChangedEvent`]: files, index or refs changed
+/// (debounced). The UI reloads the repo.
+pub const CHANGED: &str = "git.changed";
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct ChangedEvent {
+    /// Same string the app passed to `git.watch`.
+    pub repo: String,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[ts(export)]

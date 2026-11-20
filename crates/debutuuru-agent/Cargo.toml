@@ -13,3 +13,6 @@ debutuuru-core.workspace = true
 debutuuru-protocol.workspace = true
 serde.workspace = true
 serde_json.workspace = true
+# Default features only: inotify on Linux (works in a static musl build),
+# ReadDirectoryChangesW on Windows.
+notify = "8.2"

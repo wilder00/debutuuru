@@ -25,6 +25,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
+          targets: x86_64-unknown-linux-musl
       - uses: Swatinem/rust-cache@v2
       - uses: actions/setup-node@v4
         with:
@@ -42,6 +43,9 @@ jobs:
       - run: cargo clippy --workspace --all-targets -- -D warnings
       # Also regenerates the TS bindings (ts-rs) into apps/desktop/src/bindings.
       - run: cargo test --workspace
+      # The WSL agent must keep cross-building as a static binary (no C deps).
+      - name: Linux agent (musl) builds
+        run: cargo build -p debutuuru --target x86_64-unknown-linux-musl
       - name: TS bindings are up to date
         shell: bash
         run: |

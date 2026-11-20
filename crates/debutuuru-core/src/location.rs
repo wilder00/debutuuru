@@ -69,6 +69,25 @@ impl Location {
     }
 }
 
+impl Location {
+    /// The form shown to and typed by the user on the app's OS: the UNC path
+    /// for WSL locations, the plain path otherwise.
+    pub fn user_string(&self) -> String {
+        self.windows_unc().unwrap_or_else(|| self.path.clone())
+    }
+}
+
+/// Like [`resolve`], but relative input is taken relative to `cwd` (e.g. the
+/// working directory of a second app instance that forwarded its arguments).
+pub fn resolve_in(input: &str, cwd: &std::path::Path) -> Location {
+    let p = std::path::Path::new(input);
+    if Location::parse(input).wsl_distro.is_some() || p.is_absolute() || input.starts_with(r"\\") {
+        resolve(input)
+    } else {
+        resolve(&cwd.join(p).to_string_lossy())
+    }
+}
+
 /// Turns user input (possibly relative) into a [`Location`]: absolute, without
 /// the Windows `\\?\` verbatim prefix, WSL UNC paths recognised.
 pub fn resolve(input: &str) -> Location {

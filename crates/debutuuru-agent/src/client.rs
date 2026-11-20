@@ -2,7 +2,7 @@
 //! `wsl.exe -d Ubuntu -e …/debutuuru agent --stdio`), performs the handshake
 //! and multiplexes concurrent calls over the single pipe.
 
-use crate::Transport;
+use crate::{EventSink, Transport};
 use debutuuru_protocol::{
     decode, encode, ErrorCode, Hello, Message, Request, Response, RpcError, HELLO, PROTOCOL_VERSION,
 };
@@ -15,6 +15,9 @@ use std::sync::{mpsc, Arc, Mutex};
 
 type Pending = Arc<Mutex<HashMap<u64, mpsc::Sender<Response>>>>;
 
+/// Synthetic event emitted by the client when the agent process goes away.
+pub const DISCONNECTED: &str = "agent.disconnected";
+
 pub struct StdioClient {
     stdin: Mutex<ChildStdin>,
     child: Mutex<Child>,
@@ -25,8 +28,8 @@ pub struct StdioClient {
 
 impl StdioClient {
     /// Spawns `cmd` (which must run `debutuuru agent --stdio`) and checks
-    /// that it speaks our protocol version.
-    pub fn spawn(mut cmd: Command) -> Result<Self, RpcError> {
+    /// that it speaks our protocol version. Agent events go to `on_event`.
+    pub fn spawn(mut cmd: Command, on_event: Option<EventSink>) -> Result<Self, RpcError> {
         cmd.stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::null());
@@ -46,22 +49,36 @@ impl StdioClient {
         std::thread::spawn(move || {
             for line in BufReader::new(stdout).lines() {
                 let Ok(line) = line else { break };
-                if let Ok(Message::Response(r)) = decode(&line) {
-                    let tx = reader_pending
-                        .lock()
-                        .unwrap_or_else(|e| e.into_inner())
-                        .remove(&r.id);
-                    if let Some(tx) = tx {
-                        let _ = tx.send(r);
+                match decode(&line) {
+                    Ok(Message::Response(r)) => {
+                        let tx = reader_pending
+                            .lock()
+                            .unwrap_or_else(|e| e.into_inner())
+                            .remove(&r.id);
+                        if let Some(tx) = tx {
+                            let _ = tx.send(r);
+                        }
                     }
+                    Ok(Message::Event(ev)) => {
+                        if let Some(sink) = &on_event {
+                            sink(ev);
+                        }
+                    }
+                    _ => {}
                 }
-                // Events are handled in Phase 1 (file watching).
             }
             // Agent gone: dropping the senders wakes every waiting caller.
             reader_pending
                 .lock()
                 .unwrap_or_else(|e| e.into_inner())
                 .clear();
+            // Let the host react (reconnect, re-arm watchers).
+            if let Some(sink) = &on_event {
+                sink(debutuuru_protocol::Event {
+                    topic: DISCONNECTED.into(),
+                    payload: Value::Object(Default::default()),
+                });
+            }
         });
 
         let mut client = Self {
@@ -130,6 +147,14 @@ impl Transport for StdioClient {
             (Some(v), None) => Ok(v),
             (None, None) => Ok(Value::Null),
         }
+    }
+}
+
+impl StdioClient {
+    /// False once the agent process has exited (the caller should reconnect).
+    pub fn is_alive(&self) -> bool {
+        let mut child = self.child.lock().unwrap_or_else(|e| e.into_inner());
+        matches!(child.try_wait(), Ok(None))
     }
 }
 

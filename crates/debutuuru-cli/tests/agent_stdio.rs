@@ -39,7 +39,7 @@ fn agent_over_stdio() {
 
     let mut cmd = Command::new(env!("CARGO_BIN_EXE_debutuuru"));
     cmd.args(["agent", "--stdio"]);
-    let client = StdioClient::spawn(cmd).expect("handshake");
+    let client = StdioClient::spawn(cmd, None).expect("handshake");
     assert_eq!(client.hello.protocol_version, PROTOCOL_VERSION);
     assert!(client.hello.modules.iter().any(|m| m.name == git::MODULE));
 

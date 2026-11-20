@@ -122,13 +122,20 @@ pub fn encode(msg: &Message) -> String {
     s
 }
 
+/// Parses one line. Tolerates a UTF-8 BOM and `\r\n` (Windows shells add them).
 pub fn decode(line: &str) -> Result<Message, serde_json::Error> {
-    serde_json::from_str(line)
+    serde_json::from_str(line.trim_start_matches('\u{feff}').trim_end_matches('\r'))
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn decode_tolerates_bom_and_crlf() {
+        let line = "\u{feff}{\"kind\":\"request\",\"id\":1,\"method\":\"hello\"}\r";
+        assert!(matches!(decode(line), Ok(Message::Request(_))));
+    }
 
     #[test]
     fn request_roundtrip_is_one_line() {

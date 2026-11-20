@@ -6,7 +6,10 @@ runner, GitHub/GitLab integration, containers and more.
 
 - **Windows + WSL**: install on Windows and work on Windows repos *and* repos
   inside WSL at native speed. A small Debutuuru agent runs inside WSL, the same
-  idea as VS Code's WSL server. *(WSL support lands in Phase 1.)*
+  idea as VS Code's WSL server. It is installed automatically the first time
+  you open a WSL repo, along with a `debutuuru` command in that distro.
+- **Live**: the app refreshes itself when files, the index or branches change,
+  including inside WSL.
 - **Linux**: install natively, or run the Linux build inside WSL with WSLg.
 - **Terminal-friendly**: `debutuuru open .` from PowerShell, bash or WSL.
 - **Worktree-aware**: open a main repo or any linked worktree.
@@ -14,9 +17,16 @@ runner, GitHub/GitLab integration, containers and more.
   Warp-style background images, fonts and density (Ctrl+,). See
   [docs/DESIGN.md](docs/DESIGN.md).
 
-Status: **Phase 0 (foundation)** is done: agent architecture, protocol, React
-UI, and a local git client (graph, branches, worktrees, stage/commit/diff).
-See the roadmap in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+Status: **Phase 1** is done. Local and WSL repos open in tabs, with graph,
+branches, worktrees, stage/commit/diff and auto-refresh, and `debutuuru .`
+works from Windows and WSL terminals. Next is Phase 2: fetch, pull and push
+with in-app credential prompts. See the roadmap in
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
+```bash
+debutuuru .                                 # open this repo (Windows, Linux or WSL shell)
+debutuuru '\\wsl.localhost\Ubuntu\home\me\app'
+```
 
 ## Develop
 

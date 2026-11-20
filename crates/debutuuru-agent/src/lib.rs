@@ -10,16 +10,19 @@
 //! `term.spawn`, …) and announced in the [`Hello`] handshake.
 
 pub mod client;
+pub mod events;
 pub mod git;
+pub mod watch;
 
 use debutuuru_protocol::{
     decode, encode, ErrorCode, Hello, Message, ModuleInfo, Response, RpcError, HELLO,
     PROTOCOL_VERSION,
 };
+pub use events::{EventSink, Events};
 use serde::{de::DeserializeOwned, Serialize};
 use serde_json::Value;
 use std::io::{BufRead, Write};
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 
 /// A tool module living inside the agent.
 pub trait Module: Send + Sync {
@@ -36,15 +39,22 @@ pub trait Transport: Send + Sync {
 
 pub struct Agent {
     modules: Vec<Box<dyn Module>>,
+    events: Events,
 }
 
 impl Agent {
-    pub fn new(modules: Vec<Box<dyn Module>>) -> Self {
-        Self { modules }
+    pub fn new(modules: Vec<Box<dyn Module>>, events: Events) -> Self {
+        Self { modules, events }
     }
 
     pub fn with_default_modules() -> Self {
-        Self::new(vec![Box::new(git::GitModule::default())])
+        let events = Events::default();
+        Self::new(vec![Box::new(git::GitModule::new(events.clone()))], events)
+    }
+
+    /// Where module events go (the stdio server sets this to stdout).
+    pub fn set_event_sink(&self, sink: EventSink) {
+        self.events.set_sink(sink);
     }
 
     pub fn hello(&self) -> Hello {
@@ -73,14 +83,25 @@ impl Agent {
     }
 
     /// Serves newline-delimited JSON requests until `reader` closes.
-    /// Requests run concurrently; responses may arrive out of order (matched by id).
-    pub fn serve<R: BufRead, W: Write + Send>(&self, reader: R, writer: W) -> std::io::Result<()> {
-        let writer = Mutex::new(writer);
-        let send = |msg: Message| {
-            let mut w = writer.lock().unwrap_or_else(|e| e.into_inner());
-            // A broken pipe means the app went away; nothing useful to do.
-            let _ = w.write_all(encode(&msg).as_bytes()).and_then(|_| w.flush());
+    /// Requests run concurrently; responses may arrive out of order (matched by
+    /// id). Module events are written to the same stream.
+    pub fn serve<R: BufRead, W: Write + Send + 'static>(
+        &self,
+        reader: R,
+        writer: W,
+    ) -> std::io::Result<()> {
+        let writer = Arc::new(Mutex::new(writer));
+        let write = {
+            let writer = writer.clone();
+            move |msg: Message| {
+                let mut w = writer.lock().unwrap_or_else(|e| e.into_inner());
+                // A broken pipe means the app went away; nothing useful to do.
+                let _ = w.write_all(encode(&msg).as_bytes()).and_then(|_| w.flush());
+            }
         };
+        let event_write = write.clone();
+        self.set_event_sink(Arc::new(move |ev| event_write(Message::Event(ev))));
+        let send = &write;
         std::thread::scope(|scope| -> std::io::Result<()> {
             for line in reader.lines() {
                 let line = line?;
@@ -89,7 +110,6 @@ impl Agent {
                 }
                 match decode(&line) {
                     Ok(Message::Request(req)) => {
-                        let send = &send;
                         scope.spawn(move || {
                             let res = self.dispatch(&req.method, req.params);
                             send(Message::Response(response(req.id, res)));
@@ -186,8 +206,9 @@ mod tests {
             r#"{"kind":"request","id":2,"method":"nope"}"#,
             "\n",
         );
-        let mut out = Vec::new();
-        a.serve(input.as_bytes(), &mut out).unwrap();
+        let out = Arc::new(Mutex::new(Vec::new()));
+        a.serve(input.as_bytes(), SharedBuf(out.clone())).unwrap();
+        let out = out.lock().unwrap().clone();
         let mut ids: Vec<(u64, bool)> = String::from_utf8(out)
             .unwrap()
             .lines()
@@ -198,5 +219,48 @@ mod tests {
             .collect();
         ids.sort();
         assert_eq!(ids, vec![(1, true), (2, false)]);
+    }
+
+    /// `serve` needs a `'static` writer; this one lets the test read it back.
+    struct SharedBuf(Arc<Mutex<Vec<u8>>>);
+    impl Write for SharedBuf {
+        fn write(&mut self, b: &[u8]) -> std::io::Result<usize> {
+            self.0.lock().unwrap().write(b)
+        }
+        fn flush(&mut self) -> std::io::Result<()> {
+            Ok(())
+        }
+    }
+
+    #[test]
+    fn watch_emits_change_events() {
+        let dir = std::env::temp_dir().join(format!("debutuuru-watch-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        let ok = std::process::Command::new("git")
+            .current_dir(&dir)
+            .args(["init", "-q"])
+            .status()
+            .unwrap()
+            .success();
+        assert!(ok);
+
+        let a = Agent::with_default_modules();
+        let (tx, rx) = std::sync::mpsc::channel();
+        a.set_event_sink(Arc::new(move |ev| {
+            let _ = tx.send(ev);
+        }));
+        let repo = dir.to_string_lossy().to_string();
+        a.dispatch("git.watch", json!({ "repo": repo })).unwrap();
+        std::fs::write(dir.join("new.txt"), "x").unwrap();
+
+        let ev = rx
+            .recv_timeout(std::time::Duration::from_secs(5))
+            .expect("change event");
+        assert_eq!(ev.topic, "git.changed");
+        assert_eq!(ev.payload["repo"], repo);
+
+        a.dispatch("git.unwatch", json!({ "repo": repo })).unwrap();
+        let _ = std::fs::remove_dir_all(&dir);
     }
 }

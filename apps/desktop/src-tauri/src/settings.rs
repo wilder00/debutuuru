@@ -22,6 +22,18 @@ pub const MAX_BACKGROUND_BYTES: usize = 25 * 1024 * 1024;
 pub struct Settings {
     pub schema_version: u32,
     pub appearance: Appearance,
+    /// Added without a schema bump: missing in older files → default.
+    pub session: Session,
+}
+
+/// Open repository tabs, restored on the next start.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, TS)]
+#[serde(default)]
+#[ts(export)]
+pub struct Session {
+    /// Tab keys in UI form (`C:\…` or `\\wsl.localhost\Distro\…`).
+    pub open_repos: Vec<String>,
+    pub active: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
@@ -85,6 +97,7 @@ impl Default for Settings {
         Self {
             schema_version: SCHEMA_VERSION,
             appearance: Appearance::default(),
+            session: Session::default(),
         }
     }
 }
@@ -151,6 +164,13 @@ impl Settings {
             {
                 *f = None;
             }
+        }
+        let s = &mut self.session;
+        s.open_repos.retain(|r| !r.trim().is_empty());
+        s.open_repos.dedup();
+        s.open_repos.truncate(50);
+        if s.active.as_ref().is_some_and(|a| !s.open_repos.contains(a)) {
+            s.active = s.open_repos.first().cloned();
         }
         self.schema_version = SCHEMA_VERSION;
         self
