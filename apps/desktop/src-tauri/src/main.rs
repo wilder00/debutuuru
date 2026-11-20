@@ -93,6 +93,44 @@ async fn wsl_distros() -> Vec<String> {
         .unwrap_or_default()
 }
 
+/// Distros running now (their command status can be checked without booting one).
+#[tauri::command]
+async fn wsl_running() -> Vec<String> {
+    tauri::async_runtime::spawn_blocking(wsl::list_running)
+        .await
+        .unwrap_or_default()
+}
+
+/// Whether `debutuuru .` works in `distro`'s terminals.
+#[tauri::command]
+async fn wsl_command_status(distro: String) -> Result<wsl::WslCommandStatus, RpcError> {
+    tauri::async_runtime::spawn_blocking(move || wsl::command_status(&distro))
+        .await
+        .map_err(blocking_err)?
+}
+
+/// Installs the `debutuuru` command in `distro` (agent + shim), without opening a repo.
+#[tauri::command]
+async fn wsl_install_command(
+    agents: tauri::State<'_, Arc<Agents>>,
+    distro: String,
+) -> Result<wsl::WslCommandStatus, RpcError> {
+    let agents = agents.inner().clone();
+    tauri::async_runtime::spawn_blocking(move || {
+        wsl::install_command(&distro, agents.linux_agent()?)
+    })
+    .await
+    .map_err(blocking_err)?
+}
+
+/// Adds `~/.local/bin` to PATH in the user's shell startup file (user-initiated).
+#[tauri::command]
+async fn wsl_add_to_path(distro: String) -> Result<wsl::WslCommandStatus, RpcError> {
+    tauri::async_runtime::spawn_blocking(move || wsl::add_to_path(&distro))
+        .await
+        .map_err(blocking_err)?
+}
+
 #[tauri::command]
 fn get_settings(state: tauri::State<'_, SettingsState>) -> LoadedSettings {
     let loaded = state.store.load();
@@ -177,6 +215,10 @@ fn main() {
             resolve_path,
             initial_path,
             wsl_distros,
+            wsl_running,
+            wsl_command_status,
+            wsl_install_command,
+            wsl_add_to_path,
             get_settings,
             save_settings,
             import_background

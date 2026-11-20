@@ -115,7 +115,12 @@ means adding a module, not a new transport.
 3. It also installs a shim at `~/.local/bin/debutuuru`, so `debutuuru .` works
    from a WSL shell. The shim forwards to the Windows app with the
    `\\wsl.localhost\…` path, or to the Linux app if one is installed and
-   WSLg is preferred.
+   WSLg is preferred. Settings › WSL command installs the same agent + shim
+   without opening a repo, and shows whether a new terminal finds it (the
+   user's `$SHELL -il`, run under `setsid` + `timeout -k`). If `~/.local/bin`
+   isn't on PATH, an explicit "Add to PATH" button appends one marked line to
+   `~/.zshrc`, `~/.bashrc` or `~/.profile`. Only running distros are checked
+   automatically, so opening Settings never boots a distro.
 4. The app runs one `wsl.exe -d <distro> -e …/debutuuru agent --stdio` per
    distro and reuses it for every repo in that distro.
 

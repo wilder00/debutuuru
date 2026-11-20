@@ -7,7 +7,9 @@ runner, GitHub/GitLab integration, containers and more.
 - **Windows + WSL**: install on Windows and work on Windows repos *and* repos
   inside WSL at native speed. A small Debutuuru agent runs inside WSL, the same
   idea as VS Code's WSL server. It is installed automatically the first time
-  you open a WSL repo, along with a `debutuuru` command in that distro.
+  you open a WSL repo, along with a `debutuuru` command in that distro. To use
+  `debutuuru .` in a WSL terminal before that, install the command from
+  Settings › WSL command (it can also add `~/.local/bin` to your PATH).
 - **Live**: the app refreshes itself when files, the index or branches change,
   including inside WSL.
 - **Linux**: install natively, or run the Linux build inside WSL with WSLg.

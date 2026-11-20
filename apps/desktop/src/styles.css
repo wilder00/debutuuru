@@ -322,3 +322,10 @@ select { height: 28px; background: var(--bg-raised); border: 1px solid var(--bor
 .toggle-row { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; }
 .toggle-row input { margin-top: 3px; }
 .hint.block { display: block; margin-top: 4px; }
+.wsl-rows { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.wsl-row { display: flex; align-items: flex-start; gap: 12px; }
+.wsl-name { flex: 0 0 96px; padding-top: 4px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wsl-state { flex: 1; display: flex; align-items: center; gap: 10px; min-height: 28px; flex-wrap: wrap; }
+.wsl-state .hint { margin: 0; }
+.wsl-state button { margin-left: auto; }
+.wsl-msg { flex: 1; min-width: 0; font-size: .88em; user-select: text; }
