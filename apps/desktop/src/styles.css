@@ -276,7 +276,10 @@ ul { list-style: none; margin: 0; padding: 0; }
 .graph-empty { padding: 16px 14px; }
 
 /* Remote operations */
-.remote-area { position: relative; flex: none; border-bottom: 1px solid var(--border-subtle); background: var(--bg-panel); backdrop-filter: blur(var(--panel-blur)); }
+/* z-index: backdrop-filter makes this a stacking context, so its menus' own
+   z-index only counts inside it; without this, the graph painted after it
+   (also blurred) covers the Pull/Push menus. */
+.remote-area { position: relative; z-index: 3; flex: none; border-bottom: 1px solid var(--border-subtle); background: var(--bg-panel); backdrop-filter: blur(var(--panel-blur)); }
 .remote-bar { display: flex; align-items: center; gap: 6px; height: 40px; padding: 0 10px; }
 .remote-bar > button, .split > button { height: 28px; }
 .split { position: relative; display: inline-flex; }
