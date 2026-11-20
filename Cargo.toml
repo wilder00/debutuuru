@@ -6,6 +6,7 @@ members = [
     "crates/debutuuru-agent",
     "crates/debutuuru-cli",
     "apps/desktop/src-tauri",
+    "apps/desktop", # debutuuru-ui: versioning marker for the React UI
 ]
 
 [workspace.package]

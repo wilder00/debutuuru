@@ -870,6 +870,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "debutuuru-ui"
+version = "0.1.0"
+
+[[package]]
 name = "deranged"
 version = "0.5.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"

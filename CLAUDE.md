@@ -17,6 +17,7 @@ Read `docs/ARCHITECTURE.md` (design + roadmap) and `docs/VERSIONING.md` first.
 | `crates/debutuuru-cli` | `debutuuru` binary: `open`, `agent --stdio`, inspection commands. |
 | `apps/desktop/src-tauri` | Tauri shell: routes the `rpc` command to the right agent. |
 | `apps/desktop/src` | React + Vite + TS UI; one folder per module under `src/modules/`. |
+| `apps/desktop/Cargo.toml` | `debutuuru-ui`: empty marker package so release-plz counts UI-only commits (changelog + version). Don't delete it. |
 | `apps/desktop/src/bindings` | **Generated** TS types (ts-rs). Never edit by hand. |
 
 ## Rules

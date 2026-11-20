@@ -22,4 +22,4 @@ git_tag_enable = true
 git_tag_name = "v{{ version }}"
 changelog_path = "CHANGELOG.md"
 changelog_update = true
-changelog_include = ["debutuuru-core", "debutuuru-protocol", "debutuuru-agent", "debutuuru-desktop"]
+changelog_include = ["debutuuru-core", "debutuuru-protocol", "debutuuru-agent", "debutuuru-desktop", "debutuuru-ui"]

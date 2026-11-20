@@ -1,0 +1,32 @@
+# Marker package: it exists only so release-plz sees the React UI.
+#
+# release-plz assigns a commit to a package when it changes one of the
+# package's files (`cargo package --list`). The UI (src/, index.html,
+# package.json…) lives outside the Tauri crate (src-tauri/, which Cargo leaves
+# out of this package because it has its own Cargo.toml), so without this
+# package UI-only commits would never reach the changelog or bump the version.
+# Path includes aren't supported yet: release-plz/release-plz#1581.
+[package]
+name = "debutuuru-ui"
+description = "Debutuuru desktop UI (React), tracked for versioning only"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+# The UI sources only (never dist/ or node_modules/): these are the files whose
+# commits count for the release.
+include = [
+    "/src/**",
+    "/index.html",
+    "/package.json",
+    "/package-lock.json",
+    "/tsconfig.json",
+    "/vite.config.ts",
+    "/release-marker.rs",
+]
+
+[lib]
+# Not src/lib.rs: src/ is the React app.
+path = "release-marker.rs"
