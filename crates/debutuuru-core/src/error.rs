@@ -14,6 +14,10 @@ pub enum Error {
     NotARepo(String),
     #[error("unexpected git output: {0}")]
     Parse(String),
+    #[error("{0}")]
+    InvalidPath(String),
+    #[error("{0}")]
+    Io(String),
 }
 
 pub type Result<T> = std::result::Result<T, Error>;

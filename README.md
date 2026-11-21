@@ -15,6 +15,9 @@ runner, GitHub/GitLab integration, containers and more.
 - **Linux**: install natively, or run the Linux build inside WSL with WSLg.
 - **Terminal-friendly**: `debutuuru open .` from PowerShell, bash or WSL.
 - **Worktree-aware**: open a main repo or any linked worktree.
+- **Files**: browse the file tree and read any file (syntax highlighting,
+  search), as it is now with changes marked, or at any commit (double-click it
+  in History). Ignored files are hidden unless you ask for them.
 - **Yours**: dark themes generated from base + accent + contrast (WCAG-checked),
   Warp-style background images, fonts and density (Ctrl+,). See
   [docs/DESIGN.md](docs/DESIGN.md).

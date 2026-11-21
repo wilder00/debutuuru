@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import type { ChangedEvent } from "../../bindings/ChangedEvent";
 import type { LogEntry } from "../../bindings/LogEntry";
 import type { Snapshot } from "../../bindings/Snapshot";
@@ -10,6 +10,9 @@ import { DiffView } from "./DiffView";
 import { RemoteBar } from "./RemoteBar";
 import { useSettings } from "../../settings/SettingsProvider";
 import { Sidebar } from "./Sidebar";
+
+// Code viewer (CodeMirror) is only downloaded when Files is first opened.
+const FilesView = lazy(() => import("./FilesView").then((m) => ({ default: m.FilesView })));
 
 const LOG_LIMIT = 2000; // paginated loading comes with a later phase
 
@@ -32,6 +35,15 @@ export function GitView({ repo, active, refreshKey, onError, onOpen, onLoaded }:
   const [file, setFile] = useState<FileSelection | null>(null);
   const [diff, setDiff] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [view, setView] = useState<"history" | "files">("history");
+  /** Commit browsed in Files; null = working tree. */
+  const [filesRev, setFilesRev] = useState<string | null>(null);
+  // Files stays mounted once opened (hidden in History), so open folders and
+  // the open file survive switching views.
+  const [filesOpened, setFilesOpened] = useState(false);
+  useEffect(() => {
+    if (view === "files") setFilesOpened(true);
+  }, [view]);
   const loading = useRef(false);
   const pending = useRef(false);
 
@@ -136,7 +148,7 @@ export function GitView({ repo, active, refreshKey, onError, onOpen, onLoaded }:
   }
 
   return (
-    <div className={"git-view" + (file ? " with-diff" : "")} hidden={!active}>
+    <div className={"git-view" + (file && view === "history" ? " with-diff" : "")} hidden={!active}>
       <Sidebar
         snapshot={snapshot}
         onCheckout={(branch) => act(() => git.checkout(repo, { branch }))}
@@ -144,8 +156,34 @@ export function GitView({ repo, active, refreshKey, onError, onOpen, onLoaded }:
       />
       <div className="center">
         <RemoteBar repo={repo} snapshot={snapshot} settings={gitSettings} onDone={() => void reload().catch(onError)} />
-        <CommitGraph log={log} selected={commit} onSelect={setCommit} />
-        {file && (
+        <div className="view-tabs" role="tablist">
+          <button role="tab" aria-selected={view === "history"} className={view === "history" ? "on" : ""} onClick={() => setView("history")}>
+            History
+          </button>
+          <button role="tab" aria-selected={view === "files"} className={view === "files" ? "on" : ""} onClick={() => setView("files")}>
+            Files
+          </button>
+          {view === "history" && <span className="hint">Double-click a commit to browse its files</span>}
+        </div>
+        {filesOpened && (
+          <div className="view-pane" hidden={view !== "files"}>
+            <Suspense fallback={<div className="empty">Loading…</div>}>
+              <FilesView repo={repo} snapshot={snapshot} rev={filesRev} revOptions={revOptions(log, [filesRev, commit])} onRev={setFilesRev} />
+            </Suspense>
+          </div>
+        )}
+        <div className="view-pane" hidden={view !== "history"}>
+          <CommitGraph
+            log={log}
+            selected={commit}
+            onSelect={setCommit}
+            onOpen={(hash) => {
+              setFilesRev(hash);
+              setView("files");
+            }}
+          />
+        </div>
+        {view === "history" && file && (
           <DiffView
             path={file.file.path}
             staged={file.staged}
@@ -164,9 +202,18 @@ export function GitView({ repo, active, refreshKey, onError, onOpen, onLoaded }:
         onSelect={(s) => {
           setDiff(null);
           setFile(s);
+          setView("history");
         }}
         act={act}
       />
     </div>
   );
+}
+
+/** Files revision picker: the browsed commit and the one selected in History. */
+function revOptions(log: LogEntry[], revs: (string | null)[]) {
+  return [...new Set(revs.filter((r): r is string => !!r))].map((rev) => {
+    const c = log.find((e) => e.hash === rev);
+    return { value: rev, label: c ? `${rev.slice(0, 8)} · ${c.subject}` : rev.slice(0, 8) };
+  });
 }

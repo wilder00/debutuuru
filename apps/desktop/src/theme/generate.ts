@@ -80,6 +80,20 @@ export function generateTheme(inputs: ThemeInputs, surfaceAlpha = 1): Generated 
   };
   lanes.forEach((c, i) => (tokens[`--lane-${i}`] = c));
 
+  // Syntax: equal lightness like the lanes, fixed hues by convention (purple
+  // keywords, green strings…) so code reads the same across themes.
+  const syn = (h: number) => oklch(0.8 + 0.04 * k, 0.12, h);
+  Object.assign(tokens, {
+    "--syn-keyword": syn(305),
+    "--syn-string": syn(145),
+    "--syn-number": syn(55),
+    "--syn-constant": syn(80),
+    "--syn-function": syn(250),
+    "--syn-type": syn(195),
+    "--syn-property": syn(20),
+    "--syn-comment": withAlpha(muted, 0.85),
+  });
+
   const report: ThemeReport = {
     text: contrastRatio(text, neutral[1]),
     muted: contrastRatio(muted, neutral[1]),

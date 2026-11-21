@@ -12,6 +12,10 @@ import type { LogEntry } from "../../bindings/LogEntry";
 import type { LogParams } from "../../bindings/LogParams";
 import type { PathsParams } from "../../bindings/PathsParams";
 import type { Snapshot } from "../../bindings/Snapshot";
+import type { FileContent } from "../../bindings/FileContent";
+import type { ReadFileParams } from "../../bindings/ReadFileParams";
+import type { TreeEntry } from "../../bindings/TreeEntry";
+import type { TreeParams } from "../../bindings/TreeParams";
 
 export const git = {
   snapshot: (repo: string) => rpc<Snapshot>(repo, "git.snapshot"),
@@ -21,6 +25,9 @@ export const git = {
   commit: (repo: string, p: Params<CommitParams>) => rpc<string>(repo, "git.commit", p),
   checkout: (repo: string, p: Params<CheckoutParams>) => rpc<null>(repo, "git.checkout", p),
   diff: (repo: string, p: Params<DiffParams>) => rpc<string>(repo, "git.diff", p),
+  /** One folder level; `rev` omitted = working tree. */
+  tree: (repo: string, p: Params<TreeParams>) => rpc<TreeEntry[]>(repo, "git.tree", p),
+  readFile: (repo: string, p: Params<ReadFileParams>) => rpc<FileContent>(repo, "git.read_file", p),
   /** Idempotent: the agent emits `git.changed` for this repo until unwatched. */
   watch: (repo: string) => rpc<null>(repo, "git.watch"),
   unwatch: (repo: string) => rpc<null>(repo, "git.unwatch"),

@@ -160,6 +160,13 @@ means adding a module, not a new transport.
 - Commit graph: paginated log from the agent, virtualized list
   (TanStack Virtual), graph rows drawn on canvas/SVG per visible row.
 - Tabs for repos, which can mix Windows and WSL repos.
+- Files view: `git.tree` returns one folder level per call (working tree via
+  `read_dir` + one `git check-ignore` per level, or a commit via `git
+  ls-tree`), so `node_modules`/`target` cost nothing until opened.
+  `git.read_file` reads from disk or `git cat-file`, caps at 2 MiB, detects
+  binaries by NUL bytes, never follows symlinks, and refuses paths outside
+  the repo. The viewer is CodeMirror 6, read-only, lazy-loaded (only renders
+  visible lines; languages load on demand) and colored with `--syn-*` tokens.
 
 ## Roadmap
 

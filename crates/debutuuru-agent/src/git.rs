@@ -228,6 +228,13 @@ impl Module for GitModule {
             DIFF => handle_with(params, |p: DiffParams| {
                 self.repo(&p.repo)?.diff(&p.path, p.staged, p.untracked)
             }),
+            TREE => handle_with(params, |p: TreeParams| {
+                self.repo(&p.repo)?
+                    .tree(p.rev.as_deref(), &p.path, p.show_ignored)
+            }),
+            READ_FILE => handle_with(params, |p: ReadFileParams| {
+                self.repo(&p.repo)?.read_file(p.rev.as_deref(), &p.path)
+            }),
             WATCH => handle_with(params, |p: RepoParams| self.watch(p.repo)),
             UNWATCH => handle_with(params, |p: RepoParams| {
                 self.unwatch(&p.repo);
