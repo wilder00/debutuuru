@@ -6,6 +6,10 @@
 //! 1024 characters, and editing a longer PATH there truncates it. The value
 //! keeps its registry type (usually REG_EXPAND_SZ), so `%USERPROFILE%`-style
 //! entries stay unexpanded.
+//!
+//! The string helpers are plain Rust so their tests run on every OS, but only
+//! the Windows `update` calls them.
+#![cfg_attr(not(windows), allow(dead_code))]
 
 /// `path` with `dir` appended, or `None` if `dir` is already in it.
 pub fn with_dir(path: &str, dir: &str) -> Option<String> {
