@@ -50,7 +50,7 @@ sees each Conventional Commit for the changelog.
 - Create a fine-grained token (contents + pull requests: write) and store it as
   the repository secret `RELEASE_PLZ_TOKEN`. A token is needed because tags
   pushed with the default `GITHUB_TOKEN` don't trigger other workflows.
-- Updater signing key: `npm run tauri signer generate -- -w ~/.tauri/debutuuru.key`
+- Updater signing key: `pnpm --dir apps/desktop exec tauri signer generate -w ~/.tauri/debutuuru.key`
   (run by the maintainer, never by CI). Store the private key's content as
   `TAURI_SIGNING_PRIVATE_KEY` and its password as
   `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`; the public key goes in

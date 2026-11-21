@@ -57,15 +57,17 @@ Read `docs/ARCHITECTURE.md` (design + roadmap) and `docs/VERSIONING.md` first.
 
 ## Commands
 
-Node is managed with fnm (`.node-version`). In non-interactive shells load it
+Node is managed with fnm (`.node-version`); the UI uses **pnpm** (version
+pinned in `apps/desktop/package.json` › `packageManager`, settings in
+`apps/desktop/pnpm-workspace.yaml`), never npm. In non-interactive shells load Node
 first: `eval "$(fnm env --shell bash)"` (bash) or
 `fnm env --shell powershell | Out-String | Invoke-Expression` (PowerShell).
 
 ```bash
 cargo test --workspace                       # Rust tests + regenerate TS bindings
 cargo clippy --workspace --all-targets -- -D warnings
-cd apps/desktop && npm ci && npm run build   # typecheck + bundle UI
-cd apps/desktop && npm run tauri dev         # run the app with hot reload
+cd apps/desktop && pnpm install && pnpm build   # typecheck + bundle UI
+cd apps/desktop && pnpm tauri dev              # run the app with hot reload
 cargo run -p debutuuru -- info .             # CLI
 # Linux agent for WSL repos (needs `rustup target add x86_64-unknown-linux-musl`).
 # Dev builds of the app find it in target/ automatically.

@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "description": "React UI of the Debutuuru desktop app. The product version lives in the root Cargo.toml.",
   "type": "module",
+  "packageManager": "pnpm@11.28.13",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",

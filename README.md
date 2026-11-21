@@ -42,13 +42,14 @@ debutuuru '\\wsl.localhost\Ubuntu\home\me\app'
 ## Develop
 
 Requirements: Rust stable, Node (version in `.node-version`; fnm/nvm read it),
-git. Linux also needs `libwebkit2gtk-4.1-dev libgtk-3-dev librsvg2-dev`.
+pnpm (version pinned in `apps/desktop/package.json`; `corepack enable` picks it
+up), git. Linux also needs `libwebkit2gtk-4.1-dev libgtk-3-dev librsvg2-dev`.
 Windows needs WebView2 (preinstalled on Windows 11).
 
 ```bash
-cd apps/desktop && npm ci && cd ../..
+cd apps/desktop && pnpm install && cd ../..
 cargo test --workspace            # tests + regenerate TS bindings
-cd apps/desktop && npm run tauri dev
+cd apps/desktop && pnpm tauri dev
 ```
 
 CLI:
