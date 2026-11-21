@@ -6,6 +6,7 @@ import { wslDistros } from "../lib/rpc";
 import { generateTheme } from "../theme/generate";
 import { CUSTOM, PRESETS, resolveInputs } from "../theme/presets";
 import { useSettings } from "./SettingsProvider";
+import { UpdatesSection } from "./UpdatesSection";
 import { WslCommandSection } from "./WslCommandSection";
 
 export function AppearancePanel({ onClose }: { onClose: () => void }) {
@@ -132,6 +133,7 @@ export function AppearancePanel({ onClose }: { onClose: () => void }) {
 
         <GitSshSection />
         <WslCommandSection Section={Section} />
+        <UpdatesSection Section={Section} />
       </aside>
     </div>
   );

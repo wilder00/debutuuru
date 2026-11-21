@@ -7,6 +7,7 @@ import type { GitSettings } from "../bindings/GitSettings";
 import type { LoadedSettings } from "../bindings/LoadedSettings";
 import type { Session } from "../bindings/Session";
 import type { Settings } from "../bindings/Settings";
+import type { UpdateSettings } from "../bindings/UpdateSettings";
 import { generateTheme, type ThemeReport } from "../theme/generate";
 import { resolveInputs } from "../theme/presets";
 
@@ -16,6 +17,7 @@ type Ctx = {
   appearance: Appearance;
   session: Session;
   git: GitSettings;
+  updates: UpdateSettings;
   backgroundPath: string | null;
   readOnly: boolean;
   notice: string | null;
@@ -23,6 +25,7 @@ type Ctx = {
   update: (patch: Partial<Appearance>) => void;
   updateSession: (session: Session) => void;
   updateGit: (patch: Partial<GitSettings>) => void;
+  updateUpdates: (patch: Partial<UpdateSettings>) => void;
   setBackground: (bg: Appearance["background"], path: string | null) => void;
   dismissNotice: () => void;
 };
@@ -43,6 +46,7 @@ export const DEFAULT_SETTINGS: Settings = {
   },
   session: { open_repos: [], active: null },
   git: { windows_ssh: "system", wsl_distro: null },
+  updates: { check_on_start: true },
 };
 
 /** Font names come from the user; keep only characters valid in a family name. */
@@ -109,6 +113,10 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   const update = useCallback((patch: Partial<Appearance>) => change((s) => ({ ...s, appearance: { ...s.appearance, ...patch } })), [change]);
   const updateSession = useCallback((session: Session) => change((s) => ({ ...s, session })), [change]);
   const updateGit = useCallback((patch: Partial<GitSettings>) => change((s) => ({ ...s, git: { ...s.git, ...patch } })), [change]);
+  const updateUpdates = useCallback(
+    (patch: Partial<UpdateSettings>) => change((s) => ({ ...s, updates: { ...s.updates, ...patch } })),
+    [change],
+  );
   const setBackground = useCallback(
     (bg: Appearance["background"], path: string | null) => {
       setBackgroundPath(path);
@@ -122,6 +130,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     appearance: settings.appearance,
     session: settings.session,
     git: settings.git,
+    updates: settings.updates,
     backgroundPath,
     readOnly,
     notice,
@@ -129,6 +138,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     update,
     updateSession,
     updateGit,
+    updateUpdates,
     setBackground,
     dismissNotice: () => setNotice(null),
   };

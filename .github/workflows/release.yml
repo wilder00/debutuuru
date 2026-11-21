@@ -3,7 +3,8 @@ name: Release
 # Builds installers for every tag vX.Y.Z and attaches them to a GitHub Release.
 # The Windows installer bundles the static Linux agent used for WSL repos.
 # The Windows installers also put the `debutuuru` CLI on PATH.
-# Phase 3 adds: signed updater manifests, Windows code signing.
+# Installers are signed for the in-app updater, which reads latest.json
+# from the newest release. Phase 3 still lacks Windows code signing.
 
 on:
   push:
@@ -49,13 +50,21 @@ jobs:
         run: cargo build --release -p debutuuru
       # Builds the app plus MSI/NSIS (Windows) or deb/AppImage/rpm (Linux),
       # using the project's own @tauri-apps/cli (npm run tauri).
+      # tauri.release.conf.json turns on updater artifacts: each installer gets
+      # a .sig made with the private key in the secrets below, and latest.json
+      # (one entry per OS/arch/bundle type) is uploaded to the release.
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           projectPath: apps/desktop
           tauriScript: npm run tauri
-          args: ${{ runner.os == 'Windows' && '--config src-tauri/tauri.windows-release.conf.json' || '' }}
+          args: ${{ runner.os == 'Windows' && '--config src-tauri/tauri.release.conf.json --config src-tauri/tauri.windows-release.conf.json' || '--config src-tauri/tauri.release.conf.json' }}
+          # Generic `windows-x86_64` entry: the per-user setup.exe (no admin).
+          # Installed apps pick their own type (`-nsis` / `-msi`) first.
+          updaterJsonPreferNsis: true
           tagName: ${{ github.ref_name }}
           releaseName: "Debutuuru ${{ github.ref_name }}"
           releaseDraft: false

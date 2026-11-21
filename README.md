@@ -20,6 +20,8 @@ runner, GitHub/GitLab integration, containers and more.
 - **Files**: browse the file tree and read any file (syntax highlighting,
   search), as it is now with changes marked, or at any commit (double-click it
   in History). Ignored files are hidden unless you ask for them.
+- **Updates**: the app tells you when a new version is out and installs it
+  with one click (signed, verified before installing).
 - **Yours**: dark themes generated from base + accent + contrast (WCAG-checked),
   Warp-style background images, fonts and density (Ctrl+,). See
   [docs/DESIGN.md](docs/DESIGN.md).
@@ -29,7 +31,7 @@ branches, worktrees, stage/commit/diff, auto-refresh, and fetch/pull/push.
 Your SSH setup is used as-is: passwordless keys and ssh-agent just work, and
 passphrases or unknown host keys are asked for in an in-app dialog. Keys that
 live only in WSL can also be used for Windows repos (Settings › Git & SSH).
-Next is Phase 3: installers and updates. See the roadmap in
+Phase 3 (installers, `debutuuru` on PATH, in-app updates) is in progress. See the roadmap in
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ```bash

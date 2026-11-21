@@ -198,6 +198,10 @@ fn main() {
                 let _ = w.set_focus();
             }
         }))
+        // Updates: checked and installed from the UI (signed, from GitHub
+        // releases); `process` relaunches the app afterwards on Linux.
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_process::init())
         .setup(|app| {
             let config = app.path().app_config_dir()?;
             let data = app.path().app_data_dir()?;

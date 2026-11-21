@@ -23,13 +23,30 @@
       "csp": "default-src 'self' ipc: http://ipc.localhost; style-src 'self' 'unsafe-inline'; img-src 'self' data: asset: http://asset.localhost; font-src 'self' data:",
       "assetProtocol": {
         "enable": true,
-        "scope": ["$APPDATA/backgrounds/*"]
+        "scope": [
+          "$APPDATA/backgrounds/*"
+        ]
       }
     }
   },
   "bundle": {
     "active": true,
     "targets": "all",
-    "icon": ["icons/32x32.png", "icons/128x128.png", "icons/icon.ico"]
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/icon.ico"
+    ]
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "PUBKEY_PENDING",
+      "endpoints": [
+        "https://github.com/wilder00/debutuuru/releases/latest/download/latest.json"
+      ],
+      "windows": {
+        "installMode": "passive"
+      }
+    }
   }
 }

@@ -362,3 +362,18 @@ select { height: 28px; background: var(--bg-raised); border: 1px solid var(--bor
 @media (prefers-reduced-motion: reduce) { .chev { transition: none; } }
 .view-pane { flex: 1; display: flex; flex-direction: column; min-height: 0; }
 .git-view.with-diff .view-pane { flex: 0 0 45%; }
+
+/* Updates */
+.statusbar-update {
+  display: inline-flex; align-items: center; gap: 4px; height: 18px; padding: 0 8px; border-radius: var(--radius);
+  border: 1px solid var(--accent-ring); background: var(--accent-soft); color: var(--accent); font: inherit; cursor: pointer;
+}
+.statusbar-update:hover { border-color: var(--accent); }
+.statusbar-update.busy { cursor: default; }
+.update-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.update-row button { display: inline-flex; align-items: center; gap: 6px; }
+.update-notes {
+  max-height: 160px; overflow: auto; margin: 0 0 8px; padding: 8px 10px; white-space: pre-wrap; user-select: text;
+  font-family: var(--font-mono); font-size: .85em; color: var(--text-muted); background: var(--bg-raised);
+  border: 1px solid var(--border-subtle); border-radius: var(--radius);
+}

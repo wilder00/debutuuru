@@ -1,6 +1,6 @@
 # Debutuuru architecture
 
-Status (2026-11-20): **Phases 0–2 done.** Next: Phase 3 (distribution).
+Status (2026-11-20): **Phases 0–2 done**, Phase 3 (distribution) in progress.
 
 Phase 2 (remotes), verified in the app with real SSH to GitHub:
 - Fetch, pull (default / ff-only / rebase / merge) and push (publishing new
@@ -49,6 +49,13 @@ Phase 3, in progress:
   (`%VAR%` entries stay unexpanded) and avoiding NSIS's 1024-character string
   limit that truncates long PATHs. The .msi (per machine) uses WiX's
   `Environment` element on the system PATH.
+- In-app updates (`tauri-plugin-updater`): installers are signed in the
+  release workflow, `latest.json` lists one entry per OS/arch/bundle type, and
+  the app installs the same type it was installed with (setup.exe, msi,
+  AppImage, deb, rpm). It checks once 5 s after start (Settings › Updates can
+  turn that off) and only shows a status-bar button; nothing installs until
+  the user clicks. On Windows the installer runs in passive mode and restarts
+  the app.
 
 Known gaps: the native Linux desktop build hasn't been run yet (only built in
 CI).
@@ -163,7 +170,7 @@ means adding a module, not a new transport.
 | App ↔ agent | `PROTOCOL_VERSION` in the handshake. On mismatch the app deploys its own matching agent build. Protocol changes are additive within a major version. |
 | UI ↔ Rust | TS types generated from Rust (ts-rs/specta) and checked in CI, so drift fails the build. |
 | Settings / workspaces | `schema_version` in every stored file, with ordered migrations and a backup before migrating. |
-| Updates | `tauri-plugin-updater` with signed update manifests (signing key in CI secrets). |
+| Updates | `tauri-plugin-updater`: installers signed in CI (key in secrets), `latest.json` on the newest GitHub release, verified with the public key in the app. |
 | Windows trust | Code-sign the installer (needs a certificate, decided later). Without it, SmartScreen warns. |
 | Git | Minimum supported version checked at startup, with a clear message. |
 

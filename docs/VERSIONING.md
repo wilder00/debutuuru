@@ -38,13 +38,26 @@ sees each Conventional Commit for the changelog.
    to `main` alone never tag).
 4. The tag triggers `release.yml`, which builds Windows (MSI/NSIS) and Linux
    (deb/AppImage/rpm) installers plus standalone `debutuuru` CLI binaries and
-   attaches them to the GitHub Release.
+   attaches them to the GitHub Release, together with a `.sig` per installer
+   and `latest.json` for the in-app updater.
+5. Installed apps find the new version in
+   `releases/latest/download/latest.json` (on start, or Settings › Updates),
+   verify the signature with the public key built into them, and install the
+   same bundle type they were installed with.
 
 ## One-time setup
 
 - Create a fine-grained token (contents + pull requests: write) and store it as
   the repository secret `RELEASE_PLZ_TOKEN`. A token is needed because tags
   pushed with the default `GITHUB_TOKEN` don't trigger other workflows.
+- Updater signing key: `npm run tauri signer generate -- -w ~/.tauri/debutuuru.key`
+  (run by the maintainer, never by CI). Store the private key's content as
+  `TAURI_SIGNING_PRIVATE_KEY` and its password as
+  `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`; the public key goes in
+  `apps/desktop/src-tauri/tauri.conf.json` (`plugins.updater.pubkey`). Keep a
+  backup of the private key: without it, installed apps can't be updated
+  anymore. Only release builds sign (`tauri.release.conf.json`), so local
+  `tauri build` needs no key.
 - The first release-plz run should be reviewed by hand: the lockstep workspace
   version is configured in `release-plz.toml`, and its behaviour with
   `version.workspace = true` should be confirmed on the first Release PR.

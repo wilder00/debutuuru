@@ -26,6 +26,25 @@ pub struct Settings {
     pub session: Session,
     /// Added without a schema bump.
     pub git: GitSettings,
+    /// Added without a schema bump.
+    pub updates: UpdateSettings,
+}
+
+/// App updates (signed installers from the GitHub releases).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(default)]
+#[ts(export)]
+pub struct UpdateSettings {
+    /// Look for a new version a few seconds after start (never installs by itself).
+    pub check_on_start: bool,
+}
+
+impl Default for UpdateSettings {
+    fn default() -> Self {
+        Self {
+            check_on_start: true,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, TS)]
@@ -123,6 +142,7 @@ impl Default for Settings {
             appearance: Appearance::default(),
             session: Session::default(),
             git: GitSettings::default(),
+            updates: UpdateSettings::default(),
         }
     }
 }
@@ -416,6 +436,16 @@ mod tests {
         s.appearance.theme = "ember".into();
         store.save(s.clone()).unwrap();
         assert_eq!(store.load().settings.appearance.theme, "ember");
+    }
+
+    #[test]
+    fn files_from_before_updates_check_for_updates() {
+        let d = tmp("updates");
+        let store = Store::new(&d, &d);
+        std::fs::write(&store.file, r#"{"schema_version": 1, "git": {}}"#).unwrap();
+        let loaded = store.load();
+        assert!(!loaded.read_only);
+        assert!(loaded.settings.updates.check_on_start);
     }
 
     #[test]
