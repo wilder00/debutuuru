@@ -57,8 +57,10 @@ Read `docs/ARCHITECTURE.md` (design + roadmap) and `docs/VERSIONING.md` first.
   `-D warnings`), and vice versa. On Windows run `cargo clippy-linux` too
   (alias in `.cargo/config.toml`). For platform-only helpers that stay
   testable everywhere, use `#![cfg_attr(not(windows), allow(dead_code))]`
-  with a comment. The desktop crate's Linux build needs GTK: check it in a
-  Linux/WSL shell with the deps below, or say it was left to CI.
+  with a comment (`allow(unused_mut)` when only Windows mutates a value).
+  `cargo clippy-linux` skips the desktop crate (it needs GTK);
+  `wsl -e sh scripts/check-linux.sh` runs the full Linux clippy + tests in
+  WSL (GTK deps below). If neither ran, say Linux was left to CI.
 - Verify before claiming: run things and measure on the real machine, and
   search before recommending a library. Don't silently deviate from decisions
   recorded in `docs/ARCHITECTURE.md`; propose a change instead.
@@ -74,7 +76,8 @@ first: `eval "$(fnm env --shell bash)"` (bash) or
 ```bash
 cargo test --workspace                       # Rust tests + regenerate TS bindings
 cargo clippy --workspace --all-targets -- -D warnings
-cargo clippy-linux                           # same lints as Linux CI (from Windows)
+cargo clippy-linux                           # Linux lints, all but the desktop crate
+wsl -e sh scripts/check-linux.sh             # full Linux clippy + tests (WSL with GTK)
 cd apps/desktop && pnpm install && pnpm build   # typecheck + bundle UI
 cd apps/desktop && pnpm tauri dev              # run the app with hot reload
 cargo run -p debutuuru -- info .             # CLI
