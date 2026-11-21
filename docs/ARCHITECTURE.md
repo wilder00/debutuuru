@@ -38,8 +38,20 @@ Phase 1, verified end to end on Windows 11 + Ubuntu (WSL2):
 - Inside WSL, `debutuuru .` works through a shim the app installs at
   `~/.local/bin/debutuuru`. It only replaces a file it wrote itself.
 
+Phase 3, in progress:
+- Installers on every `v*` tag (msi, setup.exe, deb, rpm, AppImage), the
+  Windows ones bundling the Linux agent.
+- The Windows installers put the `debutuuru` CLI on PATH: it ships as
+  `<app>\bin\debutuuru.exe`, and only that folder is added, so
+  `uninstall.exe` never is. setup.exe (per user) runs
+  `debutuuru windows-path add|remove` from its install/uninstall hooks, which
+  edits `HKCU\Environment\Path` in Rust, keeping the value's type
+  (`%VAR%` entries stay unexpanded) and avoiding NSIS's 1024-character string
+  limit that truncates long PATHs. The .msi (per machine) uses WiX's
+  `Environment` element on the system PATH.
+
 Known gaps: the native Linux desktop build hasn't been run yet (only built in
-CI). On Windows, `debutuuru` gets onto PATH with the installer (Phase 3).
+CI).
 Watching repos under `/mnt/c` from WSL misses Windows-side edits (drvfs has
 no inotify); open those as Windows paths instead.
 
@@ -126,7 +138,8 @@ means adding a module, not a new transport.
 
 ## Terminal launch and single instance
 
-- Windows installer: the `debutuuru` CLI goes on PATH (`debutuuru .`, `debutuuru open <path>`).
+- Windows installer: the `debutuuru` CLI goes on PATH (`debutuuru .`,
+  `debutuuru open <path>`) in new terminals; it finds the app one folder up.
 - Linux packages: `/usr/bin/debutuuru`.
 - `tauri-plugin-single-instance`: a second launch hands its path to the running
   app, which opens it in a **new tab** instead of a new window.

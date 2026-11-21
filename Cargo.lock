@@ -821,6 +821,7 @@ dependencies = [
  "debutuuru-core",
  "debutuuru-protocol",
  "serde_json",
+ "winreg",
 ]
 
 [[package]]

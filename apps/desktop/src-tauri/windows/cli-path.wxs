@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Puts the `debutuuru` CLI on the system PATH (.msi, per-machine install).
+     Only INSTALLDIR\bin goes on PATH, so nothing else in the app folder does.
+     Windows Installer removes the entry again on uninstall. -->
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Fragment>
+    <DirectoryRef Id="INSTALLDIR">
+      <Component Id="DebutuuruCliPath" Guid="5b0f2c1e-8d4a-4f7e-9c36-2a1d7e6b4f90" KeyPath="yes">
+        <CreateFolder />
+        <Environment Id="DebutuuruCliPathEntry" Name="PATH" Value="[INSTALLDIR]bin"
+                     Action="set" Part="last" System="yes" Permanent="no" />
+      </Component>
+    </DirectoryRef>
+  </Fragment>
+</Wix>

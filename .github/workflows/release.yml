@@ -2,7 +2,8 @@ name: Release
 
 # Builds installers for every tag vX.Y.Z and attaches them to a GitHub Release.
 # The Windows installer bundles the static Linux agent used for WSL repos.
-# Phase 3 adds: signed updater manifests, Windows code signing, CLI on PATH.
+# The Windows installers also put the `debutuuru` CLI on PATH.
+# Phase 3 adds: signed updater manifests, Windows code signing.
 
 on:
   push:
@@ -42,6 +43,10 @@ jobs:
       - name: Build Linux agent for WSL
         if: runner.os == 'Windows'
         run: cargo build --release -p debutuuru --target x86_64-unknown-linux-musl
+      # Built before the app: the Windows installers bundle it as
+      # `bin\debutuuru.exe` and put that folder on PATH. Also uploaded alone below.
+      - name: Build CLI
+        run: cargo build --release -p debutuuru
       # Builds the app plus MSI/NSIS (Windows) or deb/AppImage/rpm (Linux),
       # using the project's own @tauri-apps/cli (npm run tauri).
       - uses: tauri-apps/tauri-action@v0
@@ -50,13 +55,11 @@ jobs:
         with:
           projectPath: apps/desktop
           tauriScript: npm run tauri
-          args: ${{ runner.os == 'Windows' && '--config src-tauri/tauri.wsl-agent.conf.json' || '' }}
+          args: ${{ runner.os == 'Windows' && '--config src-tauri/tauri.windows-release.conf.json' || '' }}
           tagName: ${{ github.ref_name }}
           releaseName: "Debutuuru ${{ github.ref_name }}"
           releaseDraft: false
       # The CLI ships separately too (servers, WSL without the app, scripts).
-      - name: Build CLI
-        run: cargo build --release -p debutuuru
       - name: Upload CLI
         shell: bash
         env:

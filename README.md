@@ -13,7 +13,9 @@ runner, GitHub/GitLab integration, containers and more.
 - **Live**: the app refreshes itself when files, the index or branches change,
   including inside WSL.
 - **Linux**: install natively, or run the Linux build inside WSL with WSLg.
-- **Terminal-friendly**: `debutuuru open .` from PowerShell, bash or WSL.
+- **Terminal-friendly**: `debutuuru .` from PowerShell, cmd, bash or WSL. The
+  Windows installer puts the command on your PATH (open a new terminal after
+  installing).
 - **Worktree-aware**: open a main repo or any linked worktree.
 - **Files**: browse the file tree and read any file (syntax highlighting,
   search), as it is now with changes marked, or at any commit (double-click it
