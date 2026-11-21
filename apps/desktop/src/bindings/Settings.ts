@@ -2,6 +2,7 @@
 import type { Appearance } from "./Appearance";
 import type { GitSettings } from "./GitSettings";
 import type { Session } from "./Session";
+import type { UpdateSettings } from "./UpdateSettings";
 
 export type Settings = { schema_version: number, appearance: Appearance, 
 /**
@@ -11,4 +12,8 @@ session: Session,
 /**
  * Added without a schema bump.
  */
-git: GitSettings, };
+git: GitSettings, 
+/**
+ * Added without a schema bump.
+ */
+updates: UpdateSettings, };

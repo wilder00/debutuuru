@@ -72,6 +72,27 @@ fn agent_over_stdio() {
         .unwrap();
     assert_eq!(log[0]["subject"], "two");
 
+    // File browsing: working tree and a commit.
+    let tree = client
+        .call(git::TREE, json!({ "repo": repo, "path": "" }))
+        .unwrap();
+    let names: Vec<&str> = tree
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|e| e["name"].as_str().unwrap())
+        .collect();
+    assert_eq!(names, ["f.txt", "g.txt"]);
+    let at_first = client
+        .call(git::TREE, json!({ "repo": repo, "rev": "HEAD~1" }))
+        .unwrap();
+    assert_eq!(at_first.as_array().unwrap().len(), 1);
+    let file = client
+        .call(git::READ_FILE, json!({ "repo": repo, "path": "g.txt" }))
+        .unwrap();
+    assert_eq!(file["text"], "y\n");
+    assert_eq!(file["binary"], false);
+
     let err = client.call("git.nope", json!({})).unwrap_err();
     assert_eq!(err.code, ErrorCode::MethodNotFound);
 

@@ -12,6 +12,8 @@ use serde_json::to_string_pretty;
 use std::path::{Path, PathBuf};
 use std::process::{Command, ExitCode, Stdio};
 
+mod winpath;
+
 #[derive(Parser)]
 #[command(
     name = "debutuuru",
@@ -54,6 +56,14 @@ enum Cmd {
     Branches { path: Option<String> },
     /// List worktrees of the repository.
     Worktrees { path: Option<String> },
+    /// Add or remove a folder (default: this binary's) in the user's PATH.
+    /// Run by the Windows installer and uninstaller.
+    #[command(hide = true)]
+    WindowsPath {
+        #[arg(value_parser = ["add", "remove"])]
+        action: String,
+        dir: Option<PathBuf>,
+    },
 }
 
 fn main() -> ExitCode {
@@ -81,6 +91,7 @@ fn run(cli: Cli) -> Result<(), String> {
     };
     match command {
         Cmd::Open { path } => open(Some(path.unwrap_or_else(|| ".".into()))),
+        Cmd::WindowsPath { action, dir } => windows_path(action == "add", dir),
         Cmd::Agent { .. } => {
             // Inside WSL the agent is started without the user's rc files;
             // import ssh-agent/PATH/proxy settings from their login shell so
@@ -256,6 +267,33 @@ fn open(path: Option<String>) -> Result<(), String> {
     Ok(())
 }
 
+#[cfg(windows)]
+fn windows_path(add: bool, dir: Option<PathBuf>) -> Result<(), String> {
+    let dir = match dir {
+        Some(d) => d,
+        None => std::env::current_exe()
+            .map_err(s)?
+            .parent()
+            .ok_or("no parent folder")?
+            .to_path_buf(),
+    };
+    let dir = dir.to_string_lossy();
+    let changed = winpath::update(add, &dir)?;
+    let what = match (add, changed) {
+        (true, true) => "added to",
+        (true, false) => "already in",
+        (false, true) => "removed from",
+        (false, false) => "was not in",
+    };
+    println!("{dir} {what} your PATH");
+    Ok(())
+}
+
+#[cfg(not(windows))]
+fn windows_path(_add: bool, _dir: Option<PathBuf>) -> Result<(), String> {
+    Err("windows-path only applies on Windows".into())
+}
+
 fn in_wsl() -> bool {
     !cfg!(windows) && std::env::var_os("WSL_DISTRO_NAME").is_some()
 }
@@ -281,13 +319,14 @@ fn find_desktop() -> Option<PathBuf> {
     } else {
         "debutuuru-desktop"
     };
-    if let Some(dir) = std::env::current_exe()
-        .ok()
-        .and_then(|me| me.parent().map(Path::to_path_buf))
-    {
-        let cand = dir.join(name);
-        if cand.is_file() {
-            return Some(cand);
+    // Next to this binary, or one level up: the Windows installer puts the
+    // CLI in `<app>\bin` so only it lands on PATH, not `uninstall.exe`.
+    if let Ok(me) = std::env::current_exe() {
+        for dir in me.ancestors().skip(1).take(2) {
+            let cand = dir.join(name);
+            if cand.is_file() {
+                return Some(cand);
+            }
         }
     }
     if on_path(name) {

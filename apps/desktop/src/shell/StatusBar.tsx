@@ -1,10 +1,12 @@
-import { ArrowDown, ArrowUp, Cpu, GitBranch, Layers } from "lucide-react";
+import { ArrowDown, ArrowUp, Cpu, Download, GitBranch, Layers, Loader2 } from "lucide-react";
 import type { Hello } from "../bindings/Hello";
 import type { Snapshot } from "../bindings/Snapshot";
+import { installUpdate, useUpdateState } from "../lib/updater";
 
 export function StatusBar({ snapshot, agent }: { snapshot: Snapshot | null; agent: Hello | null }) {
   const info = snapshot?.info;
   const st = snapshot?.status;
+  const upd = useUpdateState();
   return (
     <footer className="statusbar">
       {info && (
@@ -32,6 +34,17 @@ export function StatusBar({ snapshot, agent }: { snapshot: Snapshot | null; agen
         </span>
       )}
       {agent && <span>v{agent.agent_version}</span>}
+      {upd.kind === "available" && (
+        <button className="statusbar-update" onClick={installUpdate} title="Download, install and restart Debutuuru">
+          <Download size={12} /> Update to v{upd.version}
+        </button>
+      )}
+      {upd.kind === "installing" && (
+        <span className="statusbar-update busy">
+          <Loader2 size={12} className="spin" /> Updating to v{upd.version}
+          {upd.percent !== null ? ` · ${upd.percent}%` : "…"}
+        </span>
+      )}
     </footer>
   );
 }

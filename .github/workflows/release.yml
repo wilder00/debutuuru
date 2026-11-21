@@ -2,7 +2,9 @@ name: Release
 
 # Builds installers for every tag vX.Y.Z and attaches them to a GitHub Release.
 # The Windows installer bundles the static Linux agent used for WSL repos.
-# Phase 3 adds: signed updater manifests, Windows code signing, CLI on PATH.
+# The Windows installers also put the `debutuuru` CLI on PATH.
+# Installers are signed for the in-app updater, which reads latest.json
+# from the newest release. Phase 3 still lacks Windows code signing.
 
 on:
   push:
@@ -29,34 +31,48 @@ jobs:
         with:
           targets: x86_64-unknown-linux-musl
       - uses: Swatinem/rust-cache@v2
+      # pnpm's version comes from `packageManager` in apps/desktop/package.json.
+      - uses: pnpm/action-setup@v6
+        with:
+          package_json_file: apps/desktop/package.json
       - uses: actions/setup-node@v4
         with:
           node-version-file: .node-version
-          cache: npm
-          cache-dependency-path: apps/desktop/package-lock.json
+          cache: pnpm
+          cache-dependency-path: apps/desktop/pnpm-lock.yaml
       - name: Install frontend deps
         working-directory: apps/desktop
-        run: npm ci
+        run: pnpm install --frozen-lockfile
       # Static Linux agent (rust-lld, see .cargo/config.toml), bundled into the
       # Windows app so it can serve repos inside any WSL distro.
       - name: Build Linux agent for WSL
         if: runner.os == 'Windows'
         run: cargo build --release -p debutuuru --target x86_64-unknown-linux-musl
+      # Built before the app: the Windows installers bundle it as
+      # `bin\debutuuru.exe` and put that folder on PATH. Also uploaded alone below.
+      - name: Build CLI
+        run: cargo build --release -p debutuuru
       # Builds the app plus MSI/NSIS (Windows) or deb/AppImage/rpm (Linux),
-      # using the project's own @tauri-apps/cli (npm run tauri).
+      # using the project's own @tauri-apps/cli (pnpm tauri).
+      # tauri.release.conf.json turns on updater artifacts: each installer gets
+      # a .sig made with the private key in the secrets below, and latest.json
+      # (one entry per OS/arch/bundle type) is uploaded to the release.
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           projectPath: apps/desktop
-          tauriScript: npm run tauri
-          args: ${{ runner.os == 'Windows' && '--config src-tauri/tauri.wsl-agent.conf.json' || '' }}
+          tauriScript: pnpm tauri
+          args: ${{ runner.os == 'Windows' && '--config src-tauri/tauri.release.conf.json --config src-tauri/tauri.windows-release.conf.json' || '--config src-tauri/tauri.release.conf.json' }}
+          # Generic `windows-x86_64` entry: the per-user setup.exe (no admin).
+          # Installed apps pick their own type (`-nsis` / `-msi`) first.
+          updaterJsonPreferNsis: true
           tagName: ${{ github.ref_name }}
           releaseName: "Debutuuru ${{ github.ref_name }}"
           releaseDraft: false
       # The CLI ships separately too (servers, WSL without the app, scripts).
-      - name: Build CLI
-        run: cargo build --release -p debutuuru
       - name: Upload CLI
         shell: bash
         env:

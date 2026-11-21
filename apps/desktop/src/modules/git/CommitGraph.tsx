@@ -36,10 +36,12 @@ type Props = {
   log: LogEntry[];
   selected: string | null;
   onSelect: (hash: string) => void;
+  /** Double-click: browse the files of that commit. */
+  onOpen?: (hash: string) => void;
 };
 
 /** Virtualized commit table: only visible rows are rendered. */
-export function CommitGraph({ log, selected, onSelect }: Props) {
+export function CommitGraph({ log, selected, onSelect, onOpen }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const rowH = parseInt(getComputedStyle(document.documentElement).getPropertyValue("--row-h")) || 26;
   const virtualizer = useVirtualizer({
@@ -87,6 +89,7 @@ export function CommitGraph({ log, selected, onSelect }: Props) {
                 className={"commit-row" + (selected === e.hash ? " selected" : "") + (isHead ? " is-head" : "")}
                 style={{ height: rowH, transform: `translateY(${item.start}px)` }}
                 onClick={() => onSelect(e.hash)}
+                onDoubleClick={() => onOpen?.(e.hash)}
               >
                 <span className="c-graph">
                   <GraphCell g={e.graph} width={graphW} height={rowH} head={isHead} />

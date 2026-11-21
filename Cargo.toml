@@ -13,7 +13,7 @@ members = [
 # Single version for the whole product. Bumped by release-plz (see release-plz.toml).
 version = "0.1.0"
 edition = "2021"
-rust-version = "1.80"
+rust-version = "1.90"
 license = "MIT"
 repository = "https://github.com/wilder00/debutuuru"
 authors = ["wilder00"]

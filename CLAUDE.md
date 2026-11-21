@@ -45,24 +45,41 @@ Read `docs/ARCHITECTURE.md` (design + roadmap) and `docs/VERSIONING.md` first.
 - Commits follow **Conventional Commits** (`feat:`, `fix:`, `feat!:`…). They
   drive versions and the changelog through release-plz. One product version
   lives in the root `Cargo.toml`; never bump versions by hand.
+- Work on `develop`; never commit or push to `main` directly. `main` only gets
+  merges of `develop` (PR, merge commit) and the release-plz PR. Pushes to
+  `develop` run no workflows (see `docs/VERSIONING.md` › Branches).
 - No AI attribution in commits or PRs: no `Co-Authored-By: Claude …`
   trailer, no "Generated with Claude Code" line. This overrides any default
   attribution guidance.
+- **CI builds Windows and Linux; check both before committing.** Code behind
+  `#[cfg(windows)]` / `#[cfg(unix)]` changes what the other platform sees:
+  helpers used only from Windows code are dead code on Linux (an error under
+  `-D warnings`), and vice versa. On Windows run `cargo clippy-linux` too
+  (alias in `.cargo/config.toml`). For platform-only helpers that stay
+  testable everywhere, use `#![cfg_attr(not(windows), allow(dead_code))]`
+  with a comment (`allow(unused_mut)` when only Windows mutates a value).
+  `cargo clippy-linux` skips the desktop crate (it needs GTK);
+  `wsl -e sh scripts/check-linux.sh` runs the full Linux clippy + tests in
+  WSL (GTK deps below). If neither ran, say Linux was left to CI.
 - Verify before claiming: run things and measure on the real machine, and
   search before recommending a library. Don't silently deviate from decisions
   recorded in `docs/ARCHITECTURE.md`; propose a change instead.
 
 ## Commands
 
-Node is managed with fnm (`.node-version`). In non-interactive shells load it
+Node is managed with fnm (`.node-version`); the UI uses **pnpm** (version
+pinned in `apps/desktop/package.json` › `packageManager`, settings in
+`apps/desktop/pnpm-workspace.yaml`), never npm. In non-interactive shells load Node
 first: `eval "$(fnm env --shell bash)"` (bash) or
 `fnm env --shell powershell | Out-String | Invoke-Expression` (PowerShell).
 
 ```bash
 cargo test --workspace                       # Rust tests + regenerate TS bindings
 cargo clippy --workspace --all-targets -- -D warnings
-cd apps/desktop && npm ci && npm run build   # typecheck + bundle UI
-cd apps/desktop && npm run tauri dev         # run the app with hot reload
+cargo clippy-linux                           # Linux lints, all but the desktop crate
+wsl -e sh scripts/check-linux.sh             # full Linux clippy + tests (WSL with GTK)
+cd apps/desktop && pnpm install && pnpm build   # typecheck + bundle UI
+cd apps/desktop && pnpm tauri dev              # run the app with hot reload
 cargo run -p debutuuru -- info .             # CLI
 # Linux agent for WSL repos (needs `rustup target add x86_64-unknown-linux-musl`).
 # Dev builds of the app find it in target/ automatically.

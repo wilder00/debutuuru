@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { Hello } from "./bindings/Hello";
 import type { Snapshot } from "./bindings/Snapshot";
 import { AgentError, agentHello, initialPath, onOpenRepo, resolvePath } from "./lib/rpc";
+import { checkForUpdate } from "./lib/updater";
 import { GitView } from "./modules/git/GitView";
 import { PromptDialog } from "./modules/git/PromptDialog";
 import { AppearancePanel } from "./settings/AppearancePanel";
@@ -14,7 +15,7 @@ import { TabBar } from "./shell/TabBar";
 import { TitleBar } from "./shell/TitleBar";
 
 export function App() {
-  const { ready, session, updateSession, notice, dismissNotice } = useSettings();
+  const { ready, session, updateSession, notice, dismissNotice, updates } = useSettings();
   const [snapshots, setSnapshots] = useState<Record<string, Snapshot>>({});
   const [error, setError] = useState<string | null>(null);
   const [agent, setAgent] = useState<Hello | null>(null);
@@ -22,6 +23,14 @@ export function App() {
   const [refreshKey, setRefreshKey] = useState(0);
   const repos = session.open_repos;
   const active = session.active;
+
+  // Look for a new version once, shortly after start (release builds only;
+  // a dev build would always look outdated). Never installs by itself.
+  useEffect(() => {
+    if (!ready || !updates.check_on_start || import.meta.env.DEV) return;
+    const t = setTimeout(() => checkForUpdate(true), 5000);
+    return () => clearTimeout(t);
+  }, [ready]);
 
   // Latest session for callbacks that outlive a render (event listeners).
   const sessionRef = useRef(session);

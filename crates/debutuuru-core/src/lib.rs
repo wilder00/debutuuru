@@ -2,6 +2,7 @@
 //! the desktop app behave identically (including on WSL).
 
 pub mod error;
+pub mod files;
 pub mod graph;
 pub mod location;
 pub mod repo;

@@ -47,6 +47,13 @@ impl Agents {
         }
     }
 
+    /// The bundled Linux agent (also the `debutuuru` command inside WSL).
+    pub fn linux_agent(&self) -> Result<&std::path::Path, RpcError> {
+        self.linux_agent
+            .as_deref()
+            .ok_or_else(|| RpcError::new(ErrorCode::Unsupported, wsl::BUILD_HINT))
+    }
+
     /// The agent for `loc`, connecting to (or reviving) a WSL agent if needed.
     /// Blocking: call from a worker thread.
     pub fn get(&self, loc: &Location) -> Result<Arc<dyn Transport>, RpcError> {
@@ -65,10 +72,7 @@ impl Agents {
             }
             clients.remove(distro);
         }
-        let binary = self
-            .linux_agent
-            .as_ref()
-            .ok_or_else(|| RpcError::new(ErrorCode::Unsupported, wsl::BUILD_HINT))?;
+        let binary = self.linux_agent()?;
         let client = Arc::new(wsl::connect(
             distro,
             binary,

@@ -25,3 +25,5 @@ ts-rs.workspace = true
 tauri-plugin-single-instance = "2.5"
 # protocol-asset: serves the user's background image from the app data folder.
 tauri = { version = "2", features = ["protocol-asset"] }
+tauri-plugin-updater = "2.14"
+tauri-plugin-process = "2.4"

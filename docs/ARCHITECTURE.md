@@ -1,6 +1,6 @@
 # Debutuuru architecture
 
-Status (2026-11-20): **Phases 0–2 done.** Next: Phase 3 (distribution).
+Status (2026-11-20): **Phases 0–2 done**, Phase 3 (distribution) in progress.
 
 Phase 2 (remotes), verified in the app with real SSH to GitHub:
 - Fetch, pull (default / ff-only / rebase / merge) and push (publishing new
@@ -38,8 +38,27 @@ Phase 1, verified end to end on Windows 11 + Ubuntu (WSL2):
 - Inside WSL, `debutuuru .` works through a shim the app installs at
   `~/.local/bin/debutuuru`. It only replaces a file it wrote itself.
 
+Phase 3, in progress:
+- Installers on every `v*` tag (msi, setup.exe, deb, rpm, AppImage), the
+  Windows ones bundling the Linux agent.
+- The Windows installers put the `debutuuru` CLI on PATH: it ships as
+  `<app>\bin\debutuuru.exe`, and only that folder is added, so
+  `uninstall.exe` never is. setup.exe (per user) runs
+  `debutuuru windows-path add|remove` from its install/uninstall hooks, which
+  edits `HKCU\Environment\Path` in Rust, keeping the value's type
+  (`%VAR%` entries stay unexpanded) and avoiding NSIS's 1024-character string
+  limit that truncates long PATHs. The .msi (per machine) uses WiX's
+  `Environment` element on the system PATH.
+- In-app updates (`tauri-plugin-updater`): installers are signed in the
+  release workflow, `latest.json` lists one entry per OS/arch/bundle type, and
+  the app installs the same type it was installed with (setup.exe, msi,
+  AppImage, deb, rpm). It checks once 5 s after start (Settings › Updates can
+  turn that off) and only shows a status-bar button; nothing installs until
+  the user clicks. On Windows the installer runs in passive mode and restarts
+  the app.
+
 Known gaps: the native Linux desktop build hasn't been run yet (only built in
-CI). On Windows, `debutuuru` gets onto PATH with the installer (Phase 3).
+CI).
 Watching repos under `/mnt/c` from WSL misses Windows-side edits (drvfs has
 no inotify); open those as Windows paths instead.
 
@@ -115,13 +134,19 @@ means adding a module, not a new transport.
 3. It also installs a shim at `~/.local/bin/debutuuru`, so `debutuuru .` works
    from a WSL shell. The shim forwards to the Windows app with the
    `\\wsl.localhost\…` path, or to the Linux app if one is installed and
-   WSLg is preferred.
+   WSLg is preferred. Settings › WSL command installs the same agent + shim
+   without opening a repo, and shows whether a new terminal finds it (the
+   user's `$SHELL -il`, run under `setsid` + `timeout -k`). If `~/.local/bin`
+   isn't on PATH, an explicit "Add to PATH" button appends one marked line to
+   `~/.zshrc`, `~/.bashrc` or `~/.profile`. Only running distros are checked
+   automatically, so opening Settings never boots a distro.
 4. The app runs one `wsl.exe -d <distro> -e …/debutuuru agent --stdio` per
    distro and reuses it for every repo in that distro.
 
 ## Terminal launch and single instance
 
-- Windows installer: the `debutuuru` CLI goes on PATH (`debutuuru .`, `debutuuru open <path>`).
+- Windows installer: the `debutuuru` CLI goes on PATH (`debutuuru .`,
+  `debutuuru open <path>`) in new terminals; it finds the app one folder up.
 - Linux packages: `/usr/bin/debutuuru`.
 - `tauri-plugin-single-instance`: a second launch hands its path to the running
   app, which opens it in a **new tab** instead of a new window.
@@ -145,7 +170,7 @@ means adding a module, not a new transport.
 | App ↔ agent | `PROTOCOL_VERSION` in the handshake. On mismatch the app deploys its own matching agent build. Protocol changes are additive within a major version. |
 | UI ↔ Rust | TS types generated from Rust (ts-rs/specta) and checked in CI, so drift fails the build. |
 | Settings / workspaces | `schema_version` in every stored file, with ordered migrations and a backup before migrating. |
-| Updates | `tauri-plugin-updater` with signed update manifests (signing key in CI secrets). |
+| Updates | `tauri-plugin-updater`: installers signed in CI (key in secrets), `latest.json` on the newest GitHub release, verified with the public key in the app. |
 | Windows trust | Code-sign the installer (needs a certificate, decided later). Without it, SmartScreen warns. |
 | Git | Minimum supported version checked at startup, with a clear message. |
 
@@ -155,6 +180,13 @@ means adding a module, not a new transport.
 - Commit graph: paginated log from the agent, virtualized list
   (TanStack Virtual), graph rows drawn on canvas/SVG per visible row.
 - Tabs for repos, which can mix Windows and WSL repos.
+- Files view: `git.tree` returns one folder level per call (working tree via
+  `read_dir` + one `git check-ignore` per level, or a commit via `git
+  ls-tree`), so `node_modules`/`target` cost nothing until opened.
+  `git.read_file` reads from disk or `git cat-file`, caps at 2 MiB, detects
+  binaries by NUL bytes, never follows symlinks, and refuses paths outside
+  the repo. The viewer is CodeMirror 6, read-only, lazy-loaded (only renders
+  visible lines; languages load on demand) and colored with `--syn-*` tokens.
 
 ## Roadmap
 

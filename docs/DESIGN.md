@@ -31,6 +31,8 @@ components never use raw colors.
 | `--text-muted` / `--text` | 11 / 12 | secondary / primary text |
 | `--ok`, `--warn`, `--danger`, `--info` | same OKLCH lightness | git status (added, modified, deleted, renamed) |
 | `--lane-0…7` | equal lightness, hues rotated from the accent | commit graph lanes, consistent brightness |
+| `--syn-keyword`, `-string`, `-number`, `-constant`, `-function`, `-type`, `-property` | equal lightness (≥ lanes), fixed conventional hues | syntax highlighting in the file viewer |
+| `--syn-comment` | muted text | code comments (italic) |
 
 Typography: UI 13px (configurable 12–15), mono for hashes, paths, diffs and
 counts. Radius 6px for controls and 10px for panels. Spacing on a 4px grid, with

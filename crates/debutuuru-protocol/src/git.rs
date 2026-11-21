@@ -9,7 +9,8 @@ pub const MODULE: &str = "git";
 /// 2: `git.watch` / `git.unwatch` and the `git.changed` event.
 /// 3: remote operations (fetch/pull/push), progress and credential prompts,
 ///    `remotes` in [`Snapshot`].
-pub const MODULE_VERSION: u32 = 3;
+/// 4: file browsing: `git.tree` and `git.read_file`.
+pub const MODULE_VERSION: u32 = 4;
 
 /// [`RepoParams`] → [`Snapshot`]
 pub const SNAPSHOT: &str = "git.snapshot";
@@ -25,6 +26,10 @@ pub const COMMIT: &str = "git.commit";
 pub const CHECKOUT: &str = "git.checkout";
 /// [`DiffParams`] → `string` (unified diff)
 pub const DIFF: &str = "git.diff";
+/// [`TreeParams`] → `Vec<TreeEntry>`: one folder level, working tree or a commit.
+pub const TREE: &str = "git.tree";
+/// [`ReadFileParams`] → [`FileContent`]
+pub const READ_FILE: &str = "git.read_file";
 /// [`RepoParams`] → `null`. Starts emitting [`CHANGED`] for this repo (idempotent).
 pub const WATCH: &str = "git.watch";
 /// [`RepoParams`] → `null`
@@ -98,6 +103,33 @@ pub struct DiffParams {
     pub path: String,
     pub staged: bool,
     pub untracked: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct TreeParams {
+    pub repo: String,
+    /// Commit (any revision git understands); `None` = the working tree.
+    #[serde(default)]
+    #[ts(optional)]
+    pub rev: Option<String>,
+    /// Folder relative to the repo root, `/`-separated; `""` = root.
+    #[serde(default)]
+    pub path: String,
+    /// Include .gitignored entries (working tree only), flagged `ignored`.
+    #[serde(default)]
+    pub show_ignored: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct ReadFileParams {
+    pub repo: String,
+    /// Commit; `None` = the working tree.
+    #[serde(default)]
+    #[ts(optional)]
+    pub rev: Option<String>,
+    pub path: String,
 }
 
 /// Options shared by every remote operation.

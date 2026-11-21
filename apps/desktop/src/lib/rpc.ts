@@ -8,6 +8,7 @@ import type { AgentEvent } from "../bindings/AgentEvent";
 import type { ErrorCode } from "../bindings/ErrorCode";
 import type { Hello } from "../bindings/Hello";
 import type { RpcError } from "../bindings/RpcError";
+import type { WslCommandStatus } from "../bindings/WslCommandStatus";
 
 export class AgentError extends Error {
   constructor(
@@ -39,6 +40,11 @@ export const agentHello = (repo: string) => call<Hello>("agent_hello", { repo })
 export const resolvePath = (input: string) => invoke<string>("resolve_path", { input });
 export const initialPath = () => invoke<string | null>("initial_path");
 export const wslDistros = () => invoke<string[]>("wsl_distros");
+/** Distros running now: checking them doesn't boot anything. */
+export const wslRunning = () => invoke<string[]>("wsl_running");
+export const wslCommandStatus = (distro: string) => call<WslCommandStatus>("wsl_command_status", { distro });
+export const wslInstallCommand = (distro: string) => call<WslCommandStatus>("wsl_install_command", { distro });
+export const wslAddToPath = (distro: string) => call<WslCommandStatus>("wsl_add_to_path", { distro });
 
 /** Emitted when a WSL agent process exits; payload `{ distro }`. */
 export const AGENT_DISCONNECTED = "agent.disconnected";
