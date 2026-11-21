@@ -192,6 +192,8 @@ fn wsl(distro: &str) -> Command {
 }
 
 fn wsl_plain() -> Command {
+    // Only Windows changes it (no console window); elsewhere `mut` is unused.
+    #[cfg_attr(not(windows), allow(unused_mut))]
     let mut cmd = Command::new("wsl.exe");
     #[cfg(windows)]
     {
