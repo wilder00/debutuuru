@@ -45,6 +45,9 @@ Read `docs/ARCHITECTURE.md` (design + roadmap) and `docs/VERSIONING.md` first.
 - Commits follow **Conventional Commits** (`feat:`, `fix:`, `feat!:`…). They
   drive versions and the changelog through release-plz. One product version
   lives in the root `Cargo.toml`; never bump versions by hand.
+- Work on `develop`; never commit or push to `main` directly. `main` only gets
+  merges of `develop` (PR, merge commit) and the release-plz PR. Pushes to
+  `develop` run no workflows (see `docs/VERSIONING.md` › Branches).
 - No AI attribution in commits or PRs: no `Co-Authored-By: Claude …`
   trailer, no "Generated with Claude Code" line. This overrides any default
   attribution guidance.

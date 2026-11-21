@@ -13,9 +13,23 @@ library and the desktop app share one version, defined once in
 | `feat!:` / `BREAKING CHANGE:` | minor | major |
 | `docs:`, `chore:`, `refactor:`, `test:`, `ci:` | no release | no release |
 
+## Branches
+
+| Branch | Workflows on push | Use |
+| --- | --- | --- |
+| `develop` | none | Day-to-day commits. Pushing here never runs CI or releases. |
+| PR `develop` → `main` | CI (tests) | The gate before anything reaches `main`. |
+| `main` | CI + Release PR | Only receives merges from `develop` (and the release PR). |
+| tag `vX.Y.Z` | Release (installers) | Created by merging the release PR. |
+
+The workflow triggers enforce this (`ci.yml`: push to `main` + pull requests;
+`release-plz.yml`: push to `main`; `release.yml`: `v*` tags). Merge
+`develop` → `main` with a **merge commit** (not squash), so release-plz still
+sees each Conventional Commit for the changelog.
+
 ## Flow
 
-1. Merge work into `main` using Conventional Commit messages.
+1. Commit on `develop`; when ready, open a PR `develop` → `main` and merge it.
 2. `release-plz` opens/updates a **Release PR** that bumps the version and
    writes `CHANGELOG.md`. Nothing is published to crates.io (`git_only`): the
    previous version comes from the `vX.Y.Z` git tags, and with no tag yet the
