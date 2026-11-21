@@ -51,6 +51,14 @@ Read `docs/ARCHITECTURE.md` (design + roadmap) and `docs/VERSIONING.md` first.
 - No AI attribution in commits or PRs: no `Co-Authored-By: Claude …`
   trailer, no "Generated with Claude Code" line. This overrides any default
   attribution guidance.
+- **CI builds Windows and Linux; check both before committing.** Code behind
+  `#[cfg(windows)]` / `#[cfg(unix)]` changes what the other platform sees:
+  helpers used only from Windows code are dead code on Linux (an error under
+  `-D warnings`), and vice versa. On Windows run `cargo clippy-linux` too
+  (alias in `.cargo/config.toml`). For platform-only helpers that stay
+  testable everywhere, use `#![cfg_attr(not(windows), allow(dead_code))]`
+  with a comment. The desktop crate's Linux build needs GTK: check it in a
+  Linux/WSL shell with the deps below, or say it was left to CI.
 - Verify before claiming: run things and measure on the real machine, and
   search before recommending a library. Don't silently deviate from decisions
   recorded in `docs/ARCHITECTURE.md`; propose a change instead.
@@ -66,6 +74,7 @@ first: `eval "$(fnm env --shell bash)"` (bash) or
 ```bash
 cargo test --workspace                       # Rust tests + regenerate TS bindings
 cargo clippy --workspace --all-targets -- -D warnings
+cargo clippy-linux                           # same lints as Linux CI (from Windows)
 cd apps/desktop && pnpm install && pnpm build   # typecheck + bundle UI
 cd apps/desktop && pnpm tauri dev              # run the app with hot reload
 cargo run -p debutuuru -- info .             # CLI

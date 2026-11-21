@@ -6,3 +6,9 @@ TS_RS_EXPORT_DIR = { value = "apps/desktop/src/bindings", relative = true }
 # Windows with Rust's bundled linker: static musl, no C toolchain needed.
 [target.x86_64-unknown-linux-musl]
 linker = "rust-lld"
+
+[alias]
+# CI also builds on Linux. On Windows, `cfg(windows)`-only callers hide dead
+# code and other Linux-only errors: run `cargo clippy-linux` before committing.
+# Covers every crate except the desktop shell (that one needs GTK, see CLAUDE.md).
+clippy-linux = "clippy -p debutuuru -p debutuuru-core -p debutuuru-agent -p debutuuru-protocol --all-targets --target x86_64-unknown-linux-musl -- -D warnings"
