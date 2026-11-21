@@ -16,7 +16,6 @@ edition = "2021"
 rust-version = "1.90"
 license = "MIT"
 repository = "https://github.com/wilder00/debutuuru"
-authors = ["wilder00"]
 
 [workspace.dependencies]
 debutuuru-core = { path = "crates/debutuuru-core" }

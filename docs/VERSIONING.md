@@ -44,6 +44,15 @@ sees each Conventional Commit for the changelog.
    `releases/latest/download/latest.json` (on start, or Settings › Updates),
    verify the signature with the public key built into them, and install the
    same bundle type they were installed with.
+6. Bring the release back into `develop`, so the next `develop` → `main` PR
+   starts from the bumped version and `CHANGELOG.md` instead of conflicting
+   with them:
+
+   ```bash
+   git switch develop && git pull
+   git fetch origin && git merge origin/main
+   git push origin develop
+   ```
 
 ## One-time setup
 
