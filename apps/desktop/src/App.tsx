@@ -1,6 +1,6 @@
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { AlertTriangle, FolderOpen, FolderInput, X } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import type { Hello } from "./bindings/Hello";
 import type { Snapshot } from "./bindings/Snapshot";
@@ -18,6 +18,9 @@ import { CircuitTraces } from "./shell/CircuitTraces";
 import { useCommands } from "./shell/commands";
 import { OpenMenuButton, OpenPanel, type OpenActions } from "./shell/OpenMenu";
 import { Palette } from "./shell/Palette";
+
+// xterm.js loads the first time the terminal opens.
+const TerminalPanel = lazy(() => import("./modules/term/TerminalPanel").then((m) => ({ default: m.TerminalPanel })));
 import { StatusBar } from "./shell/StatusBar";
 import { TabBar } from "./shell/TabBar";
 import { TitleBar } from "./shell/TitleBar";
@@ -32,6 +35,20 @@ export function App() {
   const [refreshKey, setRefreshKey] = useState(0);
   /** Open palette and its starting text ("" files, ">" commands). */
   const [palette, setPalette] = useState<string | null>(null);
+  // Terminal panel: mounted the first time it opens, then only hidden, so
+  // its terminals keep running.
+  const [termOpen, setTermOpen] = useState(false);
+  const [termMounted, setTermMounted] = useState(false);
+  const [termMax, setTermMax] = useState(false);
+  const toggleTerminal = useCallback(() => {
+    setTermMounted(true);
+    setTermOpen((o) => !o);
+  }, []);
+  const toggleTerminalMax = useCallback(() => {
+    setTermMounted(true);
+    setTermOpen(true);
+    setTermMax((m) => !m);
+  }, []);
   const repos = session.open_repos;
   const active = session.active;
 
@@ -160,6 +177,16 @@ export function App() {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      // Ctrl+` (the key left of 1, whatever the layout) shows/hides the terminal.
+      if ((e.ctrlKey || e.metaKey) && e.code === "Backquote") {
+        e.preventDefault();
+        toggleTerminal();
+        return;
+      }
+      // Inside a terminal, Ctrl+P, Ctrl+W, Ctrl+O, F5… belong to the shell;
+      // only Ctrl+Shift+P and Ctrl+, stay with the app.
+      const inTerminal = e.target instanceof Element && !!e.target.closest(".xterm");
+      if (inTerminal && !((e.ctrlKey || e.metaKey) && ((e.shiftKey && e.key.toLowerCase() === "p") || e.key === ","))) return;
       // Ctrl+P / Ctrl+Shift+P (Cmd on macOS), like VS Code. Also stops
       // WebView2's own Ctrl+P (print).
       if ((e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() === "p") {
@@ -183,7 +210,7 @@ export function App() {
     // Capture phase: works while the code viewer or an input has focus.
     window.addEventListener("keydown", onKey, true);
     return () => window.removeEventListener("keydown", onKey, true);
-  }, [close]);
+  }, [close, toggleTerminal]);
 
   const onError = useCallback((e: unknown) => setError(e instanceof AgentError ? e.message : String(e)), []);
   const onLoaded = useCallback((repo: string, s: Snapshot) => {
@@ -198,6 +225,11 @@ export function App() {
     active,
     snapshot,
     open: openActions,
+    terminal: { toggle: toggleTerminal, toggleMax: toggleTerminalMax, newTerminal: () => {
+      setTermMounted(true);
+      setTermOpen(true);
+      setTimeout(() => emit("new-terminal", { repo: "" }), 0);
+    } },
     openPalette: setPalette,
     openSettings: () => setAppearanceOpen(true),
     refresh: () => setRefreshKey((k) => k + 1),
@@ -217,8 +249,8 @@ export function App() {
       <div className="app">
         <TitleBar repo={active} info={snapshot?.info ?? null} onOpen={open} onRefresh={() => setRefreshKey((k) => k + 1)} openMenu={<OpenMenuButton actions={openActions} />} />
         <div className="body">
-          <ActivityBar onAppearance={() => setAppearanceOpen(true)} />
-          <div className="workspace">
+          <ActivityBar onAppearance={() => setAppearanceOpen(true)} onTerminal={toggleTerminal} terminalOpen={termOpen} />
+          <div className={"workspace" + (termOpen && termMax ? " terminal-only" : "")}>
             <TabBar repos={repos} active={active} onSelect={(r) => updateSession({ ...sessionRef.current, active: r })} onClose={close} />
             {banner && (
               <div className={"banner " + (error ? "danger" : "warn")} role="alert">
@@ -233,6 +265,20 @@ export function App() {
               <GitView key={r} repo={r} active={r === active} refreshKey={refreshKey} onError={onError} onOpen={open} onLoaded={onLoaded} />
             ))}
             {repos.length === 0 && <Welcome actions={openActions} />}
+            {termMounted && (
+              <Suspense fallback={null}>
+                <TerminalPanel
+                  repo={active}
+                  open={termOpen}
+                  maximized={termMax}
+                  onToggleMax={toggleTerminalMax}
+                  onHide={() => {
+                    setTermOpen(false);
+                    setTermMax(false);
+                  }}
+                />
+              </Suspense>
+            )}
           </div>
         </div>
         <StatusBar snapshot={snapshot} agent={agent} />

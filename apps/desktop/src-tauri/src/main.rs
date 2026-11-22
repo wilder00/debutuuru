@@ -9,6 +9,7 @@
 
 mod agents;
 mod settings;
+mod terminal;
 mod wsl;
 
 use agents::Agents;
@@ -131,6 +132,14 @@ async fn wsl_add_to_path(distro: String) -> Result<wsl::WslCommandStatus, RpcErr
         .map_err(blocking_err)?
 }
 
+/// Terminal profiles found on this machine (shells, WSL distros).
+#[tauri::command]
+async fn term_profiles() -> Vec<settings::TerminalProfile> {
+    tauri::async_runtime::spawn_blocking(terminal::detect)
+        .await
+        .unwrap_or_default()
+}
+
 /// Whether a dropped path is a folder or a file (WSL paths such as
 /// `\\wsl.localhost\Ubuntu\…` work too); `None` if it doesn't exist.
 #[tauri::command]
@@ -243,6 +252,7 @@ fn main() {
             wsl_add_to_path,
             wsl_home,
             path_kind,
+            term_profiles,
             get_settings,
             save_settings,
             import_background

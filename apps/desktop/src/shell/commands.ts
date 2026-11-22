@@ -18,6 +18,7 @@ type Ctx = {
   active: string | null;
   snapshot: Snapshot | null;
   open: OpenActions;
+  terminal: { toggle: () => void; toggleMax: () => void; newTerminal: () => void };
   openPalette: (initial: string) => void;
   openSettings: () => void;
   refresh: () => void;
@@ -33,7 +34,7 @@ export function useCommands(c: Ctx): PaletteItem[] {
   const { appearance, update, language, updateLanguage, diff, updateDiff } = useSettings();
 
   return useMemo(() => {
-    const g = (group: "general" | "git" | "view" | "diff" | "settings", key: string, rest: Omit<PaletteItem, "id" | "label">): PaletteItem => ({
+    const g = (group: "general" | "git" | "view" | "diff" | "settings" | "terminal", key: string, rest: Omit<PaletteItem, "id" | "label">): PaletteItem => ({
       id: `${group}.${key}`,
       label: `${t(`palette.group.${group}`)}: ${t(`palette.cmd.${key}` as "palette.cmd.goToFile")}`,
       ...rest,
@@ -46,6 +47,9 @@ export function useCommands(c: Ctx): PaletteItem[] {
       ...c.open.distros.map((d) => ({ ...g("general", "browseWsl", { run: () => c.open.browseWsl(d) }), id: `general.browseWsl.${d}`, detail: d })),
       g("general", "openRepo", { run: c.focusRepoInput }),
       g("general", "refresh", { keys: "F5", run: c.refresh }),
+      g("terminal", "toggleTerminal", { keys: "Ctrl+`", run: c.terminal.toggle }),
+      g("terminal", "newTerminal", { run: c.terminal.newTerminal }),
+      g("terminal", "maximizeTerminal", { run: c.terminal.toggleMax }),
       g("settings", "openSettings", { keys: "Ctrl+,", run: c.openSettings }),
       g("settings", "language", {
         pick: () => [

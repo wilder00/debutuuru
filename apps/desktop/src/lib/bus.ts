@@ -12,6 +12,8 @@ export type BusEvents = {
   checkout: { repo: string; branch: string };
   /** Expand the open diff / commit panel to the whole tab, or restore it. */
   "toggle-expand": { repo: string };
+  /** Open a terminal with the default profile (`repo` is always ""). */
+  "new-terminal": { repo: string };
 };
 
 type Handler<K extends keyof BusEvents> = (e: BusEvents[K]) => void;

@@ -34,6 +34,10 @@ runner, GitHub/GitLab integration, containers and more.
   same viewer shows staged and unstaged changes. Unified, side by side or the
   whole file, with changed words highlighted, syntax colors, ignore
   whitespace and adjustable context.
+- **Terminal**: Ctrl+` opens a terminal panel with tabs, or the whole window
+  for just the terminal. Profiles for PowerShell, cmd, Git Bash and every WSL
+  distro are found automatically, and you can add your own; tabs show the
+  shell's icon and can be renamed (double-click). Colors follow the theme.
 - **Updates**: the app tells you when a new version is out and installs it
   with one click (signed, verified before installing).
 - **Languages**: English, Spanish, Japanese and Korean. It follows your

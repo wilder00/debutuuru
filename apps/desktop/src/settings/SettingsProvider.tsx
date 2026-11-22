@@ -4,6 +4,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { Appearance } from "../bindings/Appearance";
 import type { DiffSettings } from "../bindings/DiffSettings";
+import type { TerminalSettings } from "../bindings/TerminalSettings";
 import type { GitSettings } from "../bindings/GitSettings";
 import type { LoadedSettings } from "../bindings/LoadedSettings";
 import type { Session } from "../bindings/Session";
@@ -23,6 +24,7 @@ type Ctx = {
   /** Saved UI language; `null` follows the system. */
   language: string | null;
   diff: DiffSettings;
+  terminal: TerminalSettings;
   backgroundPath: string | null;
   readOnly: boolean;
   notice: string | null;
@@ -33,6 +35,7 @@ type Ctx = {
   updateUpdates: (patch: Partial<UpdateSettings>) => void;
   updateLanguage: (language: string | null) => void;
   updateDiff: (patch: Partial<DiffSettings>) => void;
+  updateTerminal: (patch: Partial<TerminalSettings>) => void;
   setBackground: (bg: Appearance["background"], path: string | null) => void;
   dismissNotice: () => void;
 };
@@ -58,6 +61,7 @@ export const DEFAULT_SETTINGS: Settings = {
   updates: { check_on_start: true },
   language: null,
   diff: { layout: "unified", word_highlight: true, ignore_whitespace: false, context_lines: 3, syntax_highlight: true, wrap_lines: false },
+  terminal: { default_profile: null, profiles: [], panel_height: 280 },
 };
 
 /** Font names come from the user; keep only characters valid in a family name. */
@@ -140,6 +144,10 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   );
   const updateLanguage = useCallback((language: string | null) => change((s) => ({ ...s, language })), [change]);
   const updateDiff = useCallback((patch: Partial<DiffSettings>) => change((s) => ({ ...s, diff: { ...s.diff, ...patch } })), [change]);
+  const updateTerminal = useCallback(
+    (patch: Partial<TerminalSettings>) => change((s) => ({ ...s, terminal: { ...s.terminal, ...patch } })),
+    [change],
+  );
   const setBackground = useCallback(
     (bg: Appearance["background"], path: string | null) => {
       setBackgroundPath(path);
@@ -156,6 +164,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     updates: settings.updates,
     language: settings.language,
     diff: settings.diff,
+    terminal: settings.terminal,
     backgroundPath,
     readOnly,
     notice,
@@ -166,6 +175,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     updateUpdates,
     updateLanguage,
     updateDiff,
+    updateTerminal,
     setBackground,
     dismissNotice: () => setNotice(null),
   };

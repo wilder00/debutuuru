@@ -147,6 +147,23 @@
       "rgbHint": "Las barras van cambiando de color (Gamer) o una luz las recorre (Circuito). Se desactiva si el sistema pide reducir animaciones.",
       "hint": "Gamer añade brillo neón, esquinas más rectas y barras RGB; Circuito, un degradado eléctrico de azul a verde, textura de carbono, trazos de circuito y una fuente cursiva gruesa para los títulos. Ambos funcionan con cualquier tema; Neon, Cyberpunk, Crimson, Toxic y Circuit están pensados para ellos.",
       "circuit": "Circuito"
+    },
+    "terminal": {
+      "title": "Terminal",
+      "default": "Perfil predeterminado",
+      "detected": "Encontrados en este equipo: {{list}}",
+      "newProfile": "Mi perfil",
+      "name": "Nombre",
+      "program": "Programa",
+      "args": "Argumentos",
+      "cwd": "Carpeta inicial",
+      "cwdHint": "El repositorio abierto, o tu carpeta personal",
+      "env": "Variables de entorno (una NOMBRE=valor por línea)",
+      "remove": "Quitar perfil",
+      "add": "Añadir un perfil",
+      "icon": "Icono",
+      "iconAuto": "Automático ({{name}})",
+      "iconGeneric": "Terminal"
     }
   },
   "git": {
@@ -360,7 +377,8 @@
       "git": "Git",
       "view": "Vista",
       "diff": "Diff",
-      "settings": "Preferencias"
+      "settings": "Preferencias",
+      "terminal": "Terminal"
     },
     "cmd": {
       "goToFile": "Ir a un archivo…",
@@ -391,7 +409,10 @@
       "browseWsl": "Explorar en WSL…",
       "openRecent": "Abrir repositorio reciente…",
       "style": "Cambiar estilo…",
-      "toggleExpand": "Expandir o restaurar el diff"
+      "toggleExpand": "Expandir o restaurar el diff",
+      "toggleTerminal": "Mostrar u ocultar",
+      "newTerminal": "Nueva terminal",
+      "maximizeTerminal": "Solo terminal (toda la ventana)"
     }
   },
   "open": {
@@ -408,5 +429,22 @@
     "maximize": "Maximizar",
     "restore": "Restaurar",
     "close": "Cerrar"
+  },
+  "term": {
+    "title": "Terminal",
+    "activity": "Terminal (Ctrl+`)",
+    "new": "Nueva terminal",
+    "newWith": "Nueva terminal con…",
+    "default": "predeterminado",
+    "close": "Cerrar terminal (clic central)",
+    "maximize": "Solo terminal (toda la ventana)",
+    "restore": "Restaurar la vista",
+    "hide": "Ocultar el panel (Ctrl+`)",
+    "exited": "el proceso terminó con código {{code}}",
+    "exitedNoCode": "el proceso terminó",
+    "startFailed": "No se pudo iniciar {{name}}: {{error}}",
+    "noProfiles": "No se encontró ningún shell. Añade un perfil en Ajustes › Terminal.",
+    "rename": "Renombrar terminal",
+    "renameHint": "doble clic para renombrar"
   }
 }

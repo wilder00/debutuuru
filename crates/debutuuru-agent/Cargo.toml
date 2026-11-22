@@ -18,3 +18,5 @@ serde_json.workspace = true
 notify = "8.2"
 # OS randomness for the askpass bridge token.
 getrandom = "0.4"
+# Pseudo-terminals for the term module: ConPTY on Windows, openpty on Unix.
+portable-pty = "0.9"

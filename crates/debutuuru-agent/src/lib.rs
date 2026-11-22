@@ -16,6 +16,7 @@ pub mod git;
 pub mod remote;
 #[cfg(unix)]
 pub mod shellenv;
+pub mod term;
 pub mod watch;
 
 use debutuuru_protocol::{
@@ -53,7 +54,13 @@ impl Agent {
 
     pub fn with_default_modules() -> Self {
         let events = Events::default();
-        Self::new(vec![Box::new(git::GitModule::new(events.clone()))], events)
+        Self::new(
+            vec![
+                Box::new(git::GitModule::new(events.clone())),
+                Box::new(term::TermModule::new(events.clone())),
+            ],
+            events,
+        )
     }
 
     /// Where module events go (the stdio server sets this to stdout).

@@ -147,6 +147,23 @@
       "rgbHint": "막대의 색이 순환하거나(게이머) 빛이 막대를 훑고 지나갑니다(서킷). 시스템에서 애니메이션 줄이기를 요청하면 꺼집니다.",
       "hint": "게이머 스타일은 네온 광채, 각진 모서리, RGB 막대를 더하고, 서킷 스타일은 파랑에서 초록으로 이어지는 전기 같은 그라데이션, 카본 질감, 회로 선, 제목용 굵은 기울임꼴 글꼴을 더합니다. 둘 다 어떤 테마와도 어울리며, Neon, Cyberpunk, Crimson, Toxic, Circuit 테마는 이를 위해 만들었습니다.",
       "circuit": "서킷"
+    },
+    "terminal": {
+      "title": "터미널",
+      "default": "기본 프로필",
+      "detected": "이 컴퓨터에서 찾은 셸: {{list}}",
+      "newProfile": "내 프로필",
+      "name": "이름",
+      "program": "프로그램",
+      "args": "인수",
+      "cwd": "시작 폴더",
+      "cwdHint": "열린 저장소 또는 홈",
+      "env": "환경 변수 (한 줄에 하나씩, 이름=값)",
+      "remove": "프로필 제거",
+      "add": "프로필 추가",
+      "icon": "아이콘",
+      "iconAuto": "자동 ({{name}})",
+      "iconGeneric": "터미널"
     }
   },
   "git": {
@@ -354,7 +371,8 @@
       "git": "Git",
       "view": "보기",
       "diff": "차이",
-      "settings": "기본 설정"
+      "settings": "기본 설정",
+      "terminal": "터미널"
     },
     "cmd": {
       "goToFile": "파일로 이동…",
@@ -385,7 +403,10 @@
       "browseWsl": "WSL에서 찾아보기…",
       "openRecent": "최근 저장소 열기…",
       "style": "스타일 변경…",
-      "toggleExpand": "차이 확장 또는 복원"
+      "toggleExpand": "차이 확장 또는 복원",
+      "toggleTerminal": "표시 / 숨기기",
+      "newTerminal": "새 터미널",
+      "maximizeTerminal": "터미널만 (창 전체)"
     }
   },
   "open": {
@@ -402,5 +423,22 @@
     "maximize": "최대화",
     "restore": "이전 크기로 복원",
     "close": "닫기"
+  },
+  "term": {
+    "title": "터미널",
+    "activity": "터미널 (Ctrl+`)",
+    "new": "새 터미널",
+    "newWith": "프로필을 골라 새 터미널…",
+    "default": "기본값",
+    "close": "터미널 닫기 (가운데 클릭)",
+    "maximize": "터미널만 (창 전체)",
+    "restore": "레이아웃 복원",
+    "hide": "패널 숨기기 (Ctrl+`)",
+    "exited": "프로세스가 코드 {{code}}(으)로 종료됨",
+    "exitedNoCode": "프로세스가 종료됨",
+    "startFailed": "{{name}}을(를) 시작하지 못했습니다: {{error}}",
+    "noProfiles": "셸을 찾을 수 없습니다. 설정 › 터미널에서 프로필을 추가하세요.",
+    "rename": "터미널 이름 바꾸기",
+    "renameHint": "두 번 클릭하여 이름 바꾸기"
   }
 }

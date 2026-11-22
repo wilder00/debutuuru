@@ -147,6 +147,23 @@
       "rgbHint": "The bars cycle their colors (Gamer) or a light sweeps across them (Circuit). Off when the system asks to reduce animations.",
       "hint": "Gamer adds neon glow, sharper corners and RGB bars; Circuit an electric blue-to-green gradient, carbon texture, circuit traces and a bold italic title font. Both work with any theme; Neon, Cyberpunk, Crimson, Toxic and Circuit are made for them.",
       "circuit": "Circuit"
+    },
+    "terminal": {
+      "title": "Terminal",
+      "default": "Default profile",
+      "detected": "Found on this computer: {{list}}",
+      "newProfile": "My profile",
+      "name": "Name",
+      "program": "Program",
+      "args": "Arguments",
+      "cwd": "Starting folder",
+      "cwdHint": "The open repository, or home",
+      "env": "Environment variables (one NAME=value per line)",
+      "remove": "Remove profile",
+      "add": "Add a profile",
+      "icon": "Icon",
+      "iconAuto": "Automatic ({{name}})",
+      "iconGeneric": "Terminal"
     }
   },
   "git": {
@@ -357,7 +374,8 @@
       "git": "Git",
       "view": "View",
       "diff": "Diff",
-      "settings": "Preferences"
+      "settings": "Preferences",
+      "terminal": "Terminal"
     },
     "cmd": {
       "goToFile": "Go to file…",
@@ -388,7 +406,10 @@
       "browseWsl": "Browse in WSL…",
       "openRecent": "Open recent repository…",
       "style": "Change style…",
-      "toggleExpand": "Expand or restore the diff"
+      "toggleExpand": "Expand or restore the diff",
+      "toggleTerminal": "Show or hide",
+      "newTerminal": "New terminal",
+      "maximizeTerminal": "Terminal only (whole window)"
     }
   },
   "open": {
@@ -405,5 +426,22 @@
     "maximize": "Maximize",
     "restore": "Restore",
     "close": "Close"
+  },
+  "term": {
+    "title": "Terminal",
+    "activity": "Terminal (Ctrl+`)",
+    "new": "New terminal",
+    "newWith": "New terminal with…",
+    "default": "default",
+    "close": "Close terminal (middle-click)",
+    "maximize": "Terminal only (whole window)",
+    "restore": "Restore the layout",
+    "hide": "Hide the panel (Ctrl+`)",
+    "exited": "process exited with code {{code}}",
+    "exitedNoCode": "process exited",
+    "startFailed": "Couldn't start {{name}}: {{error}}",
+    "noProfiles": "No shell found. Add a profile in Settings › Terminal.",
+    "rename": "Rename terminal",
+    "renameHint": "double-click to rename"
   }
 }

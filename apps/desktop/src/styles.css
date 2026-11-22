@@ -676,3 +676,44 @@ select { height: 28px; background: var(--bg-raised); border: 1px solid var(--bor
 .git-view.expanded .view-tabs,
 .git-view.expanded .view-pane { display: none; }
 .git-view.expanded :is(.diff, .commit-panel) { border-top: 0; }
+
+/* Terminal panel (modules/term): under the workspace, resizable from its top
+   edge; "terminal only" hides everything else in the workspace. */
+.terminal-panel { position: relative; flex: none; display: flex; flex-direction: column; min-height: 120px; border-top: 1px solid var(--border); background: var(--bg-panel); }
+.terminal-panel[hidden] { display: none; }
+.workspace.terminal-only > :not(.terminal-panel) { display: none; }
+.workspace.terminal-only > .terminal-panel { flex: 1; border-top: 0; }
+.terminal-resize { position: absolute; left: 0; right: 0; top: -3px; height: 6px; cursor: ns-resize; z-index: 2; }
+.terminal-panel.maximized .terminal-resize { display: none; }
+.terminal-head { display: flex; align-items: center; gap: 4px; height: 34px; padding: 0 6px 0 10px; border-bottom: 1px solid var(--border-subtle); }
+.terminal-icon { flex: none; color: var(--text-muted); margin-right: 4px; }
+.terminal-tabs { display: flex; align-items: center; gap: 2px; min-width: 0; overflow-x: auto; }
+.terminal-tabs::-webkit-scrollbar { height: 0; }
+.terminal-tab { display: flex; align-items: center; gap: 6px; height: 26px; padding: 0 2px 0 10px; border-radius: var(--radius); color: var(--text-muted); cursor: pointer; white-space: nowrap; }
+.terminal-tab:hover { background: var(--bg-hover); color: var(--text); }
+.terminal-tab.on { background: var(--bg-active); color: var(--text); }
+.terminal-tab.exited .label { font-style: italic; opacity: .7; }
+.terminal-tab .icon-btn { width: 20px; height: 20px; }
+.profile-icon { flex-shrink: 0; }
+.icon-select { display: flex; align-items: center; gap: 8px; }
+.icon-select select { flex: 1; min-width: 0; }
+.terminal-tab .profile-icon { opacity: .85; }
+.terminal-tab.on .profile-icon { opacity: 1; }
+.tab-rename { width: 14ch; height: 20px; padding: 0 4px; font: inherit; }
+.terminal-new .menu button { display: flex; align-items: center; gap: 8px; }
+.terminal-new .menu { left: auto; right: 0; min-width: 220px; z-index: 30; }
+.terminal-new .split-more, .terminal-new > button { border: 0; }
+.terminal-body { position: relative; flex: 1; min-height: 0; padding: 4px 0 0 10px; }
+.terminal-view { position: absolute; inset: 4px 0 0 10px; }
+.terminal-view[hidden] { display: none; }
+.terminal-view .xterm { height: 100%; }
+/* xterm.css paints the viewport black; the panel's color (and a background
+   image) should show, like the rest of the app. */
+.terminal-view .xterm .xterm-viewport { background-color: transparent; }
+[data-style="circuit"] .terminal-panel, [data-style="circuit"] .terminal-head { background-image: var(--carbon); }
+[data-style="gamer"] .terminal-panel, [data-style="circuit"] .terminal-panel { border-color: var(--edge); }
+[data-style="gamer"] .terminal-tab.on, [data-style="circuit"] .terminal-tab.on { color: var(--accent); box-shadow: inset 0 -2px 0 var(--accent), 0 0 12px -5px var(--accent-ring); }
+.profile-card { display: flex; flex-direction: column; gap: 8px; margin: 10px 0; padding: 10px; border: 1px solid var(--border-subtle); border-radius: var(--radius); background: var(--bg-raised); }
+.profile-card > button { align-self: flex-start; }
+.block-field { display: flex; flex-direction: column; gap: 4px; }
+.block-field textarea { resize: vertical; }

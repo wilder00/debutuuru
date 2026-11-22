@@ -3,6 +3,7 @@ import type { Appearance } from "./Appearance";
 import type { DiffSettings } from "./DiffSettings";
 import type { GitSettings } from "./GitSettings";
 import type { Session } from "./Session";
+import type { TerminalSettings } from "./TerminalSettings";
 import type { UpdateSettings } from "./UpdateSettings";
 
 export type Settings = { schema_version: number, appearance: Appearance, 
@@ -26,4 +27,8 @@ language: string | null,
 /**
  * How diffs are shown. Added without a schema bump.
  */
-diff: DiffSettings, };
+diff: DiffSettings, 
+/**
+ * Integrated terminal. Added without a schema bump.
+ */
+terminal: TerminalSettings, };

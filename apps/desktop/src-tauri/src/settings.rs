@@ -10,6 +10,7 @@
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use ts_rs::TS;
 
@@ -35,6 +36,51 @@ pub struct Settings {
     pub language: Option<String>,
     /// How diffs are shown. Added without a schema bump.
     pub diff: DiffSettings,
+    /// Integrated terminal. Added without a schema bump.
+    pub terminal: TerminalSettings,
+}
+
+/// The terminal panel: the user's own profiles (detected ones aren't stored),
+/// which profile new terminals use, and the panel's height.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(default)]
+#[ts(export)]
+pub struct TerminalSettings {
+    /// Profile id (`auto:pwsh`, `custom:…`); `None` = the first detected one.
+    pub default_profile: Option<String>,
+    pub profiles: Vec<TerminalProfile>,
+    /// Panel height in px (the window's height when maximized).
+    pub panel_height: u32,
+}
+
+impl Default for TerminalSettings {
+    fn default() -> Self {
+        Self {
+            default_profile: None,
+            profiles: Vec::new(),
+            panel_height: 280,
+        }
+    }
+}
+
+/// A shell to open: detected (`auto:…`) or made by the user (`custom:…`).
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, TS)]
+#[serde(default)]
+#[ts(export)]
+pub struct TerminalProfile {
+    pub id: String,
+    pub name: String,
+    pub program: String,
+    pub args: Vec<String>,
+    /// Starting folder; `None` = the open repository, or home.
+    pub cwd: Option<String>,
+    pub env: BTreeMap<String, String>,
+    /// WSL profiles run `wsl.exe -d <distro>`; the repo's folder becomes
+    /// `--cd <linux path>` when it's in the same distro.
+    pub wsl_distro: Option<String>,
+    /// Icon shown on its tabs (`ubuntu`, `powershell`, `git`…); `None` =
+    /// guessed from the program or distro.
+    pub icon: Option<String>,
 }
 
 /// Diff viewer preferences, shared by commits, staged and unstaged changes.
@@ -217,6 +263,7 @@ impl Default for Settings {
             updates: UpdateSettings::default(),
             language: None,
             diff: DiffSettings::default(),
+            terminal: TerminalSettings::default(),
         }
     }
 }
@@ -315,6 +362,11 @@ impl Settings {
             self.language = None;
         }
         self.diff.context_lines = self.diff.context_lines.clamp(1, 100);
+        let t = &mut self.terminal;
+        t.panel_height = t.panel_height.clamp(120, 4000);
+        t.profiles
+            .retain(|p| !p.id.trim().is_empty() && !p.program.trim().is_empty());
+        t.profiles.truncate(50);
         self.schema_version = SCHEMA_VERSION;
         self
     }
@@ -588,6 +640,26 @@ mod tests {
         assert_eq!(diff.layout, DiffLayout::Split);
         assert_eq!(diff.context_lines, 100);
         assert!(diff.word_highlight);
+    }
+
+    #[test]
+    fn terminal_settings_default_and_sanitize() {
+        let d = tmp("terminal");
+        let store = Store::new(&d, &d);
+        std::fs::write(&store.file, r#"{"schema_version": 1}"#).unwrap();
+        assert_eq!(store.load().settings.terminal, TerminalSettings::default());
+        std::fs::write(
+            &store.file,
+            r#"{"schema_version": 1, "terminal": {"panel_height": 5, "profiles": [
+                {"id": "custom:1", "name": "Zsh", "program": "/bin/zsh", "args": ["-l"]},
+                {"id": "", "program": "x"}
+            ]}}"#,
+        )
+        .unwrap();
+        let t = store.load().settings.terminal;
+        assert_eq!(t.panel_height, 120);
+        assert_eq!(t.profiles.len(), 1);
+        assert_eq!(t.profiles[0].args, ["-l"]);
     }
 
     #[test]

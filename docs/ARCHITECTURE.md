@@ -253,6 +253,23 @@ means adding a module, not a new transport.
   (Han unification), and `:lang()` picks the Japanese or Korean fallback
   fonts. Agent results carry `OpOutcome.message` (git module v5) so the UI
   words them itself; git's own output stays in git's language.
+- Terminal (stage 1): the agent's `term` module (`term.spawn/write/resize/
+  kill`, events `term.output`/`term.exit`) runs programs in a pseudo-terminal
+  with portable-pty (ConPTY on Windows); output is decoded as UTF-8 across
+  reads. The UI is xterm.js 6 (fit + WebGL addons) in a bottom panel with
+  tabs, resizable, or maximized to the whole window ("terminal only"). Ctrl+`
+  shows it; inside it, keys go to the program except Ctrl+Shift+P, Ctrl+` and
+  Ctrl+,. Profiles: the shell detects them (`term_profiles`: PowerShell 7,
+  Windows PowerShell, cmd, Git Bash and each WSL distro on Windows; `$SHELL`
+  and `/etc/shells` on Unix), and the user adds their own in Settings ›
+  Terminal (`Settings.terminal`). WSL profiles run `wsl.exe -d <distro> --cd
+  <path>` in the local agent, like Windows Terminal, so the agent inside WSL
+  isn't needed. Colors come from the theme tokens with a transparent
+  background; Nerd Fonts are font fallbacks for prompt icons. Tabs show the
+  profile's icon (simple-icons, CC0, drawn in the text color) and can be
+  renamed. Debutuuru stays MIT: Warp (AGPL-3.0) is a reference for ideas, not
+  code. Next stages: command blocks via OSC 133 shell integration and an
+  editor-style input (2), splits and restoring sessions (3).
 
 ## Roadmap
 
