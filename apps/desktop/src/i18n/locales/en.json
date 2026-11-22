@@ -24,7 +24,10 @@
   "tabs": {
     "label": "Open repositories",
     "insideWsl": "Inside WSL ({{distro}})",
-    "close": "Close tab (middle-click)"
+    "close": "Close tab (middle-click)",
+    "collapseGroup": "Click to collapse the group",
+    "expandGroup": "Click to show the group's tabs",
+    "closeGroup": "Close the group's tabs"
   },
   "activity": {
     "label": "Modules",
@@ -446,7 +449,8 @@
       "newTerminal": "New terminal",
       "maximizeTerminal": "Terminal only (whole window)",
       "createTag": "Create tag…",
-      "showTag": "Go to tag…"
+      "showTag": "Go to tag…",
+      "closeGroup": "Close this tab's group"
     }
   },
   "open": {
@@ -456,7 +460,16 @@
     "browseWsl": "Browse in WSL ({{distro}})…",
     "recent": "Recent",
     "forget": "Remove from recent",
-    "drop": "Drop a folder to open it as a repository, or a file to open it in its repository"
+    "drop": "Drop a folder to open it as a repository, or a file to open it in its repository",
+    "noRepos": "No Git repositories in {{folder}} (searched two folder levels down)",
+    "groupHint": "Opens the repositories inside it as a group of tabs",
+    "group": "group",
+    "pickTitle_one": "{{count}} repository in this folder",
+    "pickTitle_other": "{{count}} repositories in this folder",
+    "pickAll": "All",
+    "pickNone": "None",
+    "pickOpen_one": "Open {{count}}",
+    "pickOpen_other": "Open {{count}}"
   },
   "window": {
     "minimize": "Minimize",

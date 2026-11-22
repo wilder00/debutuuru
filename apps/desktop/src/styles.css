@@ -334,6 +334,22 @@ ul { list-style: none; margin: 0; padding: 0; }
 .tab-tag { padding: 0 5px; border-radius: 4px; font: 600 .72em var(--font-mono); color: var(--info); background: color-mix(in srgb, var(--info) 14%, transparent); }
 .tab-close { width: 20px; height: 20px; visibility: hidden; }
 .tab:hover .tab-close, .tab.on .tab-close { visibility: visible; }
+/* Tab groups: a folder of repositories (a ticket's worktrees) */
+.tab-group {
+  display: flex; align-items: center; gap: 5px; flex: none; align-self: center; height: 22px; margin: 0 2px 0 6px; padding: 0 2px 0 8px;
+  border-radius: 99px; background: color-mix(in srgb, var(--group-color) 22%, transparent); color: var(--text);
+  font-size: .82em; font-weight: 600; cursor: pointer; user-select: none;
+}
+.tab-group:hover { background: color-mix(in srgb, var(--group-color) 32%, transparent); }
+.tab-group svg { color: var(--group-color); flex: none; }
+.tab-group .tab-close svg { color: inherit; }
+.tab-group-name { max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tab-group-count { padding: 0 5px; border-radius: 99px; background: var(--bg-raised); font: 500 .9em var(--font-mono); }
+.tab-group:hover .tab-close { visibility: visible; }
+.tab.grouped { box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--group-color) 70%, transparent); }
+.tab.grouped.on { box-shadow: none; }
+.pick-actions { display: flex; gap: 12px; }
+.pick-list { max-height: 320px; overflow: auto; display: flex; flex-direction: column; gap: 4px; }
 [hidden] { display: none !important; }
 .graph-empty { padding: 16px 14px; }
 

@@ -3,6 +3,7 @@ import { useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import type { Snapshot } from "../../bindings/Snapshot";
 import { fullDate, relativeTime } from "../../lib/format";
+import { distinctNames } from "../../lib/names";
 
 type Props = {
   snapshot: Snapshot;
@@ -22,6 +23,8 @@ export function Sidebar({ snapshot, onCheckout, onOpenWorktree, selectedTag, onS
   const local = snapshot.branches.filter((b) => !b.is_remote);
   const remote = snapshot.branches.filter((b) => b.is_remote);
   const root = snapshot.info.root;
+  // Worktrees of one project often share the folder name (one per ticket).
+  const wtNames = distinctNames(snapshot.worktrees.map((w) => w.path));
   const [tagFilter, setTagFilter] = useState("");
   const tags = snapshot.tags.filter((g) => g.name.toLowerCase().includes(tagFilter.trim().toLowerCase()));
 
@@ -93,7 +96,7 @@ export function Sidebar({ snapshot, onCheckout, onOpenWorktree, selectedTag, onS
               title={`${w.path}${current ? "" : `\n${t("git.sidebar.openHint")}`}`}
               onClick={() => !current && onOpenWorktree(w.path)}
             >
-              <span className="label">{w.path.split("/").filter(Boolean).pop() ?? w.path}</span>
+              <span className="label">{wtNames.get(w.path)}</span>
               <span className="aside">{w.branch ?? (w.bare ? t("git.sidebar.bare") : t("common.detached"))}</span>
             </li>
           );

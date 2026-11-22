@@ -5,6 +5,8 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import type { Snapshot } from "../bindings/Snapshot";
+import type { TabGroup } from "../bindings/TabGroup";
+import { distinctNames } from "../lib/names";
 import { LANGUAGES } from "../i18n";
 import { emit } from "../lib/bus";
 import { checkForUpdate } from "../lib/updater";
@@ -23,11 +25,12 @@ type Ctx = {
   openSettings: () => void;
   refresh: () => void;
   closeTab: (repo: string) => void;
+  groups: TabGroup[];
+  closeGroup: (folder: string) => void;
   selectTab: (repo: string) => void;
   focusRepoInput: () => void;
 };
 
-const repoName = (r: string) => r.split(/[\\/]/).filter(Boolean).pop() ?? r;
 
 export function useCommands(c: Ctx): PaletteItem[] {
   const { t } = useTranslation();
@@ -96,17 +99,29 @@ export function useCommands(c: Ctx): PaletteItem[] {
         ] as const
       ).map(([k, key]) => g("diff", key, { detail: diff[k] ? t("palette.on") : t("palette.off"), run: () => updateDiff({ [k]: !diff[k] }) })),
     ];
-    if (c.open.recents.length) {
+    if (c.open.recents.length || c.open.recentGroups.length) {
       items.push(
         g("general", "openRecent", {
-          pick: () => c.open.recents.map((r) => ({ id: `recent.${r}`, label: repoName(r), detail: r, run: () => c.open.openRecent(r) })),
+          pick: () => {
+            const all = [...c.open.recentGroups, ...c.open.recents];
+            const names = distinctNames(all);
+            return all.map((r, i) => ({
+              id: `recent.${r}`,
+              label: i < c.open.recentGroups.length ? `${names.get(r)} · ${t("open.group")}` : names.get(r)!,
+              detail: r,
+              run: () => c.open.openRecent(r),
+            }));
+          },
         }),
       );
     }
     if (c.repos.length > 1) {
       items.push(
         g("general", "switchRepo", {
-          pick: () => c.repos.map((r) => ({ id: `repo.${r}`, label: repoName(r), detail: r, run: () => c.selectTab(r) })),
+          pick: () => {
+            const names = distinctNames(c.repos);
+            return c.repos.map((r) => ({ id: `repo.${r}`, label: names.get(r)!, detail: r, run: () => c.selectTab(r) }));
+          },
         }),
       );
     }
@@ -114,6 +129,7 @@ export function useCommands(c: Ctx): PaletteItem[] {
       const local = c.snapshot?.branches.filter((b) => !b.is_remote && !b.is_head) ?? [];
       items.push(
         g("general", "closeTab", { keys: "Ctrl+W", run: () => c.closeTab(repo) }),
+        ...c.groups.filter((x) => x.repos.includes(repo)).map((x) => g("general", "closeGroup", { run: () => c.closeGroup(x.folder) })),
         g("view", "history", { run: () => emit("show-view", { repo, view: "history" }) }),
         g("view", "files", { run: () => emit("show-view", { repo, view: "files" }) }),
         g("view", "toggleExpand", { run: () => emit("toggle-expand", { repo }) }),

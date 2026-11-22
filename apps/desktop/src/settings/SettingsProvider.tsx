@@ -56,7 +56,7 @@ export const DEFAULT_SETTINGS: Settings = {
     style: "standard",
     rgb_animation: true,
   },
-  session: { open_repos: [], active: null, recent_repos: [] },
+  session: { open_repos: [], active: null, recent_repos: [], groups: [], recent_groups: [] },
   git: { windows_ssh: "system", wsl_distro: null },
   updates: { check_on_start: true },
   language: null,

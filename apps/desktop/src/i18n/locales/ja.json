@@ -24,7 +24,10 @@
   "tabs": {
     "label": "開いているリポジトリ",
     "insideWsl": "WSL 内 ({{distro}})",
-    "close": "タブを閉じる (中クリック)"
+    "close": "タブを閉じる (中クリック)",
+    "collapseGroup": "クリックでグループを折りたたむ",
+    "expandGroup": "クリックでグループのタブを表示",
+    "closeGroup": "グループのタブを閉じる"
   },
   "activity": {
     "label": "モジュール",
@@ -443,7 +446,8 @@
       "newTerminal": "新しいターミナル",
       "maximizeTerminal": "ターミナルのみ (ウィンドウ全体)",
       "createTag": "タグを作成…",
-      "showTag": "タグへ移動…"
+      "showTag": "タグへ移動…",
+      "closeGroup": "このタブのグループを閉じる"
     }
   },
   "open": {
@@ -453,7 +457,14 @@
     "browseWsl": "WSL で参照 ({{distro}})…",
     "recent": "最近使用したもの",
     "forget": "最近使用した一覧から削除",
-    "drop": "フォルダーをドロップするとリポジトリとして開き、ファイルをドロップするとそのリポジトリで開きます"
+    "drop": "フォルダーをドロップするとリポジトリとして開き、ファイルをドロップするとそのリポジトリで開きます",
+    "noRepos": "{{folder}} に Git リポジトリがありません（2 階層下まで検索しました）",
+    "groupHint": "中のリポジトリをタブのグループとして開きます",
+    "group": "グループ",
+    "pickTitle_other": "このフォルダーのリポジトリ: {{count}} 件",
+    "pickAll": "すべて",
+    "pickNone": "なし",
+    "pickOpen_other": "{{count}} 件を開く"
   },
   "window": {
     "minimize": "最小化",

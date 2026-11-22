@@ -24,8 +24,11 @@ import type { FileBytes } from "../../bindings/FileBytes";
 import type { StatPathsParams } from "../../bindings/StatPathsParams";
 import type { CreateTagParams } from "../../bindings/CreateTagParams";
 import type { PushTagParams } from "../../bindings/PushTagParams";
+import type { FoundRepos } from "../../bindings/FoundRepos";
 
 export const git = {
+  /** `folder` is any folder: a repository, or one holding several. */
+  findRepos: (folder: string) => rpc<FoundRepos>(folder, "git.find_repos"),
   snapshot: (repo: string) => rpc<Snapshot>(repo, "git.snapshot"),
   log: (repo: string, p: Params<LogParams>) => rpc<LogEntry[]>(repo, "git.log", p),
   stage: (repo: string, p: Params<PathsParams>) => rpc<null>(repo, "git.stage", p),

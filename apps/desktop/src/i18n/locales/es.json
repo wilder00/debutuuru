@@ -24,7 +24,10 @@
   "tabs": {
     "label": "Repositorios abiertos",
     "insideWsl": "Dentro de WSL ({{distro}})",
-    "close": "Cerrar pestaña (clic central)"
+    "close": "Cerrar pestaña (clic central)",
+    "collapseGroup": "Clic para contraer el grupo",
+    "expandGroup": "Clic para mostrar las pestañas del grupo",
+    "closeGroup": "Cerrar las pestañas del grupo"
   },
   "activity": {
     "label": "Módulos",
@@ -449,7 +452,8 @@
       "newTerminal": "Nueva terminal",
       "maximizeTerminal": "Solo terminal (toda la ventana)",
       "createTag": "Crear tag…",
-      "showTag": "Ir a un tag…"
+      "showTag": "Ir a un tag…",
+      "closeGroup": "Cerrar el grupo de esta pestaña"
     }
   },
   "open": {
@@ -459,7 +463,18 @@
     "browseWsl": "Explorar en WSL ({{distro}})…",
     "recent": "Recientes",
     "forget": "Quitar de recientes",
-    "drop": "Suelta una carpeta para abrirla como repositorio, o un archivo para abrirlo en su repositorio"
+    "drop": "Suelta una carpeta para abrirla como repositorio, o un archivo para abrirlo en su repositorio",
+    "noRepos": "No hay repositorios Git en {{folder}} (se buscó hasta dos niveles de carpetas)",
+    "groupHint": "Abre los repositorios que contiene como un grupo de pestañas",
+    "group": "grupo",
+    "pickTitle_one": "{{count}} repositorio en esta carpeta",
+    "pickTitle_many": "{{count}} repositorios en esta carpeta",
+    "pickTitle_other": "{{count}} repositorios en esta carpeta",
+    "pickAll": "Todos",
+    "pickNone": "Ninguno",
+    "pickOpen_one": "Abrir {{count}}",
+    "pickOpen_many": "Abrir {{count}}",
+    "pickOpen_other": "Abrir {{count}}"
   },
   "window": {
     "minimize": "Minimizar",

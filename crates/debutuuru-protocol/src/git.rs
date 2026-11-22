@@ -20,7 +20,8 @@ pub const MODULE: &str = "git";
 /// 8: `git.list_files` (quick open).
 /// 9: tags: `tags` in [`Snapshot`], `git.create_tag`, `git.delete_tag`,
 ///    `git.push_tag`, and their [`OutcomeMessage`]s.
-pub const MODULE_VERSION: u32 = 9;
+/// 10: `git.find_repos` (open a folder of repositories).
+pub const MODULE_VERSION: u32 = 10;
 
 /// [`RepoParams`] → [`Snapshot`]
 pub const SNAPSHOT: &str = "git.snapshot";
@@ -52,6 +53,9 @@ pub const STAT_PATHS: &str = "git.stat_paths";
 pub const READ_BYTES: &str = "git.read_bytes";
 /// [`TreeParams`] (only `rev` is used) → `Vec<String>`: every file, for quick open.
 pub const LIST_FILES: &str = "git.list_files";
+/// [`RepoParams`] (`repo` = any folder) → [`debutuuru_core::discover::FoundRepos`]:
+/// whether it is a repository, or which repositories are inside it.
+pub const FIND_REPOS: &str = "git.find_repos";
 /// [`CreateTagParams`] → `null`
 pub const CREATE_TAG: &str = "git.create_tag";
 /// [`TagParams`] → `null`: deletes the local tag only.

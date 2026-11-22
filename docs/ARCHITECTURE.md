@@ -253,6 +253,15 @@ means adding a module, not a new transport.
   (Han unification), and `:lang()` picks the Japanese or Korean fallback
   fonts. Agent results carry `OpOutcome.message` (git module v5) so the UI
   words them itself; git's own output stays in git's language.
+- Folders of repositories (git module v10): opening a folder asks the agent
+  `git.find_repos` first. Inside a repository it opens as before; otherwise
+  the agent lists the clones and worktrees (`.git` folder or file) up to two
+  levels down, skipping hidden folders and `node_modules`/`target`/…, and
+  the UI opens them as a tab group (`Session.groups`, with
+  `recent_groups`). More than 8 found: the user picks which. The agent does
+  the search, so WSL folders are searched inside WSL. Names shown for tabs,
+  recents, the palette and worktrees add parent folders only when two would
+  look the same (`lib/names.ts`).
 - Tags (git module v9): `Snapshot.tags` lists them with one `for-each-ref`
   (kind, peeled commit, tagger, date, message without the signature, whether
   it's signed; signatures aren't verified). `git.create_tag` and

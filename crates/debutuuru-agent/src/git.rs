@@ -271,6 +271,9 @@ impl Module for GitModule {
             PULL => handle_with(params, |p: PullParams| self.pull(p)),
             PUSH => handle_with(params, |p: PushParams| self.push(p)),
             PUSH_TAG => handle_with(params, |p: PushTagParams| self.push_tag(p)),
+            FIND_REPOS => handle_with(params, |p: RepoParams| {
+                debutuuru_core::discover::find_repos(&p.repo)
+            }),
             CREATE_TAG => handle_with(params, |p: CreateTagParams| {
                 self.repo(&p.repo)?
                     .create_tag(&p.name, &p.rev, p.message.as_deref())

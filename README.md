@@ -17,6 +17,11 @@ runner, GitHub/GitLab integration, containers and more.
   Windows installer puts the command on your PATH (open a new terminal after
   installing).
 - **Worktree-aware**: open a main repo or any linked worktree.
+- **Folders of repositories**: open a folder that holds several repos or
+  worktrees (say, one folder per ticket with a worktree of each project) and
+  they open together as a group of tabs with the folder's name; collapse or
+  close the group in one click, and reopen it from Recent. Same-named repos
+  show their parent folder (`ssr-site · NED-2550`).
 - **Files**: browse the file tree and read any file (syntax highlighting,
   search), as it is now with changes marked, or at any commit (double-click it
   in History). Ignored files are hidden unless you ask for them.
