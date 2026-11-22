@@ -10,10 +10,13 @@
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use ts_rs::TS;
 
 pub const SCHEMA_VERSION: u32 = 1;
+/// Recent repositories kept (welcome screen, "Open recent…").
+pub const RECENT_REPOS: usize = 20;
 pub const MAX_BACKGROUND_BYTES: usize = 25 * 1024 * 1024;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
@@ -28,6 +31,99 @@ pub struct Settings {
     pub git: GitSettings,
     /// Added without a schema bump.
     pub updates: UpdateSettings,
+    /// UI language as a BCP 47 tag (`"es"`, `"ja"`…); `None` follows the
+    /// system language. Added without a schema bump.
+    pub language: Option<String>,
+    /// How diffs are shown. Added without a schema bump.
+    pub diff: DiffSettings,
+    /// Integrated terminal. Added without a schema bump.
+    pub terminal: TerminalSettings,
+}
+
+/// The terminal panel: the user's own profiles (detected ones aren't stored),
+/// which profile new terminals use, and the panel's height.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(default)]
+#[ts(export)]
+pub struct TerminalSettings {
+    /// Profile id (`auto:pwsh`, `custom:…`); `None` = the first detected one.
+    pub default_profile: Option<String>,
+    pub profiles: Vec<TerminalProfile>,
+    /// Panel height in px (the window's height when maximized).
+    pub panel_height: u32,
+}
+
+impl Default for TerminalSettings {
+    fn default() -> Self {
+        Self {
+            default_profile: None,
+            profiles: Vec::new(),
+            panel_height: 280,
+        }
+    }
+}
+
+/// A shell to open: detected (`auto:…`) or made by the user (`custom:…`).
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, TS)]
+#[serde(default)]
+#[ts(export)]
+pub struct TerminalProfile {
+    pub id: String,
+    pub name: String,
+    pub program: String,
+    pub args: Vec<String>,
+    /// Starting folder; `None` = the open repository, or home.
+    pub cwd: Option<String>,
+    pub env: BTreeMap<String, String>,
+    /// WSL profiles run `wsl.exe -d <distro>`; the repo's folder becomes
+    /// `--cd <linux path>` when it's in the same distro.
+    pub wsl_distro: Option<String>,
+    /// Icon shown on its tabs (`ubuntu`, `powershell`, `git`…); `None` =
+    /// guessed from the program or distro.
+    pub icon: Option<String>,
+}
+
+/// Diff viewer preferences, shared by commits, staged and unstaged changes.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(default)]
+#[ts(export)]
+pub struct DiffSettings {
+    pub layout: DiffLayout,
+    /// Mark the words that changed inside a line.
+    pub word_highlight: bool,
+    /// Hide changes that only add, remove or move whitespace.
+    pub ignore_whitespace: bool,
+    /// Unchanged lines kept around each change (unified and split; the rest
+    /// folds and opens with a click).
+    pub context_lines: u32,
+    pub syntax_highlight: bool,
+    pub wrap_lines: bool,
+}
+
+impl Default for DiffSettings {
+    fn default() -> Self {
+        Self {
+            layout: DiffLayout::Unified,
+            word_highlight: true,
+            ignore_whitespace: false,
+            context_lines: 3,
+            syntax_highlight: true,
+            wrap_lines: false,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export)]
+pub enum DiffLayout {
+    /// One column, removed and added lines interleaved.
+    #[default]
+    Unified,
+    /// Old version left, new version right.
+    Split,
+    /// The whole file with the changes marked.
+    File,
 }
 
 /// App updates (signed installers from the GitHub releases).
@@ -77,6 +173,9 @@ pub struct Session {
     /// Tab keys in UI form (`C:\…` or `\\wsl.localhost\Distro\…`).
     pub open_repos: Vec<String>,
     pub active: Option<String>,
+    /// Repositories opened before, most recent first (same form as
+    /// `open_repos`). Added without a schema bump.
+    pub recent_repos: Vec<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
@@ -96,6 +195,25 @@ pub struct Appearance {
     /// Programming ligatures in code views (never in the UI chrome).
     pub ligatures: bool,
     pub density: Density,
+    /// Visual style on top of the theme. Added without a schema bump.
+    pub style: UiStyle,
+    /// Gamer style: the RGB bars cycle their colors (off under the system's
+    /// "reduce motion"). Added without a schema bump.
+    pub rgb_animation: bool,
+}
+
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export)]
+pub enum UiStyle {
+    /// Calm, as described in docs/DESIGN.md.
+    #[default]
+    Standard,
+    /// Neon glow, sharper corners and RGB accent bars.
+    Gamer,
+    /// Electric two-color gradient (accent → green), carbon texture, circuit
+    /// traces and a bold italic display font for titles.
+    Circuit,
 }
 
 /// Linear-style theme generation: everything derives from these three.
@@ -143,6 +261,9 @@ impl Default for Settings {
             session: Session::default(),
             git: GitSettings::default(),
             updates: UpdateSettings::default(),
+            language: None,
+            diff: DiffSettings::default(),
+            terminal: TerminalSettings::default(),
         }
     }
 }
@@ -158,6 +279,8 @@ impl Default for Appearance {
             font_size: 13,
             ligatures: true,
             density: Density::Compact,
+            style: UiStyle::Standard,
+            rgb_animation: true,
         }
     }
 }
@@ -214,6 +337,9 @@ impl Settings {
         s.open_repos.retain(|r| !r.trim().is_empty());
         s.open_repos.dedup();
         s.open_repos.truncate(50);
+        s.recent_repos.retain(|r| !r.trim().is_empty());
+        s.recent_repos.dedup();
+        s.recent_repos.truncate(RECENT_REPOS);
         if s.active.as_ref().is_some_and(|a| !s.open_repos.contains(a)) {
             s.active = s.open_repos.first().cloned();
         }
@@ -226,6 +352,21 @@ impl Settings {
         }) {
             self.git.wsl_distro = None;
         }
+        // A language tag is letters, digits and hyphens; anything else means
+        // the file was edited by hand: follow the system again.
+        if self.language.as_deref().is_some_and(|l| {
+            l.is_empty()
+                || l.len() > 35
+                || !l.chars().all(|c| c.is_ascii_alphanumeric() || c == '-')
+        }) {
+            self.language = None;
+        }
+        self.diff.context_lines = self.diff.context_lines.clamp(1, 100);
+        let t = &mut self.terminal;
+        t.panel_height = t.panel_height.clamp(120, 4000);
+        t.profiles
+            .retain(|p| !p.id.trim().is_empty() && !p.program.trim().is_empty());
+        t.profiles.truncate(50);
         self.schema_version = SCHEMA_VERSION;
         self
     }
@@ -418,12 +559,29 @@ fn image_kind(b: &[u8]) -> Option<&'static str> {
 mod tests {
     use super::*;
 
-    fn tmp(name: &str) -> PathBuf {
+    /// Scratch folder for one test, removed when the test ends (also when it
+    /// fails), so runs don't pile up folders in the temp dir.
+    struct TmpDir(PathBuf);
+
+    impl std::ops::Deref for TmpDir {
+        type Target = Path;
+        fn deref(&self) -> &Path {
+            &self.0
+        }
+    }
+
+    impl Drop for TmpDir {
+        fn drop(&mut self) {
+            let _ = std::fs::remove_dir_all(&self.0);
+        }
+    }
+
+    fn tmp(name: &str) -> TmpDir {
         let d =
             std::env::temp_dir().join(format!("debutuuru-settings-{name}-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&d);
         std::fs::create_dir_all(&d).unwrap();
-        d
+        TmpDir(d)
     }
 
     #[test]
@@ -446,6 +604,62 @@ mod tests {
         let loaded = store.load();
         assert!(!loaded.read_only);
         assert!(loaded.settings.updates.check_on_start);
+    }
+
+    #[test]
+    fn language_follows_the_system_unless_chosen() {
+        let d = tmp("language");
+        let store = Store::new(&d, &d);
+        std::fs::write(&store.file, r#"{"schema_version": 1}"#).unwrap();
+        assert_eq!(store.load().settings.language, None);
+
+        std::fs::write(&store.file, r#"{"schema_version": 1, "language": "ja"}"#).unwrap();
+        assert_eq!(store.load().settings.language.as_deref(), Some("ja"));
+
+        std::fs::write(
+            &store.file,
+            r#"{"schema_version": 1, "language": "es;rm -rf"}"#,
+        )
+        .unwrap();
+        assert_eq!(store.load().settings.language, None);
+    }
+
+    #[test]
+    fn diff_settings_default_and_clamp() {
+        let d = tmp("diff");
+        let store = Store::new(&d, &d);
+        std::fs::write(&store.file, r#"{"schema_version": 1}"#).unwrap();
+        assert_eq!(store.load().settings.diff, DiffSettings::default());
+
+        std::fs::write(
+            &store.file,
+            r#"{"schema_version": 1, "diff": {"layout": "split", "context_lines": 5000}}"#,
+        )
+        .unwrap();
+        let diff = store.load().settings.diff;
+        assert_eq!(diff.layout, DiffLayout::Split);
+        assert_eq!(diff.context_lines, 100);
+        assert!(diff.word_highlight);
+    }
+
+    #[test]
+    fn terminal_settings_default_and_sanitize() {
+        let d = tmp("terminal");
+        let store = Store::new(&d, &d);
+        std::fs::write(&store.file, r#"{"schema_version": 1}"#).unwrap();
+        assert_eq!(store.load().settings.terminal, TerminalSettings::default());
+        std::fs::write(
+            &store.file,
+            r#"{"schema_version": 1, "terminal": {"panel_height": 5, "profiles": [
+                {"id": "custom:1", "name": "Zsh", "program": "/bin/zsh", "args": ["-l"]},
+                {"id": "", "program": "x"}
+            ]}}"#,
+        )
+        .unwrap();
+        let t = store.load().settings.terminal;
+        assert_eq!(t.panel_height, 120);
+        assert_eq!(t.profiles.len(), 1);
+        assert_eq!(t.profiles[0].args, ["-l"]);
     }
 
     #[test]

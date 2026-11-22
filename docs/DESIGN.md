@@ -66,11 +66,42 @@ see VERSIONING). Everything previews live.
 - **Theme**: a preset, or custom **base + accent + contrast**.
 - **Background image** (as in Warp): pick any PNG/JPEG/WebP/GIF. It's copied
   into the app's data folder, and you set its **visibility** (opacity), **blur**
-  and **dim**. Panels become translucent (with backdrop blur) so the image shows
-  through, while text keeps contrast through the dim layer.
+  and **dim**. Panels become translucent so the image shows through
+  evenly across the whole window (no extra blur on panels: it made the side
+  panels look like a separate layer; the image's Blur setting blurs it
+  everywhere instead), while text keeps contrast through the dim layer.
 - **Fonts**: UI and mono family (any installed font, falling back to the
   bundled ones), base size, code ligatures on/off.
 - **Density**: compact / comfortable.
+- **Style**: Standard (everything above), Gamer or Circuit (below).
+
+## Styles
+
+A style changes how the tokens are used, never the tokens themselves, so it
+works with every theme (presets or custom) and the contrast report still
+applies. It's set on `<html data-style>` and lives in `styles.css`.
+
+- **Standard**: the calm design described in this document.
+- **Gamer**: neon glow (`--accent-ring`) on what's active, focused or
+  selected; sharper corners (radius 3/5 px); borders tinted with the accent;
+  and RGB bars (title bar, status bar, active tab, logo) drawn with the
+  commit-graph lane palette, which has equal lightness and hues rotated from
+  the accent, so it suits any theme. The Neon, Cyberpunk, Crimson and Toxic
+  presets are made for it; Cyberpunk and Crimson use lighter accents than
+  their pure neon color so button text keeps 4.5:1.
+- **Circuit**: based on an electric blue/green gaming banner. A two-color
+  gradient from the accent to a green derived from it (`oklch(from
+  var(--accent) …)`, 95° toward green at the accent's chroma; the lane 90°
+  away is the fallback), a carbon texture on surfaces, decorative circuit
+  traces on the welcome screen and the drop overlay, and **Exo 2** (OFL,
+  bundled, bold italic) for the logo, headings and primary buttons. Body
+  text stays Inter. The Circuit preset (navy + electric blue) is made for
+  it; its accent was chosen so button text keeps 8:1.
+- **Motion exception**: with "Animated RGB" on (the default for Gamer), the
+  RGB bars cycle their colors continuously (Gamer) or a light sweeps across
+  the gradient bars (Circuit), beyond the 120 ms rule above.
+  It's opt-in through the style, has its own switch, and the global
+  `prefers-reduced-motion` rule turns it off.
 
 Later: import Warp `.yaml` themes, share themes as files, light mode (the
 generator supports it; it needs its own lightness curve).

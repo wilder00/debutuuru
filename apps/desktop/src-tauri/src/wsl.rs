@@ -157,6 +157,13 @@ pub fn install_command(distro: &str, agent_binary: &Path) -> Result<WslCommandSt
     command_status(distro)
 }
 
+/// The user's home folder inside `distro` (`/home/me`), where "Browse in
+/// WSL…" starts. Boots the distro if it isn't running (user-initiated).
+pub fn home(distro: &str) -> Result<String, RpcError> {
+    let home = run_sh(distro, r#"printf %s "$HOME""#, &[])?;
+    Ok(home.trim().to_string())
+}
+
 pub fn add_to_path(distro: &str) -> Result<WslCommandStatus, RpcError> {
     run_sh(distro, ADD_TO_PATH, &[])?;
     command_status(distro)

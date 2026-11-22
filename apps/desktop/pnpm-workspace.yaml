@@ -2,8 +2,3 @@
 # Defaults kept on purpose: packages younger than 24 h (minimumReleaseAge) are
 # not installed, and dependency build scripts are blocked unless listed in
 # allowBuilds (none are needed today).
-
-# lucide-react 1.77.0 was pinned when it was hours old. The exclusion only
-# matters until 2026-11-21 06:17 UTC; it can be removed after that.
-minimumReleaseAgeExclude:
-  - lucide-react@1.77.0

@@ -1,7 +1,9 @@
 //! `git.*` methods. Every request names the repository by its path *as seen by
 //! the agent* (a Linux path for a WSL agent); the desktop app translates.
 
+use debutuuru_core::changes::DiffSource;
 use debutuuru_core::repo::{Branch, Remote, RepoInfo, Status, Worktree};
+use debutuuru_core::tags::Tag;
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
@@ -10,7 +12,15 @@ pub const MODULE: &str = "git";
 /// 3: remote operations (fetch/pull/push), progress and credential prompts,
 ///    `remotes` in [`Snapshot`].
 /// 4: file browsing: `git.tree` and `git.read_file`.
-pub const MODULE_VERSION: u32 = 4;
+/// 5: [`OpOutcome::message`], so UIs can word (and translate) the summary.
+/// 6: commit changes and diffs of any kind: `git.commit_details` and
+///    `git.file_versions`.
+/// 7: `git.stat_paths` (follow imports and links) and `git.read_bytes`
+///    (images in rendered Markdown).
+/// 8: `git.list_files` (quick open).
+/// 9: tags: `tags` in [`Snapshot`], `git.create_tag`, `git.delete_tag`,
+///    `git.push_tag`, and their [`OutcomeMessage`]s.
+pub const MODULE_VERSION: u32 = 9;
 
 /// [`RepoParams`] → [`Snapshot`]
 pub const SNAPSHOT: &str = "git.snapshot";
@@ -30,6 +40,22 @@ pub const DIFF: &str = "git.diff";
 pub const TREE: &str = "git.tree";
 /// [`ReadFileParams`] → [`FileContent`]
 pub const READ_FILE: &str = "git.read_file";
+/// [`RevParams`] → [`debutuuru_core::changes::CommitDetails`]: message, author
+/// and the files changed against the first parent.
+pub const COMMIT_DETAILS: &str = "git.commit_details";
+/// [`FileVersionsParams`] → [`debutuuru_core::changes::FileVersions`]: both
+/// sides of a file, so the UI draws any diff view itself.
+pub const FILE_VERSIONS: &str = "git.file_versions";
+/// [`StatPathsParams`] → `Vec<Option<EntryKind>>`, one per path: what exists.
+pub const STAT_PATHS: &str = "git.stat_paths";
+/// [`ReadFileParams`] → [`debutuuru_core::files::FileBytes`] (base64, ≤ 10 MiB).
+pub const READ_BYTES: &str = "git.read_bytes";
+/// [`TreeParams`] (only `rev` is used) → `Vec<String>`: every file, for quick open.
+pub const LIST_FILES: &str = "git.list_files";
+/// [`CreateTagParams`] → `null`
+pub const CREATE_TAG: &str = "git.create_tag";
+/// [`TagParams`] → `null`: deletes the local tag only.
+pub const DELETE_TAG: &str = "git.delete_tag";
 /// [`RepoParams`] → `null`. Starts emitting [`CHANGED`] for this repo (idempotent).
 pub const WATCH: &str = "git.watch";
 /// [`RepoParams`] → `null`
@@ -41,6 +67,8 @@ pub const FETCH: &str = "git.fetch";
 pub const PULL: &str = "git.pull";
 /// [`PushParams`] → [`OpOutcome`]
 pub const PUSH: &str = "git.push";
+/// [`PushTagParams`] → [`OpOutcome`]: pushes a tag, or deletes it on the remote.
+pub const PUSH_TAG: &str = "git.push_tag";
 /// [`CancelParams`] → `null`. Stops a running remote operation.
 pub const CANCEL: &str = "git.cancel";
 /// [`PromptReply`] → `null`. Answers a [`PROMPT`] event.
@@ -98,11 +126,75 @@ pub struct CheckoutParams {
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[ts(export)]
+pub struct CreateTagParams {
+    pub repo: String,
+    pub name: String,
+    /// Commit to tag (any revision git understands).
+    pub rev: String,
+    /// Annotated tag with this message; `None` = lightweight.
+    #[serde(default)]
+    pub message: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct TagParams {
+    pub repo: String,
+    pub name: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct PushTagParams {
+    pub repo: String,
+    #[serde(flatten)]
+    #[ts(flatten)]
+    pub options: RemoteOptions,
+    pub name: String,
+    /// Delete the tag on the remote instead of pushing it.
+    #[serde(default)]
+    pub delete: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct DiffParams {
     pub repo: String,
     pub path: String,
     pub staged: bool,
     pub untracked: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct StatPathsParams {
+    pub repo: String,
+    /// Commit; `None` = the working tree.
+    #[serde(default)]
+    #[ts(optional)]
+    pub rev: Option<String>,
+    /// Repo-relative, `/`-separated (at most 64).
+    pub paths: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct RevParams {
+    pub repo: String,
+    /// Any revision git understands (a hash, `HEAD~2`…).
+    pub rev: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct FileVersionsParams {
+    pub repo: String,
+    pub source: DiffSource,
+    pub path: String,
+    /// Old name of a renamed or copied file.
+    #[serde(default)]
+    #[ts(optional)]
+    pub orig_path: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
@@ -268,11 +360,53 @@ pub enum FailureHint {
 #[ts(export)]
 pub struct OpOutcome {
     pub ok: bool,
-    /// One-line, human summary ("Pushed main → origin/main").
+    /// One-line, human summary in English ("Pushed main → origin/main").
     pub summary: String,
     pub hint: Option<FailureHint>,
     /// git's output (stderr), for a "details" view. Never contains answers to prompts.
     pub log: String,
+    /// What `summary` says, as data, so a UI can word it in its own language.
+    /// `None` when the summary is git's own error line, and from agents
+    /// older than module version 5.
+    #[serde(default)]
+    pub message: Option<OutcomeMessage>,
+}
+
+/// The outcomes the agent words itself; see [`OpOutcome::message`].
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+#[ts(export)]
+pub enum OutcomeMessage {
+    /// `remote: None` = all remotes.
+    Fetched {
+        remote: Option<String>,
+    },
+    UpToDate,
+    Pulled {
+        upstream: String,
+    },
+    NothingToPush,
+    Pushed {
+        branch: String,
+        target: String,
+    },
+    /// Pull without an upstream branch.
+    NoUpstream,
+    /// Push from a repository without remotes.
+    NoRemote,
+    /// Publishing a branch when several remotes could take it.
+    SeveralRemotes,
+    Cancelled,
+    /// The user rejected the server's host key.
+    HostKeyDeclined,
+    TagPushed {
+        tag: String,
+        remote: String,
+    },
+    TagDeletedOnRemote {
+        tag: String,
+        remote: String,
+    },
 }
 
 /// Everything the sidebar and changes panel need, in one round trip.
@@ -289,4 +423,7 @@ pub struct Snapshot {
     /// Tracking branch of HEAD, e.g. `origin/main`. Added in module v3.
     #[serde(default)]
     pub upstream: Option<String>,
+    /// Newest first. Added in module v9.
+    #[serde(default)]
+    pub tags: Vec<Tag>,
 }

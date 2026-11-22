@@ -12,3 +12,5 @@ publish = false
 serde.workspace = true
 thiserror.workspace = true
 ts-rs.workspace = true
+# Images shown in rendered Markdown travel as base64 (`git.read_bytes`).
+base64 = "0.23"

@@ -187,6 +187,97 @@ means adding a module, not a new transport.
   binaries by NUL bytes, never follows symlinks, and refuses paths outside
   the repo. The viewer is CodeMirror 6, read-only, lazy-loaded (only renders
   visible lines; languages load on demand) and colored with `--syn-*` tokens.
+- Window frame: on Windows the native title bar is off
+  (`src-tauri/tauri.windows.conf.json`, merged by Tauri only on Windows:
+  `decorations: false`, `shadow: true` for the shadow and Windows 11's
+  rounded corners). Our title bar is the drag region
+  (`data-tauri-drag-region`) and carries minimize / maximize / close
+  (`core:window:allow-minimize`, `-toggle-maximize`, `-close`,
+  `-start-dragging`). Tauri replaces arrays when merging configs, so that
+  file repeats the whole window entry: **change the window size or colors in
+  both files**. Linux keeps its window manager's title bar (Tauri has no
+  shadow for undecorated windows there). Windows 11's Snap Layouts popup on
+  the maximize button is lost; Win+Z and edge snapping still work.
+- Opening: besides the path bar and `debutuuru .`, "Open folder… / Open
+  file…" (Ctrl+O) use the native dialog (`tauri-plugin-dialog`, only
+  `dialog:allow-open`); on Windows "Browse in WSL (distro)…" starts it at
+  `\\wsl.localhost\<distro>\<home>` (`wsl_home`), so picked paths arrive in
+  the WSL form the agent routing already handles. Folders and files can also
+  be dropped on the window (Tauri's drag-drop event; `path_kind` tells them
+  apart). A file opens its repository (root found through the repo's agent,
+  so it works in WSL too) and shows the file in Files. Opened repos are
+  remembered in `session.recent_repos` (20, additive field).
+- Quick open (Ctrl+P) and command palette (Ctrl+Shift+P), as in VS Code:
+  one box (`shell/Palette.tsx`) searches the active repo's files
+  (`git.list_files`: tracked + untracked, minus ignored and deleted, or a
+  commit's tree) or, after ">", the commands (`shell/commands.ts`, "Group:
+  Action" labels). Matching is fuzzysort (Sublime-style); a command can open a
+  second list (branches, themes, languages). The palette acts on repo tabs
+  through a small event bus (`lib/bus.ts`), never by running git itself;
+  destructive commands (force push) stay out of it. Ctrl+P is caught in the
+  capture phase, so it works inside the editor and WebView2 doesn't print.
+- Following imports (Ctrl+click in Files): `links.ts` finds imports and links
+  by language with regexes (TS/JS, CSS/SCSS/Less, Rust, Go, Markdown, HTML,
+  Python, C/C++) and turns each into candidate repo paths: relative paths,
+  tsconfig/jsconfig `paths` and `baseUrl`, `mod`/`crate::`/`super::` and
+  workspace crates, the `go.mod` module, Python packages. `git.stat_paths`
+  (≤ 64 per call, working tree or a commit) says which exist; the first one
+  opens. No language server: external packages aren't followed.
+- Markdown renders by default (Rendered / Source): react-markdown with GFM,
+  emoji, GitHub alerts, KaTeX math and Mermaid (loaded only when a document
+  has a diagram). Repo content is untrusted, so raw HTML goes through
+  rehype-sanitize with GitHub's schema, Mermaid runs with securityLevel
+  `strict`, the CSP still blocks scripts and remote images, repo images come
+  as data URLs from `git.read_bytes` (≤ 10 MiB), and external links open in
+  the browser through the opener plugin (http, https, mailto, tel only).
+- Diffs: the agent returns data, not diff text. `git.commit_details` gives a
+  commit's message and its files against the first parent (`diff-tree -M`,
+  name-status + numstat, so renames and binaries are known), and
+  `git.file_versions` gives both sides of one file for a commit, staged
+  (HEAD → index), unstaged (index → disk) or untracked change, with
+  `read_file`'s limits. The UI draws them with `@codemirror/merge`: unified,
+  split or whole file, word-level highlights, syntax colors, wrapping,
+  unchanged runs folded to N context lines, Alt+↑/↓ between changes, and
+  "ignore whitespace" as a line diff of whitespace-stripped lines (like
+  `git diff -w`). Options live in `Settings.diff`. When one side is all LF and
+  the other all CRLF (`core.autocrlf` checkouts), lines are compared without
+  their endings.
+- Languages: English (source and fallback), Spanish, Japanese and Korean, with
+  i18next + react-i18next. Texts live in `src/i18n/locales/<lang>.json`
+  (i18next JSON v4: plural keys follow each language's CLDR categories, and
+  tools like Weblate read the format), keys are typed against `en.json`, and
+  `scripts/check-locales.mjs` (part of `pnpm build`) fails on missing keys,
+  plural forms or `{{variables}}`. The first start follows the system
+  language; Settings › Language can fix one (`Settings.language`). `<html
+  lang>` follows the UI language for screen readers and CJK glyph shapes
+  (Han unification), and `:lang()` picks the Japanese or Korean fallback
+  fonts. Agent results carry `OpOutcome.message` (git module v5) so the UI
+  words them itself; git's own output stays in git's language.
+- Tags (git module v9): `Snapshot.tags` lists them with one `for-each-ref`
+  (kind, peeled commit, tagger, date, message without the signature, whether
+  it's signed; signatures aren't verified). `git.create_tag` and
+  `git.delete_tag` are local; `git.push_tag` (push, or `--delete` on the
+  remote) is a remote operation like push, so it gets progress, cancel and
+  askpass prompts, against `origin` or the only remote. Whether a tag is
+  already on the remote isn't shown: knowing it needs `git ls-remote`, a
+  network call that may ask for credentials.
+- Terminal (stage 1): the agent's `term` module (`term.spawn/write/resize/
+  kill`, events `term.output`/`term.exit`) runs programs in a pseudo-terminal
+  with portable-pty (ConPTY on Windows); output is decoded as UTF-8 across
+  reads. The UI is xterm.js 6 (fit + WebGL addons) in a bottom panel with
+  tabs, resizable, or maximized to the whole window ("terminal only"). Ctrl+`
+  shows it; inside it, keys go to the program except Ctrl+Shift+P, Ctrl+` and
+  Ctrl+,. Profiles: the shell detects them (`term_profiles`: PowerShell 7,
+  Windows PowerShell, cmd, Git Bash and each WSL distro on Windows; `$SHELL`
+  and `/etc/shells` on Unix), and the user adds their own in Settings ›
+  Terminal (`Settings.terminal`). WSL profiles run `wsl.exe -d <distro> --cd
+  <path>` in the local agent, like Windows Terminal, so the agent inside WSL
+  isn't needed. Colors come from the theme tokens with a transparent
+  background; Nerd Fonts are font fallbacks for prompt icons. Tabs show the
+  profile's icon (simple-icons, CC0, drawn in the text color) and can be
+  renamed. Debutuuru stays MIT: Warp (AGPL-3.0) is a reference for ideas, not
+  code. Next stages: command blocks via OSC 133 shell integration and an
+  editor-style input (2), splits and restoring sessions (3).
 
 ## Roadmap
 

@@ -1,12 +1,14 @@
 //! Debutuuru core: everything that talks to git lives here so the CLI and
 //! the desktop app behave identically (including on WSL).
 
+pub mod changes;
 pub mod error;
 pub mod files;
 pub mod graph;
 pub mod location;
 pub mod repo;
 pub mod runner;
+pub mod tags;
 
 pub use error::{Error, Result};
 pub use location::Location;

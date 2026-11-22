@@ -9,6 +9,7 @@
 
 mod agents;
 mod settings;
+mod terminal;
 mod wsl;
 
 use agents::Agents;
@@ -131,6 +132,30 @@ async fn wsl_add_to_path(distro: String) -> Result<wsl::WslCommandStatus, RpcErr
         .map_err(blocking_err)?
 }
 
+/// Terminal profiles found on this machine (shells, WSL distros).
+#[tauri::command]
+async fn term_profiles() -> Vec<settings::TerminalProfile> {
+    tauri::async_runtime::spawn_blocking(terminal::detect)
+        .await
+        .unwrap_or_default()
+}
+
+/// Whether a dropped path is a folder or a file (WSL paths such as
+/// `\\wsl.localhost\Ubuntu\…` work too); `None` if it doesn't exist.
+#[tauri::command]
+fn path_kind(path: String) -> Option<&'static str> {
+    let meta = std::fs::metadata(path).ok()?;
+    Some(if meta.is_dir() { "dir" } else { "file" })
+}
+
+/// Home folder inside a WSL distro, for "Browse in WSL…" (user-initiated).
+#[tauri::command]
+async fn wsl_home(distro: String) -> Result<String, RpcError> {
+    tauri::async_runtime::spawn_blocking(move || wsl::home(&distro))
+        .await
+        .map_err(blocking_err)?
+}
+
 #[tauri::command]
 fn get_settings(state: tauri::State<'_, SettingsState>) -> LoadedSettings {
     let loaded = state.store.load();
@@ -202,6 +227,8 @@ fn main() {
         // releases); `process` relaunches the app afterwards on Linux.
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
+        .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
             let config = app.path().app_config_dir()?;
             let data = app.path().app_data_dir()?;
@@ -223,6 +250,9 @@ fn main() {
             wsl_command_status,
             wsl_install_command,
             wsl_add_to_path,
+            wsl_home,
+            path_kind,
+            term_profiles,
             get_settings,
             save_settings,
             import_background

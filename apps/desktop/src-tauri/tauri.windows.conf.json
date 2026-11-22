@@ -1,0 +1,17 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "app": {
+    "windows": [
+      {
+        "title": "Debutuuru",
+        "width": 1280,
+        "height": 800,
+        "minWidth": 900,
+        "minHeight": 560,
+        "backgroundColor": "#101318",
+        "decorations": false,
+        "shadow": true
+      }
+    ]
+  }
+}

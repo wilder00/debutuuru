@@ -20,9 +20,36 @@ runner, GitHub/GitLab integration, containers and more.
 - **Files**: browse the file tree and read any file (syntax highlighting,
   search), as it is now with changes marked, or at any commit (double-click it
   in History). Ignored files are hidden unless you ask for them.
+- **Open anything**: Open folder or file (Ctrl+O) with the system dialog,
+  Browse in WSL on Windows, drag and drop folders or files onto the window,
+  and a list of recent repositories.
+- **Quick open and commands**: Ctrl+P finds any file of the repo by a few
+  letters of its name; Ctrl+Shift+P runs commands (fetch, pull, push, switch
+  branch, change theme or language…), like in VS Code.
+- **Code navigation**: Ctrl+click an import (TS/JS, CSS, Rust, Go, Python,
+  C/C++, Markdown and HTML links) to open that file; Alt+← goes back.
+- **Markdown**: READMEs and docs render like on GitHub (tables, task lists,
+  alerts, math, Mermaid diagrams), with a switch to the source.
+- **Diffs**: click a commit to see the files it changed and their diffs; the
+  same viewer shows staged and unstaged changes. Unified, side by side or the
+  whole file, with changed words highlighted, syntax colors, ignore
+  whitespace and adjustable context.
+- **Tags**: a Tags section lists them newest first; click one to see whether
+  it's annotated or lightweight, signed, who tagged it, its message and its
+  commit's changes. Create one on any commit (annotated or lightweight, and
+  push it right away), push it, delete it locally or on the remote, or check
+  it out.
+- **Terminal**: Ctrl+` opens a terminal panel with tabs, or the whole window
+  for just the terminal. Profiles for PowerShell, cmd, Git Bash and every WSL
+  distro are found automatically, and you can add your own; tabs show the
+  shell's icon and can be renamed (double-click). Colors follow the theme.
 - **Updates**: the app tells you when a new version is out and installs it
   with one click (signed, verified before installing).
+- **Languages**: English, Spanish, Japanese and Korean. It follows your
+  system language, or pick one in Settings.
 - **Yours**: dark themes generated from base + accent + contrast (WCAG-checked),
+  Gamer (neon glow, RGB bars) and Circuit (electric blue-green gradient,
+  carbon texture, circuit traces) styles with themes made for them,
   Warp-style background images, fonts and density (Ctrl+,). See
   [docs/DESIGN.md](docs/DESIGN.md).
 

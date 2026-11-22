@@ -12,6 +12,10 @@ publish = false            # never cargo publish
 release_always = false
 git_release_enable = false # the Release workflow builds installers and creates the GitHub Release
 git_tag_enable = false     # only the CLI package creates the product tag (below)
+# Every package reads its previous version from the product tag. Without this,
+# packages that never create tags have none, count as an initial release, and
+# `changelog_include` pulls their whole history into each new release.
+git_tag_name = "v{{ version }}"
 semver_check = false
 
 # The product is versioned as one unit; the `debutuuru` package carries the tag
@@ -19,7 +23,6 @@ semver_check = false
 [[package]]
 name = "debutuuru"
 git_tag_enable = true
-git_tag_name = "v{{ version }}"
 changelog_path = "CHANGELOG.md"
 changelog_update = true
 changelog_include = ["debutuuru-core", "debutuuru-protocol", "debutuuru-agent", "debutuuru-desktop", "debutuuru-ui"]

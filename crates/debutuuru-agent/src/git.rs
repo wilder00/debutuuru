@@ -61,6 +61,9 @@ impl GitModule {
                 Some(r) => format!("Fetched {r}"),
                 None => "Fetched all remotes".into(),
             };
+            out.message = Some(OutcomeMessage::Fetched {
+                remote: p.remote.clone(),
+            });
         }
         Ok(out)
     }
@@ -73,6 +76,7 @@ impl GitModule {
                 summary: "This branch has no upstream to pull from. Push it first, or set one with `git branch -u`.".into(),
                 hint: Some(FailureHint::NoRemote),
                 log: String::new(),
+                message: Some(OutcomeMessage::NoUpstream),
             });
         };
         let mut args = vec!["pull".to_string(), "--progress".into()];
@@ -84,11 +88,17 @@ impl GitModule {
         }
         let mut out = self.remote_op(&p.repo, &p.options, args)?;
         if out.ok {
-            out.summary = if out.log.contains("Already up to date") {
+            let up_to_date = out.log.contains("Already up to date");
+            out.summary = if up_to_date {
                 "Already up to date".into()
             } else {
                 format!("Pulled {upstream}")
             };
+            out.message = Some(if up_to_date {
+                OutcomeMessage::UpToDate
+            } else {
+                OutcomeMessage::Pulled { upstream }
+            });
         }
         Ok(out)
     }
@@ -108,27 +118,12 @@ impl GitModule {
         let target = match &upstream {
             Some(u) => u.clone(),
             None => {
-                let remotes = repo.remotes().map_err(|e| e.to_string())?;
-                let remote = remotes
-                    .iter()
-                    .find(|r| r.name == "origin")
-                    .or(if remotes.len() == 1 {
-                        remotes.first()
-                    } else {
-                        None
-                    })
-                    .map(|r| r.name.clone());
-                let Some(remote) = remote else {
-                    return Ok(OpOutcome {
-                        ok: false,
-                        summary: if remotes.is_empty() {
-                            "This repository has no remote. Add one with `git remote add origin <url>`.".into()
-                        } else {
-                            "Several remotes and no upstream: choose one with `git push -u <remote> HEAD`.".into()
-                        },
-                        hint: Some(FailureHint::NoRemote),
-                        log: String::new(),
-                    });
+                let remote = match default_remote(
+                    &repo,
+                    "no upstream: choose one with `git push -u <remote> HEAD`",
+                )? {
+                    Ok(r) => r,
+                    Err(outcome) => return Ok(outcome),
                 };
                 args.extend(["-u".into(), remote.clone(), "HEAD".into()]);
                 format!("{remote}/{branch}")
@@ -136,11 +131,48 @@ impl GitModule {
         };
         let mut out = self.remote_op(&p.repo, &p.options, args)?;
         if out.ok {
-            out.summary = if out.log.contains("Everything up-to-date") {
+            let nothing = out.log.contains("Everything up-to-date");
+            out.summary = if nothing {
                 "Nothing to push".into()
             } else {
                 format!("Pushed {branch} → {target}")
             };
+            out.message = Some(if nothing {
+                OutcomeMessage::NothingToPush
+            } else {
+                OutcomeMessage::Pushed { branch, target }
+            });
+        }
+        Ok(out)
+    }
+
+    /// Pushes a tag to the default remote (`origin`, or the only one), or
+    /// deletes it there.
+    fn push_tag(&self, p: PushTagParams) -> Result<OpOutcome, String> {
+        let repo = self.repo(&p.repo).map_err(|e| e.to_string())?;
+        let remote = match default_remote(&repo, "none is `origin`: use `git push <remote> <tag>`")?
+        {
+            Ok(r) => r,
+            Err(outcome) => return Ok(outcome),
+        };
+        let mut args = vec!["push".to_string(), "--progress".into(), remote.clone()];
+        if p.delete {
+            args.push("--delete".into());
+        }
+        args.push(format!("refs/tags/{}", p.name));
+        let mut out = self.remote_op(&p.repo, &p.options, args)?;
+        if out.ok {
+            let tag = p.name.clone();
+            out.summary = if p.delete {
+                format!("Deleted tag {tag} on {remote}")
+            } else {
+                format!("Pushed tag {tag} → {remote}")
+            };
+            out.message = Some(if p.delete {
+                OutcomeMessage::TagDeletedOnRemote { tag, remote }
+            } else {
+                OutcomeMessage::TagPushed { tag, remote }
+            });
         }
         Ok(out)
     }
@@ -179,6 +211,38 @@ impl GitModule {
     }
 }
 
+/// `origin`, or the only remote; otherwise the outcome that explains why not
+/// (`several` finishes "Several remotes and …").
+fn default_remote(repo: &Repo, several: &str) -> Result<Result<String, OpOutcome>, String> {
+    let remotes = repo.remotes().map_err(|e| e.to_string())?;
+    let remote = remotes
+        .iter()
+        .find(|r| r.name == "origin")
+        .or(if remotes.len() == 1 {
+            remotes.first()
+        } else {
+            None
+        });
+    Ok(match remote {
+        Some(r) => Ok(r.name.clone()),
+        None => Err(OpOutcome {
+            ok: false,
+            summary: if remotes.is_empty() {
+                "This repository has no remote. Add one with `git remote add origin <url>`.".into()
+            } else {
+                format!("Several remotes and {several}.")
+            },
+            hint: Some(FailureHint::NoRemote),
+            log: String::new(),
+            message: Some(if remotes.is_empty() {
+                OutcomeMessage::NoRemote
+            } else {
+                OutcomeMessage::SeveralRemotes
+            }),
+        }),
+    })
+}
+
 impl Module for GitModule {
     fn info(&self) -> ModuleInfo {
         ModuleInfo {
@@ -200,11 +264,20 @@ impl Module for GitModule {
                     worktrees: r.worktrees()?,
                     remotes: r.remotes()?,
                     upstream: r.upstream()?,
+                    tags: r.tags()?,
                 })
             }),
             FETCH => handle_with(params, |p: FetchParams| self.fetch(p)),
             PULL => handle_with(params, |p: PullParams| self.pull(p)),
             PUSH => handle_with(params, |p: PushParams| self.push(p)),
+            PUSH_TAG => handle_with(params, |p: PushTagParams| self.push_tag(p)),
+            CREATE_TAG => handle_with(params, |p: CreateTagParams| {
+                self.repo(&p.repo)?
+                    .create_tag(&p.name, &p.rev, p.message.as_deref())
+            }),
+            DELETE_TAG => handle_with(params, |p: TagParams| {
+                self.repo(&p.repo)?.delete_tag(&p.name)
+            }),
             CANCEL => handle_with(params, |p: CancelParams| {
                 self.ops.cancel(&p.op_id);
                 Ok::<_, String>(())
@@ -234,6 +307,22 @@ impl Module for GitModule {
             }),
             READ_FILE => handle_with(params, |p: ReadFileParams| {
                 self.repo(&p.repo)?.read_file(p.rev.as_deref(), &p.path)
+            }),
+            STAT_PATHS => handle_with(params, |p: StatPathsParams| {
+                self.repo(&p.repo)?.stat_paths(p.rev.as_deref(), &p.paths)
+            }),
+            LIST_FILES => handle_with(params, |p: TreeParams| {
+                self.repo(&p.repo)?.list_files(p.rev.as_deref())
+            }),
+            READ_BYTES => handle_with(params, |p: ReadFileParams| {
+                self.repo(&p.repo)?.read_bytes(p.rev.as_deref(), &p.path)
+            }),
+            COMMIT_DETAILS => handle_with(params, |p: RevParams| {
+                self.repo(&p.repo)?.commit_details(&p.rev)
+            }),
+            FILE_VERSIONS => handle_with(params, |p: FileVersionsParams| {
+                self.repo(&p.repo)?
+                    .file_versions(&p.source, &p.path, p.orig_path.as_deref())
             }),
             WATCH => handle_with(params, |p: RepoParams| self.watch(p.repo)),
             UNWATCH => handle_with(params, |p: RepoParams| {

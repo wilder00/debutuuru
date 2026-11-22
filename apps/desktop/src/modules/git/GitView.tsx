@@ -1,4 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { ChangedEvent } from "../../bindings/ChangedEvent";
 import type { LogEntry } from "../../bindings/LogEntry";
 import type { Snapshot } from "../../bindings/Snapshot";
@@ -6,13 +7,18 @@ import { AGENT_DISCONNECTED, agentPathToRepo, onAgentEvent, wslDistro } from "..
 import { git, GIT_CHANGED } from "./api";
 import { ChangesPanel, type FileSelection } from "./ChangesPanel";
 import { CommitGraph } from "./CommitGraph";
-import { DiffView } from "./DiffView";
 import { RemoteBar } from "./RemoteBar";
+import { emit, useBus } from "../../lib/bus";
+import { ErrorBoundary } from "../../lib/ErrorBoundary";
 import { useSettings } from "../../settings/SettingsProvider";
 import { Sidebar } from "./Sidebar";
+import { TagDialog } from "./TagDialog";
 
 // Code viewer (CodeMirror) is only downloaded when Files is first opened.
 const FilesView = lazy(() => import("./FilesView").then((m) => ({ default: m.FilesView })));
+// Same for the diff viewer (CodeMirror merge), loaded when a diff is first opened.
+const FileDiffPanel = lazy(() => import("./FileDiffPanel").then((m) => ({ default: m.FileDiffPanel })));
+const CommitPanel = lazy(() => import("./CommitPanel").then((m) => ({ default: m.CommitPanel })));
 
 const LOG_LIMIT = 2000; // paginated loading comes with a later phase
 
@@ -28,12 +34,17 @@ type Props = {
 };
 
 export function GitView({ repo, active, refreshKey, onError, onOpen, onLoaded }: Props) {
+  const { t } = useTranslation();
   const { git: gitSettings } = useSettings();
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
   const [log, setLog] = useState<LogEntry[]>([]);
   const [commit, setCommit] = useState<string | null>(null);
+  /** Tag whose details are shown (its commit is `commit`). */
+  const [tag, setTag] = useState<string | null>(null);
+  const [reveal, setReveal] = useState(0);
+  /** "Create tag" dialog, on this commit. */
+  const [tagOn, setTagOn] = useState<{ rev: string; label: string } | null>(null);
   const [file, setFile] = useState<FileSelection | null>(null);
-  const [diff, setDiff] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [view, setView] = useState<"history" | "files">("history");
   /** Commit browsed in Files; null = working tree. */
@@ -100,17 +111,6 @@ export function GitView({ repo, active, refreshKey, onError, onOpen, onLoaded }:
     return () => void un.then((f) => f());
   }, [repo, reload, onError]);
 
-  // Load the diff for the selected file, again after every reload (the file
-  // may have been edited while it's open).
-  useEffect(() => {
-    if (!file) return;
-    const untracked = file.file.worktree === "?";
-    git
-      .diff(repo, { path: file.file.path, staged: file.staged, untracked: untracked && !file.staged })
-      .then(setDiff)
-      .catch((e) => setDiff(String(e)));
-  }, [repo, file, snapshot]);
-
   // Keep the selected file in sync with the latest status (it may move
   // between staged/unstaged or disappear after a commit).
   useEffect(() => {
@@ -139,36 +139,94 @@ export function GitView({ repo, active, refreshKey, onError, onOpen, onLoaded }:
     [reload, onError],
   );
 
+  // Command palette: open a file in Files, switch views, check out a branch.
+  const [openRequest, setOpenRequest] = useState<{ path: string; n: number } | null>(null);
+  useBus("open-file", repo, (e) => {
+    setFilesRev(null);
+    setView("files");
+    setOpenRequest({ path: e.path, n: Date.now() });
+  });
+  useBus("show-view", repo, (e) => setView(e.view));
+
+  // The diff / commit panel can take the whole tab (to read the details);
+  // the same button, Esc or the palette brings the normal layout back.
+  const panelOpen = !!(file || commit) && view === "history";
+  const [expanded, setExpanded] = useState(false);
+  useEffect(() => {
+    if (!panelOpen) setExpanded(false);
+  }, [panelOpen]);
+  useBus("toggle-expand", repo, () => panelOpen && setExpanded((x) => !x));
+  useEffect(() => {
+    if (!expanded || !active) return;
+    const onKey = (e: KeyboardEvent) => {
+      // Not when Esc already closed something (editor search, a menu, a dialog).
+      if (e.key !== "Escape" || e.defaultPrevented || document.querySelector(".palette, .drawer, .modal, .menu")) return;
+      setExpanded(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [expanded, active]);
+  const expand = { expanded, toggle: () => setExpanded((x) => !x) };
+  useBus("checkout", repo, (e) => void act(() => git.checkout(repo, { branch: e.branch })));
+
+  const commitLabel = (rev: string) => {
+    const c = log.find((e) => e.hash === rev);
+    return c ? `${rev.slice(0, 8)} · ${c.subject}` : rev;
+  };
+  const openTagDialog = (rev?: string | null) => {
+    const r = rev ?? log.find((e) => e.refs.some((x) => x.startsWith("HEAD")))?.hash ?? "HEAD";
+    setTagOn({ rev: r, label: commitLabel(r) });
+  };
+  useBus("create-tag", repo, () => openTagDialog(commit));
+  useBus("show-tag", repo, (e) => selectTag(e.name));
+  const selectTag = (name: string) => {
+    const g = snapshot?.tags.find((x) => x.name === name);
+    if (!g) return;
+    setFile(null);
+    setTag(name);
+    setCommit(g.target);
+    setView("history");
+    setReveal((n) => n + 1);
+  };
+  // The shown tag was deleted (here or elsewhere): back to its commit.
+  const shownTag = snapshot?.tags.find((x) => x.name === tag) ?? null;
+  useEffect(() => {
+    if (tag && snapshot && !shownTag) setTag(null);
+  }, [tag, snapshot, shownTag]);
+
   if (!snapshot) {
     return (
       <div className="empty" hidden={!active}>
-        {loadError ? <span className="danger">{loadError}</span> : repo.startsWith("\\\\wsl") ? "Connecting to WSL…" : "Loading repository…"}
+        {loadError ? <span className="danger">{loadError}</span> : repo.startsWith("\\\\wsl") ? t("git.connectingWsl") : t("git.loadingRepo")}
       </div>
     );
   }
 
   return (
-    <div className={"git-view" + (file && view === "history" ? " with-diff" : "")} hidden={!active}>
+    <div className={"git-view" + (panelOpen ? " with-diff" : "") + (expanded ? " expanded" : "")} hidden={!active}>
       <Sidebar
         snapshot={snapshot}
         onCheckout={(branch) => act(() => git.checkout(repo, { branch }))}
         onOpenWorktree={(p) => onOpen(agentPathToRepo(repo, p))}
+        selectedTag={tag}
+        onSelectTag={selectTag}
+        onCreateTag={() => openTagDialog(commit)}
       />
       <div className="center">
         <RemoteBar repo={repo} snapshot={snapshot} settings={gitSettings} onDone={() => void reload().catch(onError)} />
         <div className="view-tabs" role="tablist">
           <button role="tab" aria-selected={view === "history"} className={view === "history" ? "on" : ""} onClick={() => setView("history")}>
-            History
+            {t("git.history")}
           </button>
           <button role="tab" aria-selected={view === "files"} className={view === "files" ? "on" : ""} onClick={() => setView("files")}>
-            Files
+            {t("git.files")}
           </button>
-          {view === "history" && <span className="hint">Double-click a commit to browse its files</span>}
+          {view === "history" && <span className="hint">{t("git.historyHint")}</span>}
         </div>
         {filesOpened && (
           <div className="view-pane" hidden={view !== "files"}>
-            <Suspense fallback={<div className="empty">Loading…</div>}>
-              <FilesView repo={repo} snapshot={snapshot} rev={filesRev} revOptions={revOptions(log, [filesRev, commit])} onRev={setFilesRev} />
+            <Suspense fallback={<div className="empty">{t("common.loading")}</div>}>
+              <FilesView repo={repo} snapshot={snapshot} rev={filesRev} revOptions={revOptions(log, [filesRev, commit])} onRev={setFilesRev} openRequest={openRequest} />
             </Suspense>
           </div>
         )}
@@ -176,31 +234,78 @@ export function GitView({ repo, active, refreshKey, onError, onOpen, onLoaded }:
           <CommitGraph
             log={log}
             selected={commit}
-            onSelect={setCommit}
+            reveal={reveal}
+            onSelect={(hash) => {
+              setFile(null);
+              setTag(null);
+              setCommit(hash);
+            }}
             onOpen={(hash) => {
               setFilesRev(hash);
               setView("files");
             }}
           />
         </div>
+        <ErrorBoundary resetKey={file?.file.path ?? commit}>
+        <Suspense fallback={<div className="empty">{t("common.loading")}</div>}>
         {view === "history" && file && (
-          <DiffView
+          <FileDiffPanel
+            repo={repo}
+            source={file.staged ? { kind: "staged" } : file.file.worktree === "?" ? { kind: "untracked" } : { kind: "unstaged" }}
             path={file.file.path}
-            staged={file.staged}
-            diff={diff}
-            onClose={() => {
-              setFile(null);
-              setDiff(null);
-            }}
+            origPath={file.staged ? file.file.orig_path : null}
+            reloadKey={snapshot}
+            expand={expand}
+            onClose={() => setFile(null)}
           />
         )}
+        {view === "history" && !file && commit && (
+          <CommitPanel
+            repo={repo}
+            hash={commit}
+            onClose={() => {
+              setCommit(null);
+              setTag(null);
+            }}
+            expand={expand}
+            onTag={() => openTagDialog(commit)}
+            tag={
+              shownTag
+                ? {
+                    tag: shownTag,
+                    hasRemote: snapshot.remotes.length > 0,
+                    onCheckout: () => void act(() => git.checkout(repo, { branch: `refs/tags/${shownTag.name}` })),
+                    onPush: (del) => emit("git-op", { repo, op: "tag", tag: shownTag.name, delete: del }),
+                    onDelete: () => void act(() => git.deleteTag(repo, shownTag.name)),
+                  }
+                : undefined
+            }
+          />
+        )}
+        </Suspense>
+        </ErrorBoundary>
       </div>
+      {tagOn && (
+        <TagDialog
+          target={tagOn}
+          existing={snapshot.tags.map((x) => x.name)}
+          hasRemote={snapshot.remotes.length > 0}
+          onCancel={() => setTagOn(null)}
+          onCreate={async ({ name, message, push }) => {
+            setTagOn(null);
+            if (await act(() => git.createTag(repo, { name, rev: tagOn.rev, message }))) {
+              if (push) emit("git-op", { repo, op: "tag", tag: name, delete: false });
+            }
+          }}
+        />
+      )}
       <ChangesPanel
         repo={repo}
         status={snapshot.status}
         selected={file}
         onSelect={(s) => {
-          setDiff(null);
+          setCommit(null);
+          setTag(null);
           setFile(s);
           setView("history");
         }}

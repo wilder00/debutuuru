@@ -1,4 +1,5 @@
 import { X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { repoName, wslDistro } from "../lib/rpc";
 
 type Props = {
@@ -10,9 +11,10 @@ type Props = {
 
 /** One tab per open repository; Windows and WSL repos can be mixed. */
 export function TabBar({ repos, active, onSelect, onClose }: Props) {
+  const { t } = useTranslation();
   if (repos.length === 0) return null;
   return (
-    <div className="tabbar" role="tablist" aria-label="Open repositories">
+    <div className="tabbar" role="tablist" aria-label={t("tabs.label")}>
       {repos.map((r) => {
         const distro = wslDistro(r);
         return (
@@ -28,10 +30,10 @@ export function TabBar({ repos, active, onSelect, onClose }: Props) {
             onAuxClick={(e) => e.button === 1 && onClose(r)}
           >
             <span className="tab-name">{repoName(r)}</span>
-            {distro && <span className="tab-tag" title={`Inside WSL (${distro})`}>WSL</span>}
+            {distro && <span className="tab-tag" title={t("tabs.insideWsl", { distro })}>WSL</span>}
             <button
               className="icon-btn tab-close"
-              title="Close tab (middle-click)"
+              title={t("tabs.close")}
               onClick={(e) => {
                 e.stopPropagation();
                 onClose(r);

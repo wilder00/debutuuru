@@ -10,7 +10,9 @@
 use crate::askpass::{self, Server};
 use crate::Events;
 use debutuuru_core::Repo;
-use debutuuru_protocol::git::{FailureHint, OpOutcome, ProgressEvent, RemoteOptions, PROGRESS};
+use debutuuru_protocol::git::{
+    FailureHint, OpOutcome, OutcomeMessage, ProgressEvent, RemoteOptions, PROGRESS,
+};
 use std::collections::{HashMap, HashSet};
 use std::io::Read;
 use std::process::{Child, Stdio};
@@ -96,14 +98,20 @@ pub fn run(op: RemoteOp<'_>, events: &Events, ops: &Ops) -> OpOutcome {
 
     let full = format!("{stdout}{log}");
     if cancelled {
-        return failed("Cancelled".into(), Some(FailureHint::Cancelled), full);
+        return OpOutcome {
+            message: Some(OutcomeMessage::Cancelled),
+            ..failed("Cancelled".into(), Some(FailureHint::Cancelled), full)
+        };
     }
     if declined_host_key && !matches!(status, Ok(s) if s.success()) {
-        return failed(
-            "Connection stopped: the server's host key was not trusted".into(),
-            Some(FailureHint::HostKey),
-            full,
-        );
+        return OpOutcome {
+            message: Some(OutcomeMessage::HostKeyDeclined),
+            ..failed(
+                "Connection stopped: the server's host key was not trusted".into(),
+                Some(FailureHint::HostKey),
+                full,
+            )
+        };
     }
     match status {
         Ok(s) if s.success() => OpOutcome {
@@ -111,6 +119,7 @@ pub fn run(op: RemoteOp<'_>, events: &Events, ops: &Ops) -> OpOutcome {
             summary: String::new(),
             hint: None,
             log: full,
+            message: None,
         },
         _ => failed(first_error_line(&full), classify(&full), full),
     }
@@ -267,6 +276,7 @@ fn failed(summary: String, hint: Option<FailureHint>, log: String) -> OpOutcome 
         summary,
         hint,
         log,
+        message: None,
     }
 }
 

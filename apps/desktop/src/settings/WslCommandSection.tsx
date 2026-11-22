@@ -2,6 +2,8 @@
 // without having to open a WSL repo from the app first.
 import { useEffect, useState, type ReactNode } from "react";
 import { Check, Loader2 } from "lucide-react";
+import { Trans, useTranslation } from "react-i18next";
+import i18n from "../i18n";
 import type { WslCommandStatus } from "../bindings/WslCommandStatus";
 import { wslAddToPath, wslCommandStatus, wslDistros, wslInstallCommand, wslRunning } from "../lib/rpc";
 
@@ -12,6 +14,7 @@ type Row =
   | { kind: "status"; status: WslCommandStatus };
 
 export function WslCommandSection({ Section }: { Section: (p: { title: string; children: ReactNode }) => ReactNode }) {
+  const { t } = useTranslation();
   const [distros, setDistros] = useState<string[] | null>(null);
   const [rows, setRows] = useState<Record<string, Row>>({});
   const set = (d: string, r: Row) => setRows((all) => ({ ...all, [d]: r }));
@@ -29,7 +32,7 @@ export function WslCommandSection({ Section }: { Section: (p: { title: string; c
       .then(([all, running]) => {
         setDistros(all);
         for (const d of all) {
-          if (running.includes(d)) run(d, "Checking…", wslCommandStatus);
+          if (running.includes(d)) run(d, i18n.t("settings.wslCommand.checking"), wslCommandStatus);
           else set(d, { kind: "idle" });
         }
       })
@@ -38,10 +41,9 @@ export function WslCommandSection({ Section }: { Section: (p: { title: string; c
 
   if (!navigator.userAgent.includes("Windows") || !distros?.length) return null;
   return (
-    <Section title="WSL command">
+    <Section title={t("settings.wslCommand.title")}>
       <p className="hint">
-        Lets you run <code className="mono">debutuuru .</code> from a WSL terminal to open that folder here. It adds <code className="mono">~/.local/bin/debutuuru</code>, a small
-        script that only calls this app.
+        <Trans i18nKey="settings.wslCommand.hint" components={{ code: <code className="mono" /> }} />
       </p>
       <ul className="wsl-rows">
         {distros.map((d) => (
@@ -49,9 +51,9 @@ export function WslCommandSection({ Section }: { Section: (p: { title: string; c
             <span className="wsl-name">{d}</span>
             <DistroState
               row={rows[d] ?? { kind: "idle" }}
-              onCheck={() => run(d, "Checking…", wslCommandStatus)}
-              onInstall={() => run(d, "Installing…", wslInstallCommand)}
-              onAddToPath={() => run(d, "Updating…", wslAddToPath)}
+              onCheck={() => run(d, t("settings.wslCommand.checking"), wslCommandStatus)}
+              onInstall={() => run(d, t("settings.wslCommand.installing"), wslInstallCommand)}
+              onAddToPath={() => run(d, t("settings.wslCommand.updating"), wslAddToPath)}
             />
           </li>
         ))}
@@ -62,11 +64,13 @@ export function WslCommandSection({ Section }: { Section: (p: { title: string; c
 
 function DistroState(p: { row: Row; onCheck: () => void; onInstall: () => void; onAddToPath: () => void }) {
   const { row } = p;
+  const { t } = useTranslation();
+  const code = { code: <code className="mono" /> };
   if (row.kind === "idle")
     return (
       <span className="wsl-state">
-        <span className="hint">Not running</span>
-        <button onClick={p.onCheck}>Check</button>
+        <span className="hint">{t("settings.wslCommand.notRunning")}</span>
+        <button onClick={p.onCheck}>{t("settings.wslCommand.check")}</button>
       </span>
     );
   if (row.kind === "busy")
@@ -79,7 +83,7 @@ function DistroState(p: { row: Row; onCheck: () => void; onInstall: () => void; 
     return (
       <span className="wsl-state">
         <span className="danger wsl-msg">{row.message}</span>
-        <button onClick={p.onCheck}>Retry</button>
+        <button onClick={p.onCheck}>{t("settings.wslCommand.retry")}</button>
       </span>
     );
 
@@ -87,40 +91,40 @@ function DistroState(p: { row: Row; onCheck: () => void; onInstall: () => void; 
   if (s.foreign)
     return (
       <span className="wsl-state warn wsl-msg">
-        <code className="mono">{s.shim_path}</code> already exists and wasn't written by Debutuuru, so it's left as is.
+        <Trans i18nKey="settings.wslCommand.foreign" values={{ path: s.shim_path }} components={code} />
       </span>
     );
   if (!s.installed)
     return (
       <span className="wsl-state">
-        <span className="hint">Not installed</span>
+        <span className="hint">{t("settings.wslCommand.notInstalled")}</span>
         <button className="primary" onClick={p.onInstall}>
-          Install
+          {t("settings.wslCommand.install")}
         </button>
       </span>
     );
   if (s.on_path)
     return (
       <span className="wsl-state ok">
-        <Check size={13} /> Ready. Open a new terminal and run <code className="mono">debutuuru .</code>
+        <Check size={13} /> <Trans i18nKey="settings.wslCommand.ready" components={code} />
       </span>
     );
   if (s.resolves_to)
     return (
       <span className="wsl-state warn wsl-msg">
-        Installed, but <code className="mono">debutuuru</code> runs <code className="mono">{s.resolves_to}</code> first in your PATH.
+        <Trans i18nKey="settings.wslCommand.shadowed" values={{ path: s.resolves_to }} components={code} />
       </span>
     );
   return (
     <span className="wsl-state">
       <span className="warn wsl-msg">
-        Installed, but <code className="mono">~/.local/bin</code> isn't in your PATH.
+        <Trans i18nKey="settings.wslCommand.notOnPath" components={code} />
         <span className="hint block">
-          “Add to PATH” appends one line to <code className="mono">{s.rc_file}</code>.
+          <Trans i18nKey="settings.wslCommand.addToPathHint" values={{ file: s.rc_file }} components={code} />
         </span>
       </span>
       <button className="primary" onClick={p.onAddToPath}>
-        Add to PATH
+        {t("settings.wslCommand.addToPath")}
       </button>
     </span>
   );

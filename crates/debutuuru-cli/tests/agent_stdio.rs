@@ -93,6 +93,22 @@ fn agent_over_stdio() {
     assert_eq!(file["text"], "y\n");
     assert_eq!(file["binary"], false);
 
+    // A commit's changes, and both sides of one of its files.
+    let details = client
+        .call(git::COMMIT_DETAILS, json!({ "repo": repo, "rev": "HEAD" }))
+        .unwrap();
+    assert_eq!(details["subject"], "two");
+    assert_eq!(details["files"][0]["path"], "g.txt");
+    assert_eq!(details["files"][0]["status"], "A");
+    let versions = client
+        .call(
+            git::FILE_VERSIONS,
+            json!({ "repo": repo, "source": { "kind": "commit", "rev": "HEAD" }, "path": "g.txt" }),
+        )
+        .unwrap();
+    assert!(versions["old"].is_null());
+    assert_eq!(versions["new"]["text"], "y\n");
+
     let err = client.call("git.nope", json!({})).unwrap_err();
     assert_eq!(err.code, ErrorCode::MethodNotFound);
 

@@ -1,3 +1,5 @@
+import i18n from "../i18n";
+
 const UNITS: [Intl.RelativeTimeFormatUnit, number][] = [
   ["year", 31536000],
   ["month", 2592000],
@@ -6,18 +8,24 @@ const UNITS: [Intl.RelativeTimeFormatUnit, number][] = [
   ["hour", 3600],
   ["minute", 60],
 ];
-const rtf = new Intl.RelativeTimeFormat(undefined, { numeric: "auto", style: "short" });
+// One formatter per UI language (creating one per commit row would be slow).
+const formatters = new Map<string, Intl.RelativeTimeFormat>();
+function rtf(lng: string): Intl.RelativeTimeFormat {
+  let f = formatters.get(lng);
+  if (!f) formatters.set(lng, (f = new Intl.RelativeTimeFormat(lng, { numeric: "auto", style: "short" })));
+  return f;
+}
 
-/** "3 hr. ago", "yesterday"… (seconds since epoch) */
+/** "3 hr. ago", "yesterday", "3時間前"… in the UI language (seconds since epoch). */
 export function relativeTime(unixSeconds: number, now = Date.now() / 1000): string {
   const diff = unixSeconds - now;
   for (const [unit, secs] of UNITS) {
-    if (Math.abs(diff) >= secs) return rtf.format(Math.round(diff / secs), unit);
+    if (Math.abs(diff) >= secs) return rtf(i18n.language).format(Math.round(diff / secs), unit);
   }
-  return "just now";
+  return i18n.t("time.justNow");
 }
 
-export const fullDate = (unixSeconds: number) => new Date(unixSeconds * 1000).toLocaleString();
+export const fullDate = (unixSeconds: number) => new Date(unixSeconds * 1000).toLocaleString(i18n.language);
 
 export type Ref = { kind: "head" | "branch" | "remote" | "tag"; name: string };
 

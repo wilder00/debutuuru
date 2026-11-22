@@ -15,6 +15,7 @@ use serde_json::Value;
 use ts_rs::TS;
 
 pub mod git;
+pub mod term;
 
 pub const PROTOCOL_VERSION: u32 = 1;
 

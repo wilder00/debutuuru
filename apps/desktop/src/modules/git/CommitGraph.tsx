@@ -1,6 +1,7 @@
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Tag } from "lucide-react";
 import { useEffect, useRef, type KeyboardEvent } from "react";
+import { useTranslation } from "react-i18next";
 import type { GraphRow } from "../../bindings/GraphRow";
 import type { LogEntry } from "../../bindings/LogEntry";
 import { fullDate, parseRefs, relativeTime } from "../../lib/format";
@@ -38,10 +39,14 @@ type Props = {
   onSelect: (hash: string) => void;
   /** Double-click: browse the files of that commit. */
   onOpen?: (hash: string) => void;
+  /** Bump to scroll the selected commit into view (selected from elsewhere). */
+  reveal?: number;
 };
 
 /** Virtualized commit table: only visible rows are rendered. */
-export function CommitGraph({ log, selected, onSelect, onOpen }: Props) {
+export function CommitGraph({ log, selected, onSelect, onOpen, reveal }: Props) {
+  // Also re-renders the relative dates when the UI language changes.
+  const { t } = useTranslation();
   const scrollRef = useRef<HTMLDivElement>(null);
   const rowH = parseInt(getComputedStyle(document.documentElement).getPropertyValue("--row-h")) || 26;
   const virtualizer = useVirtualizer({
@@ -50,6 +55,12 @@ export function CommitGraph({ log, selected, onSelect, onOpen }: Props) {
     estimateSize: () => rowH,
     overscan: 20,
   });
+  useEffect(() => {
+    if (!reveal || !selected) return;
+    const i = log.findIndex((c) => c.hash === selected);
+    if (i >= 0) virtualizer.scrollToIndex(i, { align: "center" });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reveal]);
   // Density changes the row height: re-measure.
   useEffect(() => virtualizer.measure(), [rowH, virtualizer]);
   const lanes = Math.max(1, ...log.map((e) => e.graph.width));
@@ -68,14 +79,14 @@ export function CommitGraph({ log, selected, onSelect, onOpen }: Props) {
   return (
     <div className="commit-table" style={{ ["--graph-w" as string]: `${graphW}px` }}>
       <div className="commit-head" role="row">
-        <span className="c-graph">Graph</span>
-        <span className="c-msg">Message</span>
-        <span className="c-author">Author</span>
-        <span className="c-date">Date</span>
-        <span className="c-sha">Commit</span>
+        <span className="c-graph">{t("git.graph.graph")}</span>
+        <span className="c-msg">{t("git.graph.message")}</span>
+        <span className="c-author">{t("git.graph.author")}</span>
+        <span className="c-date">{t("git.graph.date")}</span>
+        <span className="c-sha">{t("git.graph.commit")}</span>
       </div>
-      {log.length === 0 && <div className="empty-line graph-empty">No commits yet. Stage files and make the first commit.</div>}
-      <div ref={scrollRef} className="commit-scroll" tabIndex={0} onKeyDown={onKey} role="grid" aria-label="Commit history">
+      {log.length === 0 && <div className="empty-line graph-empty">{t("git.graph.empty")}</div>}
+      <div ref={scrollRef} className="commit-scroll" tabIndex={0} onKeyDown={onKey} role="grid" aria-label={t("git.graph.label")}>
         <div style={{ height: virtualizer.getTotalSize(), position: "relative" }}>
           {virtualizer.getVirtualItems().map((item) => {
             const e = log[item.index];

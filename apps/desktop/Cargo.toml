@@ -19,6 +19,7 @@ publish = false
 # commits count for the release.
 include = [
     "/src/**",
+    "/scripts/**",
     "/index.html",
     "/package.json",
     "/pnpm-lock.yaml",
