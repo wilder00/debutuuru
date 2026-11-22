@@ -159,6 +159,17 @@ export function AppearancePanel({ onClose }: { onClose: () => void }) {
           </div>
         </Section>
 
+        <Section title={t("settings.fileIcons.title")}>
+          <div className="segmented" role="radiogroup">
+            {(["color", "theme"] as const).map((v) => (
+              <button key={v} role="radio" aria-checked={a.file_icons === v} className={a.file_icons === v ? "on" : ""} onClick={() => update({ file_icons: v })}>
+                {t(`settings.fileIcons.${v}`)}
+              </button>
+            ))}
+          </div>
+          <p className="hint">{t("settings.fileIcons.hint")}</p>
+        </Section>
+
         <GitSshSection />
         <TerminalSection Section={Section} />
         <WslCommandSection Section={Section} />

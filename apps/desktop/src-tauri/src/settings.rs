@@ -242,6 +242,19 @@ pub struct Appearance {
     /// Gamer style: the RGB bars cycle their colors (off under the system's
     /// "reduce motion"). Added without a schema bump.
     pub rgb_animation: bool,
+    /// File icons in the Files tree. Added without a schema bump.
+    pub file_icons: FileIcons,
+}
+
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export)]
+pub enum FileIcons {
+    /// Each icon's own colors, like in VS Code.
+    #[default]
+    Color,
+    /// The icons' shapes in the theme's colors.
+    Theme,
 }
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize, TS)]
@@ -324,6 +337,7 @@ impl Default for Appearance {
             density: Density::Compact,
             style: UiStyle::Standard,
             rgb_animation: true,
+            file_icons: FileIcons::Color,
         }
     }
 }

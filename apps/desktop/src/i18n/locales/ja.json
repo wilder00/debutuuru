@@ -172,6 +172,12 @@
       "icon": "アイコン",
       "iconAuto": "自動（{{name}}）",
       "iconGeneric": "ターミナル"
+    },
+    "fileIcons": {
+      "title": "ファイルアイコン",
+      "color": "アイコン本来の色",
+      "theme": "テーマの色",
+      "hint": "Material Icon Theme(MIT)のアイコンで、VS Code と同じです。「テーマの色」は形はそのままに、テーマの色で表示します。"
     }
   },
   "git": {

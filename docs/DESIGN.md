@@ -19,6 +19,12 @@ their own, Warp-style (theme, accent, background image).
 The UI only uses semantic tokens (CSS variables). Themes produce them, and
 components never use raw colors.
 
+One exception, chosen on purpose: file icons in the Files tree come from
+Material Icon Theme (MIT, as in VS Code) and keep their own colors by
+default, because the color is how you recognize a file type at a glance.
+Settings › File icons › Theme color draws the same shapes with
+`--text-muted` (files) and `--accent` (folders) instead.
+
 | Token | Scale step | Use |
 | --- | --- | --- |
 | `--bg-app` | 1 | window background |

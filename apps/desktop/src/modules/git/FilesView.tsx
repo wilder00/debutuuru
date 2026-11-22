@@ -2,7 +2,8 @@
 // tree (with live changes marked) or for any commit. Ctrl+click on an import
 // opens the imported file; Markdown is shown rendered by default.
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, ChevronRight, File, FileDiff, FileSymlink, Folder, FolderGit2, FolderOpen, Loader2 } from "lucide-react";
+import { ArrowLeft, ChevronRight, FileDiff, FileSymlink, FolderGit2, Loader2 } from "lucide-react";
+import { FileIcon } from "./fileIcons";
 import { Trans, useTranslation } from "react-i18next";
 import type { FileContent } from "../../bindings/FileContent";
 import type { Snapshot } from "../../bindings/Snapshot";
@@ -327,11 +328,9 @@ export function FilesView({ repo, snapshot, rev, revOptions, onRev, openRequest 
 }
 
 function EntryIcon({ entry, open }: { entry: TreeEntry; open: boolean }) {
-  const size = 14;
-  if (entry.kind === "dir") return open ? <FolderOpen size={size} className="ficon dir" /> : <Folder size={size} className="ficon dir" />;
-  if (entry.kind === "submodule") return <FolderGit2 size={size} className="ficon dir" />;
-  if (entry.kind === "symlink") return <FileSymlink size={size} className="ficon" />;
-  return <File size={size} className="ficon" />;
+  if (entry.kind === "submodule") return <FolderGit2 size={14} className="ficon dir" />;
+  if (entry.kind === "symlink") return <FileSymlink size={14} className="ficon" />;
+  return <FileIcon name={entry.name} folder={entry.kind === "dir"} open={open} />;
 }
 
 type PaneProps = {

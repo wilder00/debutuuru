@@ -172,6 +172,12 @@
       "icon": "Icono",
       "iconAuto": "Automático ({{name}})",
       "iconGeneric": "Terminal"
+    },
+    "fileIcons": {
+      "title": "Iconos de archivos",
+      "color": "Sus propios colores",
+      "theme": "Color del tema",
+      "hint": "Iconos de Material Icon Theme (MIT), como en VS Code. “Color del tema” mantiene sus formas con el color del tema."
     }
   },
   "git": {

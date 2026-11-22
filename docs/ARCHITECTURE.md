@@ -260,6 +260,10 @@ means adding a module, not a new transport.
   refuses for a branch checked out anywhere (the UI offers Pull for the
   current one; one open in another worktree is reported). A remote branch
   fetches alone (`+refs/heads/x:refs/remotes/<remote>/x`).
+- File icons: Material Icon Theme (MIT) through a Vite plugin
+  (`vite.config.ts`): `virtual:file-icons` is its VS Code manifest reduced
+  to name/extension/folder → icon, and its SVGs are served as
+  `/file-icons/<icon>.svg` (copied into the build), loaded on first view.
 - Tool windows: extras that aren't the core open in their own app window
   (`open_tool_window`, labels `logs` and `dictionary`), never modal, closed
   with the main window. The page reads `window.__DEBUTUURU_VIEW__` to render

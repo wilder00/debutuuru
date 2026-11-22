@@ -58,6 +58,7 @@ export const DEFAULT_SETTINGS: Settings = {
     density: "compact",
     style: "standard",
     rgb_animation: true,
+    file_icons: "color",
   },
   session: { open_repos: [], active: null, recent_repos: [], groups: [], recent_groups: [] },
   git: { windows_ssh: "system", wsl_distro: null },

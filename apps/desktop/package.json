@@ -7,9 +7,9 @@
   "packageManager": "pnpm@11.28.13",
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/check-locales.mjs && tsc --noEmit && vite build",
+    "build": "node scripts/check-locales.mjs && tsc --noEmit && tsc --noEmit -p tsconfig.node.json && vite build",
     "check:locales": "node scripts/check-locales.mjs",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.node.json",
     "tauri": "tauri"
   },
   "dependencies": {
@@ -37,6 +37,7 @@
     "i18next": "27.2.2",
     "katex": "0.19.1",
     "lucide-react": "1.77.0",
+    "material-icon-theme": "5.40.0",
     "mermaid": "12.3.0",
     "react": "19.3.1",
     "react-dom": "19.3.1",
@@ -53,6 +54,7 @@
   },
   "devDependencies": {
     "@tauri-apps/cli": "2.12.6",
+    "@types/node": "24.19.2",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "@vitejs/plugin-react": "6.3.0",
