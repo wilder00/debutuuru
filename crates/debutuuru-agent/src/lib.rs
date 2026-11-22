@@ -294,6 +294,57 @@ mod tests {
         let _ = std::fs::remove_dir_all(&dir);
     }
 
+    /// Refreshing runs `git status`, which creates and deletes
+    /// `.git/index.lock`; on Windows that also reports `.git` itself as
+    /// modified. That must not count as a change, or the app refreshes forever.
+    #[test]
+    fn git_status_alone_is_not_a_change() {
+        let dir = std::env::temp_dir().join(format!("debutuuru-watch-loop-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        let git = |args: &[&str]| {
+            assert!(std::process::Command::new("git")
+                .current_dir(&dir)
+                .args(args)
+                .status()
+                .unwrap()
+                .success())
+        };
+        git(&["init", "-q"]);
+        std::fs::write(dir.join("a.txt"), "x").unwrap();
+        git(&["add", "a.txt"]);
+        // Right after `add` the index is "racily clean" and the next status
+        // rewrites it (a real change). Settle it before watching.
+        std::thread::sleep(std::time::Duration::from_millis(1100));
+        git(&["update-index", "--really-refresh", "-q"]);
+        git(&["status", "--porcelain"]);
+
+        let a = Agent::with_default_modules();
+        let (tx, rx) = std::sync::mpsc::channel();
+        a.set_event_sink(Arc::new(move |ev| {
+            if ev.topic == "git.changed" {
+                let _ = tx.send(());
+            }
+        }));
+        let repo = dir.to_string_lossy().to_string();
+        a.dispatch("git.watch", json!({ "repo": repo })).unwrap();
+        // Let the setup's own events pass.
+        while rx
+            .recv_timeout(std::time::Duration::from_millis(800))
+            .is_ok()
+        {}
+        for _ in 0..3 {
+            git(&["status", "--porcelain"]);
+        }
+        assert!(
+            rx.recv_timeout(std::time::Duration::from_millis(1500))
+                .is_err(),
+            "git status was reported as a change"
+        );
+        a.dispatch("git.unwatch", json!({ "repo": repo })).unwrap();
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
     #[test]
     fn watch_emits_change_events() {
         let dir = std::env::temp_dir().join(format!("debutuuru-watch-{}", std::process::id()));

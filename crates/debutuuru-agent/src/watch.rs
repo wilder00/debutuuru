@@ -4,7 +4,8 @@
 //! of the reasons the agent exists.)
 
 use debutuuru_core::repo::RepoInfo;
-use notify::{RecursiveMode, Watcher};
+use notify::event::{AccessKind, AccessMode};
+use notify::{EventKind, RecursiveMode, Watcher};
 use std::path::{Path, PathBuf};
 use std::sync::mpsc;
 use std::time::{Duration, Instant};
@@ -20,10 +21,25 @@ pub struct RepoWatch {
 
 pub fn watch(info: &RepoInfo, on_change: impl Fn() + Send + 'static) -> notify::Result<RepoWatch> {
     let objects = PathBuf::from(&info.common_dir).join("objects");
+    // The git folders themselves: Windows reports them as modified whenever
+    // a file inside is created or deleted, e.g. the `index.lock` that our
+    // own `git status` makes on every refresh, which would refresh again
+    // forever. What changed inside is reported with its own path.
+    let git_dirs = [
+        PathBuf::from(&info.git_dir),
+        PathBuf::from(&info.common_dir),
+    ];
     let (tx, rx) = mpsc::channel::<()>();
     let mut watcher = notify::recommended_watcher(move |res: notify::Result<notify::Event>| {
         if let Ok(ev) = res {
-            if ev.paths.iter().any(|p| is_relevant(p, &objects)) {
+            if !is_change(&ev.kind) {
+                return;
+            }
+            if ev
+                .paths
+                .iter()
+                .any(|p| is_relevant(p, &objects) && !git_dirs.iter().any(|d| same_path(p, d)))
+            {
                 let _ = tx.send(());
             }
         }
@@ -66,9 +82,59 @@ fn is_relevant(p: &Path, objects: &Path) -> bool {
     !p.starts_with(objects) && !matches!(p.extension(), Some(e) if e == "lock")
 }
 
+/// Reading isn't changing: inotify (Linux, WSL) reports every file git
+/// opens (`HEAD`, `config`, the index…), so each refresh's own `git status`
+/// would trigger the next one. Finishing a write still counts.
+fn is_change(kind: &EventKind) -> bool {
+    match kind {
+        EventKind::Access(AccessKind::Close(AccessMode::Write)) => true,
+        EventKind::Access(_) => false,
+        _ => true,
+    }
+}
+
+/// `a` and `b` name the same folder (ignoring a trailing separator and, on
+/// Windows, `/` vs `\` and letter case).
+fn same_path(a: &Path, b: &Path) -> bool {
+    let norm = |p: &Path| {
+        let s = p.to_string_lossy();
+        let s = if cfg!(windows) {
+            s.replace('\\', "/").to_lowercase()
+        } else {
+            s.into_owned()
+        };
+        s.trim_end_matches('/').to_string()
+    };
+    norm(a) == norm(b)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn reads_are_not_changes() {
+        use notify::event::{CreateKind, ModifyKind};
+        assert!(!is_change(&EventKind::Access(AccessKind::Open(
+            AccessMode::Any
+        ))));
+        assert!(!is_change(&EventKind::Access(AccessKind::Close(
+            AccessMode::Read
+        ))));
+        assert!(is_change(&EventKind::Access(AccessKind::Close(
+            AccessMode::Write
+        ))));
+        assert!(is_change(&EventKind::Create(CreateKind::File)));
+        assert!(is_change(&EventKind::Modify(ModifyKind::Any)));
+    }
+
+    #[test]
+    fn git_folders_themselves_are_the_same_path() {
+        assert!(same_path(Path::new("/r/.git"), Path::new("/r/.git/")));
+        assert!(!same_path(Path::new("/r/.git/index"), Path::new("/r/.git")));
+        #[cfg(windows)]
+        assert!(same_path(Path::new(r"C:\R\.git"), Path::new("c:/r/.git")));
+    }
 
     #[test]
     fn filters_noise() {

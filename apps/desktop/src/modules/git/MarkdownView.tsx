@@ -11,7 +11,7 @@ import { openUrl } from "@tauri-apps/plugin-opener";
 import { LanguageDescription } from "@codemirror/language";
 import { languages } from "@codemirror/language-data";
 import { highlightCode, tagHighlighter, tags as t } from "@lezer/highlight";
-import { Children, isValidElement, useEffect, useId, useState, type ComponentProps, type ReactNode } from "react";
+import { Children, isValidElement, useEffect, useId, useMemo, useRef, useState, type ComponentProps, type ReactNode } from "react";
 import Markdown, { type Components } from "react-markdown";
 import rehypeKatex from "rehype-katex";
 import rehypeRaw from "rehype-raw";
@@ -63,61 +63,74 @@ const textOf = (node: ReactNode): string =>
 
 export function MarkdownView({ repo, rev, path, text, onFollow }: Props) {
   const dir = dirOf(path);
+  // The latest callback, without making the components below new.
+  const follow = useRef(onFollow);
+  follow.current = onFollow;
 
-  const heading =
-    (Tag: "h1" | "h2" | "h3" | "h4" | "h5" | "h6") =>
-    ({ children }: { children?: ReactNode }) => <Tag data-anchor={slug(textOf(children))}>{children}</Tag>;
+  // Stable between renders: react-markdown uses these as component types, so
+  // new functions would remount every block (code blocks lost their colors
+  // and painted them again on each refresh, which looked like flickering).
+  const components = useMemo<Components>(() => {
+    const heading =
+      (Tag: "h1" | "h2" | "h3" | "h4" | "h5" | "h6") =>
+      ({ children }: { children?: ReactNode }) => <Tag data-anchor={slug(textOf(children))}>{children}</Tag>;
 
-  const components: Components = {
-    h1: heading("h1"),
-    h2: heading("h2"),
-    h3: heading("h3"),
-    h4: heading("h4"),
-    h5: heading("h5"),
-    h6: heading("h6"),
-    a: ({ href = "", children, title }) => (
-      <a
-        href={href}
-        title={title ?? (isExternal(href) ? href : undefined)}
-        onClick={(e) => {
-          e.preventDefault();
-          if (isExternal(href)) void openUrl(href);
-          else if (href.startsWith("#")) {
-            const id = decodeURIComponent(href.slice(1)).replace(/^user-content-/, "");
-            e.currentTarget.closest(".markdown-body")?.querySelector(`[data-anchor="${CSS.escape(id)}"], [id="user-content-${CSS.escape(id)}"]`)?.scrollIntoView({ block: "start" });
-          } else onFollow({ from: 0, to: 0, spec: href, lang: "markdown" });
-        }}
-      >
-        {children}
-      </a>
+    return {
+      h1: heading("h1"),
+      h2: heading("h2"),
+      h3: heading("h3"),
+      h4: heading("h4"),
+      h5: heading("h5"),
+      h6: heading("h6"),
+      a: ({ href = "", children, title }) => (
+        <a
+          href={href}
+          title={title ?? (isExternal(href) ? href : undefined)}
+          onClick={(e) => {
+            e.preventDefault();
+            if (isExternal(href)) void openUrl(href);
+            else if (href.startsWith("#")) {
+              const id = decodeURIComponent(href.slice(1)).replace(/^user-content-/, "");
+              e.currentTarget.closest(".markdown-body")?.querySelector(`[data-anchor="${CSS.escape(id)}"], [id="user-content-${CSS.escape(id)}"]`)?.scrollIntoView({ block: "start" });
+            } else follow.current({ from: 0, to: 0, spec: href, lang: "markdown" });
+          }}
+        >
+          {children}
+        </a>
+      ),
+      img: ({ src, alt, title }) => <RepoImage repo={repo} rev={rev} dir={dir} src={typeof src === "string" ? src : ""} alt={alt ?? ""} title={title} />,
+      input: (p: ComponentProps<"input">) => <input {...p} disabled />,
+      pre: ({ children }) => <>{children}</>,
+      code: ({ className, children }) => {
+        const lang = /language-([\w+#.-]+)/.exec(className ?? "")?.[1];
+        const code = textOf(children).replace(/\n$/, "");
+        const block = lang !== undefined || code.includes("\n");
+        if (!block) return <code className={className}>{children}</code>;
+        if (lang === "mermaid") return <Mermaid code={code} />;
+        return <CodeBlock code={code} lang={lang} />;
+      },
+    };
+  }, [repo, rev, dir]);
+
+  // Parsing only when the text (or where its images come from) changes.
+  const body = useMemo(
+    () => (
+      <Markdown remarkPlugins={REMARK} rehypePlugins={REHYPE} components={components}>
+        {text}
+      </Markdown>
     ),
-    img: ({ src, alt, title }) => <RepoImage repo={repo} rev={rev} dir={dir} src={typeof src === "string" ? src : ""} alt={alt ?? ""} title={title} />,
-    input: (p: ComponentProps<"input">) => <input {...p} disabled />,
-    pre: ({ children }) => <>{children}</>,
-    code: ({ className, children }) => {
-      const lang = /language-([\w+#.-]+)/.exec(className ?? "")?.[1];
-      const code = textOf(children).replace(/\n$/, "");
-      const block = lang !== undefined || code.includes("\n");
-      if (!block) return <code className={className}>{children}</code>;
-      if (lang === "mermaid") return <Mermaid code={code} />;
-      return <CodeBlock code={code} lang={lang} />;
-    },
-  };
+    [text, components],
+  );
 
   return (
     <div className="markdown-scroll">
-      <article className="markdown-body">
-        <Markdown
-          remarkPlugins={[remarkGfm, remarkEmoji, remarkAlert, remarkMath]}
-          rehypePlugins={[rehypeRaw, [rehypeSanitize, schema], rehypeKatex]}
-          components={components}
-        >
-          {text}
-        </Markdown>
-      </article>
+      <article className="markdown-body">{body}</article>
     </div>
   );
 }
+
+const REMARK = [remarkGfm, remarkEmoji, remarkAlert, remarkMath];
+const REHYPE: NonNullable<ComponentProps<typeof Markdown>["rehypePlugins"]> = [rehypeRaw, [rehypeSanitize, schema], rehypeKatex];
 
 const MIME: Record<string, string> = {
   png: "image/png",
