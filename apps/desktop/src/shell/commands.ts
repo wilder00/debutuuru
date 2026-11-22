@@ -149,6 +149,15 @@ export function useCommands(c: Ctx): PaletteItem[] {
         g("git", "push", { run: () => emit("git-op", { repo, op: "push" }) }),
         g("git", "createTag", { run: () => emit("create-tag", { repo }) }),
       );
+      const deletable = c.snapshot?.branches.filter((b) => !b.is_head) ?? [];
+      if (deletable.length) {
+        items.push(
+          g("git", "deleteBranch", {
+            pick: () =>
+              deletable.map((b) => ({ id: `del.${b.name}`, label: b.name, detail: b.subject, run: () => emit("delete-branches", { repo, names: [b.name] }) })),
+          }),
+        );
+      }
       const tags = c.snapshot?.tags ?? [];
       if (tags.length) {
         items.push(

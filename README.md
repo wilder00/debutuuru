@@ -44,6 +44,12 @@ runner, GitHub/GitLab integration, containers and more.
   same viewer shows staged and unstaged changes. Unified, side by side or the
   whole file, with changed words highlighted, syntax colors, ignore
   whitespace and adjustable context.
+- **Branches**: select several (Ctrl+click, Shift+click) and right-click to
+  delete them. Before anything happens it tells you, per branch, whether
+  work would be lost (commits that exist only there, with the command to
+  bring the branch back), what isn't pushed, what can't be deleted (checked
+  out here or in another worktree), and whether the copy on the remote goes
+  too, which affects everyone.
 - **Tags**: a Tags section lists them newest first; click one to see whether
   it's annotated or lightweight, signed, who tagged it, its message and its
   commit's changes. Create one on any commit (annotated or lightweight, and

@@ -65,6 +65,8 @@ function summaryText(t: TFunction, o: OpOutcome, kind: Kind): string {
       return t("git.remote.outcome.pushed", { branch: m.branch, target: m.target });
     case "tag_pushed":
       return t("git.remote.outcome.tag_pushed", { tag: m.tag, remote: m.remote });
+    case "remote_branches_deleted":
+      return t("git.remote.outcome.remote_branches_deleted", { branches: m.branches.join(", "), remote: m.remote });
     case "tag_deleted_on_remote":
       return t("git.remote.outcome.tag_deleted_on_remote", { tag: m.tag, remote: m.remote });
     case "several_remotes":

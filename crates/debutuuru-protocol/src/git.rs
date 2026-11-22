@@ -22,7 +22,9 @@ pub const MODULE: &str = "git";
 ///    `git.push_tag`, and their [`OutcomeMessage`]s.
 /// 10: `git.find_repos` (open a folder of repositories).
 /// 11: `DiffSource::Head` and `git.last_change` (a file's changes in Files).
-pub const MODULE_VERSION: u32 = 11;
+/// 12: deleting branches: `git.branch_deletion_info`, `git.delete_branches`,
+///     `git.delete_remote_branches`.
+pub const MODULE_VERSION: u32 = 12;
 
 /// [`RepoParams`] → [`Snapshot`]
 pub const SNAPSHOT: &str = "git.snapshot";
@@ -60,6 +62,12 @@ pub const LIST_FILES: &str = "git.list_files";
 /// [`RepoParams`] (`repo` = any folder) → [`debutuuru_core::discover::FoundRepos`]:
 /// whether it is a repository, or which repositories are inside it.
 pub const FIND_REPOS: &str = "git.find_repos";
+/// [`BranchesParams`] → `Vec<`[`debutuuru_core::branches::BranchDeletion`]`>`:
+/// what deleting each branch would mean, before deleting anything.
+pub const BRANCH_DELETION_INFO: &str = "git.branch_deletion_info";
+/// [`DeleteBranchesParams`] → `Vec<`[`debutuuru_core::branches::DeleteResult`]`>`
+/// (local branches; one refusal doesn't stop the others).
+pub const DELETE_BRANCHES: &str = "git.delete_branches";
 /// [`CreateTagParams`] → `null`
 pub const CREATE_TAG: &str = "git.create_tag";
 /// [`TagParams`] → `null`: deletes the local tag only.
@@ -76,6 +84,8 @@ pub const PULL: &str = "git.pull";
 /// [`PushParams`] → [`OpOutcome`]
 pub const PUSH: &str = "git.push";
 /// [`PushTagParams`] → [`OpOutcome`]: pushes a tag, or deletes it on the remote.
+/// [`DeleteRemoteBranchesParams`] → [`OpOutcome`]: `git push <remote> --delete …`.
+pub const DELETE_REMOTE_BRANCHES: &str = "git.delete_remote_branches";
 pub const PUSH_TAG: &str = "git.push_tag";
 /// [`CancelParams`] → `null`. Stops a running remote operation.
 pub const CANCEL: &str = "git.cancel";
@@ -142,6 +152,37 @@ pub struct CreateTagParams {
     /// Annotated tag with this message; `None` = lightweight.
     #[serde(default)]
     pub message: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct BranchesParams {
+    pub repo: String,
+    /// As listed: `feature/x`, or `origin/feature/x` for remote branches.
+    pub branches: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct DeleteBranchesParams {
+    pub repo: String,
+    /// Local branch names.
+    pub branches: Vec<String>,
+    /// `git branch -D`: also branches that aren't merged.
+    #[serde(default)]
+    pub force: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct DeleteRemoteBranchesParams {
+    pub repo: String,
+    #[serde(flatten)]
+    #[ts(flatten)]
+    pub options: RemoteOptions,
+    pub remote: String,
+    /// Names on the remote (`feature/x`, not `origin/feature/x`).
+    pub branches: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
@@ -414,6 +455,10 @@ pub enum OutcomeMessage {
     TagDeletedOnRemote {
         tag: String,
         remote: String,
+    },
+    RemoteBranchesDeleted {
+        remote: String,
+        branches: Vec<String>,
     },
 }
 

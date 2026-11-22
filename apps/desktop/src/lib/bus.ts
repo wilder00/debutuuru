@@ -17,6 +17,8 @@ export type BusEvents = {
   "create-tag": { repo: string };
   /** Show a tag's details (and select its commit). */
   "show-tag": { repo: string; name: string };
+  /** Ask to delete branches (local `x`, remote `origin/x`). */
+  "delete-branches": { repo: string; names: string[] };
   checkout: { repo: string; branch: string };
   /** Expand the open diff / commit panel to the whole tab, or restore it. */
   "toggle-expand": { repo: string };

@@ -196,7 +196,15 @@
       "noRemotes": "No remotes",
       "openHint": "Click to open",
       "bare": "bare",
-      "tags": "Tags"
+      "tags": "Tags",
+      "selectHint": "Click to select · Ctrl+click adds · Shift+click a range · right-click for actions",
+      "menu": {
+        "checkout": "Check out",
+        "copy_one": "Copy name",
+        "copy_other": "Copy {{count}} names",
+        "delete_one": "Delete branch…",
+        "delete_other": "Delete {{count}} branches…"
+      }
     },
     "changes": {
       "staged": "Staged",
@@ -327,7 +335,8 @@
         "host_key_declined": "Connection stopped: the server's host key was not trusted",
         "tag_pushed": "Pushed tag {{tag}} → {{remote}}",
         "tag_deleted_on_remote": "Deleted tag {{tag}} on {{remote}}",
-        "several_remotes_tag": "Several remotes and none is origin: push the tag from a terminal with `git push <remote> <tag>`."
+        "several_remotes_tag": "Several remotes and none is origin: push the tag from a terminal with `git push <remote> <tag>`.",
+        "remote_branches_deleted": "Deleted {{branches}} on {{remote}}"
       },
       "advice": {
         "sshAuthWindows": "SSH from Windows couldn't authenticate. If your SSH keys live in WSL, turn on “Use WSL's SSH keys for Windows repositories” in Settings (Ctrl+,).",
@@ -388,6 +397,45 @@
       "messagePlaceholder": "Release notes, or what this version is",
       "pushAfter": "Push it to the remote after creating it",
       "createButton": "Create tag"
+    },
+    "branches": {
+      "delete": {
+        "title_one": "Delete branch",
+        "title_other": "Delete {{count}} branches",
+        "checking": "Checking what each deletion means…",
+        "close": "Close",
+        "failed": "Deleting failed",
+        "deleted": "deleted",
+        "notDeleted": "not deleted",
+        "force_one": "Delete anyway the branch with commits that exist only there (git branch -D)",
+        "force_other": "Delete anyway the {{count}} branches with commits that exist only there (git branch -D)",
+        "forceHint": "Those commits stop showing in the history. git keeps them for a while (about 90 days, in the reflog), and the command shown next to each branch brings it back.",
+        "alsoRemote_one": "Also delete its branch on the remote",
+        "alsoRemote_other": "Also delete their {{count}} branches on the remote",
+        "alsoRemoteHint": "Affects everyone who uses the remote: they won't be able to fetch it anymore, and an open pull request from it may close. Their own local copies stay.",
+        "nothing": "Nothing can be deleted with these options.",
+        "summary": "Will delete — local: {{local}} · on the remote: {{remote}}",
+        "confirm_one": "Delete {{count}}",
+        "confirm_other": "Delete {{count}}",
+        "isHead": "It's the checked-out branch: git can't delete it. Switch to another branch first.",
+        "inWorktree": "Checked out in the worktree {{path}}: git can't delete it while it's there.",
+        "remoteEveryone": "Deletes {{branch}} on {{remote}} for everyone with access. Local branches that track it stay.",
+        "remoteUnique_one": "{{count}} commit exists only on this remote branch: after deleting it, nobody can fetch that commit anymore.",
+        "remoteUnique_other": "{{count}} commits exist only on this remote branch: after deleting it, nobody can fetch them anymore.",
+        "remoteSafe": "Its commits are also on other branches: no work is lost.",
+        "mergedInto": "Merged into {{head}}: no work is lost.",
+        "nothingLost": "All its commits are also on other branches or tags: no work is lost.",
+        "unique_one": "{{count}} commit exists only on this branch (not merged anywhere).",
+        "unique_other": "{{count}} commits exist only on this branch (not merged anywhere).",
+        "restore": "To bring it back after deleting:",
+        "skippedUnlessForce": "Skipped unless you choose \"delete anyway\" below.",
+        "notPushed_one": "{{count}} commit not pushed to {{upstream}}.",
+        "notPushed_other": "{{count}} commits not pushed to {{upstream}}.",
+        "upstreamToo": "{{upstream}} will be deleted on the remote too.",
+        "upstreamStays": "{{upstream}} stays on the remote.",
+        "skipped": "skipped",
+        "copyCommand": "Copy the command"
+      }
     }
   },
   "time": {
@@ -470,7 +518,8 @@
       "closeGroup": "Close this tab's group",
       "toggleSidebar": "Show/hide the left panel",
       "toggleChanges": "Show/hide the changes panel",
-      "focusMode": "Focus: hide/show both side panels"
+      "focusMode": "Focus: hide/show both side panels",
+      "deleteBranch": "Delete branch…"
     }
   },
   "open": {

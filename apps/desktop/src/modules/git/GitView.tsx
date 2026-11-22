@@ -13,6 +13,7 @@ import { ErrorBoundary } from "../../lib/ErrorBoundary";
 import { useSettings } from "../../settings/SettingsProvider";
 import { Sidebar } from "./Sidebar";
 import { TagDialog } from "./TagDialog";
+import { DeleteBranchesDialog } from "./DeleteBranchesDialog";
 
 // Code viewer (CodeMirror) is only downloaded when Files is first opened.
 const FilesView = lazy(() => import("./FilesView").then((m) => ({ default: m.FilesView })));
@@ -44,6 +45,8 @@ export function GitView({ repo, active, refreshKey, onError, onOpen, onLoaded }:
   const [reveal, setReveal] = useState(0);
   /** "Create tag" dialog, on this commit. */
   const [tagOn, setTagOn] = useState<{ rev: string; label: string } | null>(null);
+  /** Branches waiting for the delete confirmation. */
+  const [deleting, setDeleting] = useState<string[] | null>(null);
   const [file, setFile] = useState<FileSelection | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [view, setView] = useState<"history" | "files">("history");
@@ -179,6 +182,7 @@ export function GitView({ repo, active, refreshKey, onError, onOpen, onLoaded }:
   };
   useBus("create-tag", repo, () => openTagDialog(commit));
   useBus("show-tag", repo, (e) => selectTag(e.name));
+  useBus("delete-branches", repo, (e) => setDeleting(e.names));
   const selectTag = (name: string) => {
     const g = snapshot?.tags.find((x) => x.name === name);
     if (!g) return;
@@ -211,6 +215,7 @@ export function GitView({ repo, active, refreshKey, onError, onOpen, onLoaded }:
         selectedTag={tag}
         onSelectTag={selectTag}
         onCreateTag={() => openTagDialog(commit)}
+        onDeleteBranches={(names) => names.length && setDeleting(names)}
       />
       <div className="center">
         <RemoteBar repo={repo} snapshot={snapshot} settings={gitSettings} onDone={() => void reload().catch(onError)} />
@@ -285,6 +290,15 @@ export function GitView({ repo, active, refreshKey, onError, onOpen, onLoaded }:
         </Suspense>
         </ErrorBoundary>
       </div>
+      {deleting && (
+        <DeleteBranchesDialog
+          repo={repo}
+          snapshot={snapshot}
+          names={deleting}
+          onClose={() => setDeleting(null)}
+          onDone={() => void reload().catch(onError)}
+        />
+      )}
       {tagOn && (
         <TagDialog
           target={tagOn}

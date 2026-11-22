@@ -1,6 +1,7 @@
 //! Debutuuru core: everything that talks to git lives here so the CLI and
 //! the desktop app behave identically (including on WSL).
 
+pub mod branches;
 pub mod changes;
 pub mod discover;
 pub mod error;

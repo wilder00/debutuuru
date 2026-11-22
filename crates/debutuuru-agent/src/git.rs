@@ -177,6 +177,33 @@ impl GitModule {
         Ok(out)
     }
 
+    /// `git push <remote> --delete <branches…>`, like any remote operation.
+    fn delete_remote_branches(&self, p: DeleteRemoteBranchesParams) -> Result<OpOutcome, String> {
+        if p.branches.is_empty() {
+            return Err("no branches to delete".into());
+        }
+        debutuuru_core::branches::check_branch(&p.remote).map_err(|e| e.to_string())?;
+        for b in &p.branches {
+            debutuuru_core::branches::check_branch(b).map_err(|e| e.to_string())?;
+        }
+        let mut args = vec![
+            "push".to_string(),
+            "--progress".into(),
+            p.remote.clone(),
+            "--delete".into(),
+        ];
+        args.extend(p.branches.iter().map(|b| format!("refs/heads/{b}")));
+        let mut out = self.remote_op(&p.repo, &p.options, args)?;
+        if out.ok {
+            out.summary = format!("Deleted {} on {}", p.branches.join(", "), p.remote);
+            out.message = Some(OutcomeMessage::RemoteBranchesDeleted {
+                remote: p.remote,
+                branches: p.branches,
+            });
+        }
+        Ok(out)
+    }
+
     fn repo(&self, path: &str) -> Result<Arc<Repo>, debutuuru_core::Error> {
         let mut cache = self.repos.lock().unwrap_or_else(|e| e.into_inner());
         if let Some(r) = cache.get(path) {
@@ -271,6 +298,15 @@ impl Module for GitModule {
             PULL => handle_with(params, |p: PullParams| self.pull(p)),
             PUSH => handle_with(params, |p: PushParams| self.push(p)),
             PUSH_TAG => handle_with(params, |p: PushTagParams| self.push_tag(p)),
+            DELETE_REMOTE_BRANCHES => handle_with(params, |p: DeleteRemoteBranchesParams| {
+                self.delete_remote_branches(p)
+            }),
+            BRANCH_DELETION_INFO => handle_with(params, |p: BranchesParams| {
+                self.repo(&p.repo)?.branch_deletion_info(&p.branches)
+            }),
+            DELETE_BRANCHES => handle_with(params, |p: DeleteBranchesParams| {
+                self.repo(&p.repo)?.delete_branches(&p.branches, p.force)
+            }),
             FIND_REPOS => handle_with(params, |p: RepoParams| {
                 debutuuru_core::discover::find_repos(&p.repo)
             }),

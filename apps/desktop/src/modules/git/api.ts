@@ -26,6 +26,10 @@ import type { CreateTagParams } from "../../bindings/CreateTagParams";
 import type { PushTagParams } from "../../bindings/PushTagParams";
 import type { FoundRepos } from "../../bindings/FoundRepos";
 import type { LastChange } from "../../bindings/LastChange";
+import type { BranchDeletion } from "../../bindings/BranchDeletion";
+import type { DeleteResult } from "../../bindings/DeleteResult";
+import type { DeleteBranchesParams } from "../../bindings/DeleteBranchesParams";
+import type { DeleteRemoteBranchesParams } from "../../bindings/DeleteRemoteBranchesParams";
 
 export const git = {
   /** `folder` is any folder: a repository, or one holding several. */
@@ -62,6 +66,11 @@ export const git = {
   /** Local tag only; `pushTag` with `delete` removes it on the remote. */
   deleteTag: (repo: string, name: string) => rpc<null>(repo, "git.delete_tag", { name }),
   pushTag: (repo: string, p: Params<PushTagParams>) => rpc<OpOutcome>(repo, "git.push_tag", p),
+  /** What deleting each branch would mean (local `x`, remote `origin/x`). */
+  branchDeletionInfo: (repo: string, branches: string[]) => rpc<BranchDeletion[]>(repo, "git.branch_deletion_info", { branches }),
+  /** Local branches, one by one; `force` = also unmerged ones. */
+  deleteBranches: (repo: string, p: Params<DeleteBranchesParams>) => rpc<DeleteResult[]>(repo, "git.delete_branches", p),
+  deleteRemoteBranches: (repo: string, p: Params<DeleteRemoteBranchesParams>) => rpc<OpOutcome>(repo, "git.delete_remote_branches", p),
   cancel: (repo: string, opId: string) => rpc<null>(repo, "git.cancel", { op_id: opId }),
   promptReply: (repo: string, id: string, answer: string | null) => rpc<null>(repo, "git.prompt_reply", { id, answer }),
 };

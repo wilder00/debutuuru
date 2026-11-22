@@ -253,6 +253,14 @@ means adding a module, not a new transport.
   (Han unification), and `:lang()` picks the Japanese or Korean fallback
   fonts. Agent results carry `OpOutcome.message` (git module v5) so the UI
   words them itself; git's own output stays in git's language.
+- Deleting branches (git module v12): `git.branch_deletion_info` checks
+  each branch first (checked out here or in a worktree, merged into HEAD,
+  commits no other ref has via `rev-list <ref> --not --exclude=<ref> --all`,
+  commits not pushed via `x@{upstream}..x`), so the UI explains the
+  consequences before deleting. `git.delete_branches` runs `git branch -d`
+  (or `-D` when the user chose to) per branch, so one refusal doesn't stop
+  the rest; `git.delete_remote_branches` is a remote operation
+  (`push <remote> --delete`).
 - A file's changes in Files (git module v11): `DiffSource::Head` (HEAD →
   working tree, staged and unstaged together) for files with uncommitted
   changes, else `git.last_change` (`git log -1 --follow`, with the old name

@@ -196,7 +196,17 @@
       "noRemotes": "Sin remotos",
       "openHint": "Clic para abrir",
       "bare": "bare",
-      "tags": "Tags"
+      "tags": "Tags",
+      "selectHint": "Clic para seleccionar · Ctrl+clic agrega · Shift+clic un rango · clic derecho para acciones",
+      "menu": {
+        "checkout": "Checkout",
+        "copy_one": "Copiar {{count}} nombre",
+        "copy_many": "Copiar {{count}} nombres",
+        "copy_other": "Copiar {{count}} nombres",
+        "delete_one": "Eliminar {{count}} rama…",
+        "delete_many": "Eliminar {{count}} ramas…",
+        "delete_other": "Eliminar {{count}} ramas…"
+      }
     },
     "changes": {
       "staged": "Preparados",
@@ -329,7 +339,8 @@
         "host_key_declined": "Conexión detenida: no se confió en la clave del servidor",
         "tag_pushed": "Tag {{tag}} subido → {{remote}}",
         "tag_deleted_on_remote": "Tag {{tag}} borrado en {{remote}}",
-        "several_remotes_tag": "Hay varios remotos y ninguno es origin: sube el tag desde una terminal con `git push <remoto> <tag>`."
+        "several_remotes_tag": "Hay varios remotos y ninguno es origin: sube el tag desde una terminal con `git push <remoto> <tag>`.",
+        "remote_branches_deleted": "Eliminadas {{branches}} en {{remote}}"
       },
       "advice": {
         "sshAuthWindows": "SSH desde Windows no pudo autenticarse. Si tus claves SSH están en WSL, activa «Usar las claves SSH de WSL en los repositorios de Windows» en Ajustes (Ctrl+,).",
@@ -391,6 +402,52 @@
       "messagePlaceholder": "Notas de la versión, o qué es esta versión",
       "pushAfter": "Subirlo al remoto después de crearlo",
       "createButton": "Crear tag"
+    },
+    "branches": {
+      "delete": {
+        "title_one": "Eliminar {{count}} rama",
+        "title_many": "Eliminar {{count}} ramas",
+        "title_other": "Eliminar {{count}} ramas",
+        "checking": "Revisando qué significa cada eliminación…",
+        "close": "Cerrar",
+        "failed": "Falló la eliminación",
+        "deleted": "eliminada",
+        "notDeleted": "no eliminada",
+        "force_one": "Eliminar de todas formas {{count}} rama con commits que solo existen en ella (git branch -D)",
+        "force_many": "Eliminar de todas formas las {{count}} ramas con commits que solo existen en ellas (git branch -D)",
+        "force_other": "Eliminar de todas formas las {{count}} ramas con commits que solo existen en ellas (git branch -D)",
+        "forceHint": "Esos commits dejan de verse en el historial. git los guarda un tiempo (unos 90 días, en el reflog), y el comando que aparece junto a cada rama la recupera.",
+        "alsoRemote_one": "Eliminar también en el remoto su rama ({{count}})",
+        "alsoRemote_many": "Eliminar también sus {{count}} ramas en el remoto",
+        "alsoRemote_other": "Eliminar también sus {{count}} ramas en el remoto",
+        "alsoRemoteHint": "Afecta a todos los que usan el remoto: ya no podrán traerla, y un pull request abierto desde ella puede cerrarse. Sus copias locales se quedan.",
+        "nothing": "Con estas opciones no se puede eliminar nada.",
+        "summary": "Se eliminará — locales: {{local}} · en el remoto: {{remote}}",
+        "confirm_one": "Eliminar {{count}}",
+        "confirm_many": "Eliminar {{count}}",
+        "confirm_other": "Eliminar {{count}}",
+        "isHead": "Es la rama actual: git no puede eliminarla. Cambia primero a otra rama.",
+        "inWorktree": "Está abierta en el worktree {{path}}: git no puede eliminarla mientras esté ahí.",
+        "remoteEveryone": "Elimina {{branch}} en {{remote}} para todos los que tienen acceso. Las ramas locales que la siguen se quedan.",
+        "remoteUnique_one": "{{count}} commit existe solo en esta rama remota: después de eliminarla nadie podrá traerlo.",
+        "remoteUnique_many": "{{count}} commits existen solo en esta rama remota: después de eliminarla nadie podrá traerlos.",
+        "remoteUnique_other": "{{count}} commits existen solo en esta rama remota: después de eliminarla nadie podrá traerlos.",
+        "remoteSafe": "Sus commits también están en otras ramas: no se pierde trabajo.",
+        "mergedInto": "Fusionada en {{head}}: no se pierde trabajo.",
+        "nothingLost": "Todos sus commits también están en otras ramas o tags: no se pierde trabajo.",
+        "unique_one": "{{count}} commit existe solo en esta rama (no está fusionado en ninguna).",
+        "unique_many": "{{count}} commits existen solo en esta rama (no están fusionados en ninguna).",
+        "unique_other": "{{count}} commits existen solo en esta rama (no están fusionados en ninguna).",
+        "restore": "Para recuperarla después de eliminarla:",
+        "skippedUnlessForce": "Se omite, salvo que marques \"eliminar de todas formas\" abajo.",
+        "notPushed_one": "{{count}} commit sin subir a {{upstream}}.",
+        "notPushed_many": "{{count}} commits sin subir a {{upstream}}.",
+        "notPushed_other": "{{count}} commits sin subir a {{upstream}}.",
+        "upstreamToo": "{{upstream}} también se eliminará en el remoto.",
+        "upstreamStays": "{{upstream}} se queda en el remoto.",
+        "skipped": "se omite",
+        "copyCommand": "Copiar el comando"
+      }
     }
   },
   "time": {
@@ -473,7 +530,8 @@
       "closeGroup": "Cerrar el grupo de esta pestaña",
       "toggleSidebar": "Mostrar/ocultar el panel izquierdo",
       "toggleChanges": "Mostrar/ocultar el panel de cambios",
-      "focusMode": "Enfoque: ocultar/mostrar ambos paneles laterales"
+      "focusMode": "Enfoque: ocultar/mostrar ambos paneles laterales",
+      "deleteBranch": "Eliminar rama…"
     }
   },
   "open": {

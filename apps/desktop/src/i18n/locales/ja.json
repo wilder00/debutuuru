@@ -196,7 +196,13 @@
       "noRemotes": "リモートなし",
       "openHint": "クリックして開く",
       "bare": "ベア",
-      "tags": "タグ"
+      "tags": "タグ",
+      "selectHint": "クリックで選択 · Ctrl+クリックで追加 · Shift+クリックで範囲 · 右クリックで操作",
+      "menu": {
+        "checkout": "チェックアウト",
+        "copy_other": "名前をコピー ({{count}})",
+        "delete_other": "ブランチを削除 ({{count}})…"
+      }
     },
     "changes": {
       "staged": "ステージ済み",
@@ -325,7 +331,8 @@
         "host_key_declined": "接続を中止しました: サーバーのホストキーが信頼されませんでした",
         "tag_pushed": "タグ {{tag}} をプッシュしました → {{remote}}",
         "tag_deleted_on_remote": "{{remote}} のタグ {{tag}} を削除しました",
-        "several_remotes_tag": "リモートが複数あり、origin がありません。ターミナルで `git push <remote> <tag>` を実行してください。"
+        "several_remotes_tag": "リモートが複数あり、origin がありません。ターミナルで `git push <remote> <tag>` を実行してください。",
+        "remote_branches_deleted": "{{remote}} の {{branches}} を削除しました"
       },
       "advice": {
         "sshAuthWindows": "Windows からの SSH で認証できませんでした。SSH キーが WSL にある場合は、設定 (Ctrl+,) で「Windows のリポジトリで WSL の SSH キーを使う」をオンにしてください。",
@@ -385,6 +392,38 @@
       "messagePlaceholder": "リリースノート、またはこのバージョンの説明",
       "pushAfter": "作成後にリモートへプッシュする",
       "createButton": "タグを作成"
+    },
+    "branches": {
+      "delete": {
+        "title_other": "ブランチを削除 ({{count}})",
+        "checking": "それぞれの削除の影響を確認しています…",
+        "close": "閉じる",
+        "failed": "削除に失敗しました",
+        "deleted": "削除しました",
+        "notDeleted": "削除されませんでした",
+        "force_other": "そこにしかないコミットがあるブランチ ({{count}}) も削除する (git branch -D)",
+        "forceHint": "それらのコミットは履歴に表示されなくなります。git はしばらく (約 90 日、reflog に) 保持し、各ブランチの横のコマンドで復元できます。",
+        "alsoRemote_other": "リモートのブランチ ({{count}}) も削除する",
+        "alsoRemoteHint": "リモートを使う全員に影響します。取得できなくなり、そこからの開いているプルリクエストが閉じることがあります。各自のローカルのコピーは残ります。",
+        "nothing": "この設定では削除できるものがありません。",
+        "summary": "削除 — ローカル: {{local}} · リモート: {{remote}}",
+        "confirm_other": "{{count}} 件を削除",
+        "isHead": "チェックアウト中のブランチなので git は削除できません。先に別のブランチに切り替えてください。",
+        "inWorktree": "ワークツリー {{path}} でチェックアウトされているため、git は削除できません。",
+        "remoteEveryone": "{{remote}} の {{branch}} をアクセスできる全員から削除します。それを追跡するローカルブランチは残ります。",
+        "remoteUnique_other": "{{count}} 件のコミットはこのリモートブランチにしかありません。削除後は誰も取得できなくなります。",
+        "remoteSafe": "コミットは他のブランチにもあります。作業は失われません。",
+        "mergedInto": "{{head}} にマージ済みです。作業は失われません。",
+        "nothingLost": "すべてのコミットは他のブランチやタグにもあります。作業は失われません。",
+        "unique_other": "{{count}} 件のコミットはこのブランチにしかありません (どこにもマージされていません)。",
+        "restore": "削除後に戻すには:",
+        "skippedUnlessForce": "下の「それでも削除」を選ばない限りスキップされます。",
+        "notPushed_other": "{{count}} 件のコミットが {{upstream}} にプッシュされていません。",
+        "upstreamToo": "リモートの {{upstream}} も削除されます。",
+        "upstreamStays": "リモートの {{upstream}} は残ります。",
+        "skipped": "スキップ",
+        "copyCommand": "コマンドをコピー"
+      }
     }
   },
   "time": {
@@ -467,7 +506,8 @@
       "closeGroup": "このタブのグループを閉じる",
       "toggleSidebar": "左パネルの表示/非表示",
       "toggleChanges": "変更パネルの表示/非表示",
-      "focusMode": "集中: 両側のパネルを隠す/表示"
+      "focusMode": "集中: 両側のパネルを隠す/表示",
+      "deleteBranch": "ブランチを削除…"
     }
   },
   "open": {
