@@ -19,6 +19,9 @@ import type { CommitDetails } from "../../bindings/CommitDetails";
 import type { FileVersions } from "../../bindings/FileVersions";
 import type { FileVersionsParams } from "../../bindings/FileVersionsParams";
 import type { RevParams } from "../../bindings/RevParams";
+import type { EntryKind } from "../../bindings/EntryKind";
+import type { FileBytes } from "../../bindings/FileBytes";
+import type { StatPathsParams } from "../../bindings/StatPathsParams";
 
 export const git = {
   snapshot: (repo: string) => rpc<Snapshot>(repo, "git.snapshot"),
@@ -30,6 +33,10 @@ export const git = {
   /** One folder level; `rev` omitted = working tree. */
   tree: (repo: string, p: Params<TreeParams>) => rpc<TreeEntry[]>(repo, "git.tree", p),
   readFile: (repo: string, p: Params<ReadFileParams>) => rpc<FileContent>(repo, "git.read_file", p),
+  /** What each path is (file, folder…) or null: up to 64 per call. */
+  statPaths: (repo: string, p: Params<StatPathsParams>) => rpc<(EntryKind | null)[]>(repo, "git.stat_paths", p),
+  /** A file's bytes as base64 (≤ 10 MiB), for images. */
+  readBytes: (repo: string, p: Params<ReadFileParams>) => rpc<FileBytes>(repo, "git.read_bytes", p),
   /** Message, author and the files changed against the first parent. */
   commitDetails: (repo: string, p: Params<RevParams>) => rpc<CommitDetails>(repo, "git.commit_details", p),
   /** Both versions of a file (unstaged, staged, untracked or in a commit). */

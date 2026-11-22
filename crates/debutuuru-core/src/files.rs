@@ -11,6 +11,10 @@ use ts_rs::TS;
 
 /// Files larger than this are shown truncated.
 pub const MAX_FILE_BYTES: usize = 2 * 1024 * 1024;
+/// Largest file [`Repo::read_bytes`] returns (images in rendered Markdown).
+pub const MAX_BYTES: u64 = 10 * 1024 * 1024;
+/// Paths [`Repo::stat_paths`] checks per call.
+pub const MAX_STAT_PATHS: usize = 64;
 /// Bytes inspected for NULs to decide a file is binary (same idea as git).
 const BINARY_SNIFF: usize = 8000;
 
@@ -52,7 +56,122 @@ pub struct FileContent {
     pub link_target: Option<String>,
 }
 
+/// Raw file content (base64), for images.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct FileBytes {
+    pub path: String,
+    #[ts(type = "number")]
+    pub size: u64,
+    pub base64: String,
+}
+
 impl Repo {
+    /// What each of `paths` is at `rev` (or in the working tree): a file, a
+    /// folder…, or `None` if it doesn't exist or isn't a valid repo path.
+    /// Used to resolve imports and links to the file they point to.
+    pub fn stat_paths(
+        &self,
+        rev: Option<&str>,
+        paths: &[String],
+    ) -> Result<Vec<Option<EntryKind>>> {
+        if paths.len() > MAX_STAT_PATHS {
+            return Err(Error::InvalidPath(format!(
+                "at most {MAX_STAT_PATHS} paths per call"
+            )));
+        }
+        let clean: Vec<Option<String>> = paths
+            .iter()
+            .map(|p| clean_rel(p).ok().filter(|p| !p.is_empty()))
+            .collect();
+        match rev {
+            None => Ok(clean
+                .iter()
+                .map(|p| p.as_deref().and_then(|p| self.kind_on_disk(p)))
+                .collect()),
+            Some(rev) => {
+                let rev = check_rev(rev)?;
+                let wanted: Vec<&str> = clean.iter().flatten().map(String::as_str).collect();
+                if wanted.is_empty() {
+                    return Ok(vec![None; paths.len()]);
+                }
+                // One ls-tree for all of them: exact paths list their own entry.
+                let mut args = vec!["ls-tree", "-z", rev, "--"];
+                args.extend(&wanted);
+                let found = self.runner().git(&args)?;
+                let kinds: Vec<(String, EntryKind)> = found
+                    .split('\0')
+                    .filter_map(|line| {
+                        let (meta, path) = line.split_once('\t')?;
+                        Some((path.to_string(), kind_of_mode(meta.split(' ').next()?)))
+                    })
+                    .collect();
+                Ok(clean
+                    .iter()
+                    .map(|p| {
+                        let p = p.as_deref()?;
+                        kinds.iter().find(|(k, _)| k == p).map(|(_, kind)| *kind)
+                    })
+                    .collect())
+            }
+        }
+    }
+
+    /// The bytes of `path` (base64), up to [`MAX_BYTES`].
+    pub fn read_bytes(&self, rev: Option<&str>, path: &str) -> Result<FileBytes> {
+        use base64::Engine;
+        let path = clean_rel(path)?;
+        let bytes = match rev {
+            Some(rev) => {
+                let spec = format!("{}:{path}", check_rev(rev)?);
+                let size: u64 = self
+                    .runner()
+                    .git(&["cat-file", "-s", &spec])?
+                    .trim()
+                    .parse()
+                    .map_err(|_| Error::Parse(spec.clone()))?;
+                too_big(size)?;
+                let out = self.runner().output(&["cat-file", "blob", &spec])?;
+                if !out.status.success() {
+                    return Err(Error::Git(
+                        String::from_utf8_lossy(&out.stderr).trim().to_string(),
+                    ));
+                }
+                out.stdout
+            }
+            None => {
+                let full = self.inside_root(&path)?;
+                let meta = std::fs::metadata(&full).map_err(io_err)?;
+                if !meta.is_file() {
+                    return Err(Error::InvalidPath(format!("{path} is not a file")));
+                }
+                too_big(meta.len())?;
+                std::fs::read(&full).map_err(io_err)?
+            }
+        };
+        Ok(FileBytes {
+            path,
+            size: bytes.len() as u64,
+            base64: base64::engine::general_purpose::STANDARD.encode(&bytes),
+        })
+    }
+
+    fn kind_on_disk(&self, rel: &str) -> Option<EntryKind> {
+        let full = self.inside_root(rel).ok()?;
+        let meta = std::fs::symlink_metadata(&full).ok()?;
+        Some(if meta.file_type().is_symlink() {
+            EntryKind::Symlink
+        } else if meta.is_dir() {
+            if full.join(".git").exists() {
+                EntryKind::Submodule
+            } else {
+                EntryKind::Dir
+            }
+        } else {
+            EntryKind::File
+        })
+    }
+
     /// Children of `dir` (`""` = root) at `rev`, or in the working tree when
     /// `rev` is `None`. Folders first, then files, by name.
     pub fn tree(&self, rev: Option<&str>, dir: &str, show_ignored: bool) -> Result<Vec<TreeEntry>> {
@@ -98,13 +217,7 @@ impl Repo {
                 let (meta, path) = line
                     .split_once('\t')
                     .ok_or_else(|| Error::Parse(line.into()))?;
-                let mode = meta.split(' ').next().unwrap_or("");
-                let kind = match mode {
-                    "040000" => EntryKind::Dir,
-                    "160000" => EntryKind::Submodule,
-                    "120000" => EntryKind::Symlink,
-                    _ => EntryKind::File,
-                };
+                let kind = kind_of_mode(meta.split(' ').next().unwrap_or(""));
                 Ok(TreeEntry {
                     name: path.rsplit('/').next().unwrap_or(path).to_string(),
                     path: path.to_string(),
@@ -244,6 +357,24 @@ impl Repo {
         }
         Ok(full)
     }
+}
+
+fn kind_of_mode(mode: &str) -> EntryKind {
+    match mode {
+        "040000" => EntryKind::Dir,
+        "160000" => EntryKind::Submodule,
+        "120000" => EntryKind::Symlink,
+        _ => EntryKind::File,
+    }
+}
+
+fn too_big(size: u64) -> Result<()> {
+    if size > MAX_BYTES {
+        return Err(Error::InvalidPath(format!(
+            "file too large ({size} bytes, the limit is {MAX_BYTES})"
+        )));
+    }
+    Ok(())
 }
 
 fn content(path: &str, size: u64, mut bytes: Vec<u8>, link_target: Option<String>) -> FileContent {

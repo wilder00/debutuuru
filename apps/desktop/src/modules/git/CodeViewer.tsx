@@ -8,15 +8,20 @@ import { EditorView, drawSelection, highlightSpecialChars, keymap, lineNumbers }
 import { highlightSelectionMatches, search, searchKeymap } from "@codemirror/search";
 import { defaultKeymap } from "@codemirror/commands";
 import { codeHighlight, codeTheme, languageFor, phrases } from "./codemirror";
+import { importLinks } from "./importLinks";
+import { findLinks, type Link } from "./links";
 
 /** Holds the file's language; swapped without resetting scroll or selection. */
 const language = new Compartment();
 /** The search panel's texts ("Find", "match case"…) in the UI language. */
 const texts = new Compartment();
+/** Ctrl+click on imports, rebuilt for each file. */
+const links = new Compartment();
 
 const base: Extension = [
   language.of([]),
   texts.of([]),
+  links.of([]),
   EditorState.readOnly.of(true),
   lineNumbers(),
   highlightSpecialChars(),
@@ -28,10 +33,20 @@ const base: Extension = [
   codeTheme,
 ];
 
-export function CodeViewer({ path, text }: { path: string; text: string }) {
+type Props = {
+  path: string;
+  text: string;
+  /** Ctrl+click on an import or link; without it nothing is clickable. */
+  onFollow?: (link: Link) => void;
+};
+
+export function CodeViewer({ path, text, onFollow }: Props) {
   const host = useRef<HTMLDivElement>(null);
   const view = useRef<EditorView | null>(null);
   const { t, i18n } = useTranslation();
+  // Latest callback without rebuilding the editor state on every render.
+  const follow = useRef(onFollow);
+  follow.current = onFollow;
 
   useEffect(() => {
     const v = new EditorView({ parent: host.current!, state: EditorState.create({ extensions: base }) });
@@ -45,7 +60,12 @@ export function CodeViewer({ path, text }: { path: string; text: string }) {
     const v = view.current;
     if (!v) return;
     v.setState(EditorState.create({ doc: text, extensions: base }));
-    v.dispatch({ effects: texts.reconfigure(phrases(t)) });
+    v.dispatch({
+      effects: [
+        texts.reconfigure(phrases(t)),
+        links.reconfigure(onFollow ? importLinks(findLinks(path, text), (l) => follow.current?.(l), t("git.filesView.followLink")) : []),
+      ],
+    });
     let stale = false;
     languageFor(path)
       .then((support) => {

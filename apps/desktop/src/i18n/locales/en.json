@@ -224,7 +224,13 @@
       "selectFile": "Select a file to see its content",
       "symlink": "Symbolic link to <code>{{target}}</code>",
       "binary": "Binary file ({{size}}), not shown",
-      "truncated": "Large file: showing the first {{shown}} of {{size}}."
+      "truncated": "Large file: showing the first {{shown}} of {{size}}.",
+      "followLink": "Ctrl+click to open",
+      "linkNotFound": "“{{spec}}” isn't a file of this repository (an external package, or a path it can't resolve).",
+      "back": "Back (Alt+←)",
+      "markdownMode": "Markdown view",
+      "rendered": "Rendered",
+      "source": "Source"
     },
     "remote": {
       "starting": "Starting…",

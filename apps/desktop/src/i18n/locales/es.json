@@ -226,7 +226,13 @@
       "selectFile": "Selecciona un archivo para ver su contenido",
       "symlink": "Enlace simbólico a <code>{{target}}</code>",
       "binary": "Archivo binario ({{size}}), no se muestra",
-      "truncated": "Archivo grande: se muestran los primeros {{shown}} de {{size}}."
+      "truncated": "Archivo grande: se muestran los primeros {{shown}} de {{size}}.",
+      "followLink": "Ctrl+clic para abrir",
+      "linkNotFound": "«{{spec}}» no es un archivo de este repositorio (un paquete externo, o una ruta que no se puede resolver).",
+      "back": "Atrás (Alt+←)",
+      "markdownMode": "Vista de Markdown",
+      "rendered": "Renderizado",
+      "source": "Código"
     },
     "remote": {
       "starting": "Iniciando…",

@@ -222,7 +222,13 @@
       "selectFile": "ファイルを選択すると内容が表示されます",
       "symlink": "<code>{{target}}</code> へのシンボリックリンク",
       "binary": "バイナリファイル ({{size}}) のため表示しません",
-      "truncated": "大きなファイルです: {{size}} のうち最初の {{shown}} を表示しています。"
+      "truncated": "大きなファイルです: {{size}} のうち最初の {{shown}} を表示しています。",
+      "followLink": "Ctrl+クリックで開く",
+      "linkNotFound": "「{{spec}}」はこのリポジトリのファイルではありません (外部パッケージ、または解決できないパス)。",
+      "back": "戻る (Alt+←)",
+      "markdownMode": "Markdown の表示",
+      "rendered": "プレビュー",
+      "source": "ソース"
     },
     "remote": {
       "starting": "開始中…",

@@ -20,6 +20,10 @@ runner, GitHub/GitLab integration, containers and more.
 - **Files**: browse the file tree and read any file (syntax highlighting,
   search), as it is now with changes marked, or at any commit (double-click it
   in History). Ignored files are hidden unless you ask for them.
+- **Code navigation**: Ctrl+click an import (TS/JS, CSS, Rust, Go, Python,
+  C/C++, Markdown and HTML links) to open that file; Alt+← goes back.
+- **Markdown**: READMEs and docs render like on GitHub (tables, task lists,
+  alerts, math, Mermaid diagrams), with a switch to the source.
 - **Diffs**: click a commit to see the files it changed and their diffs; the
   same viewer shows staged and unstaged changes. Unified, side by side or the
   whole file, with changed words highlighted, syntax colors, ignore

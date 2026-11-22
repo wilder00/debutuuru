@@ -398,3 +398,51 @@ select { height: 28px; background: var(--bg-raised); border: 1px solid var(--bor
   font-family: var(--font-mono); font-size: .85em; color: var(--text-muted); background: var(--bg-raised);
   border: 1px solid var(--border-subtle); border-radius: var(--radius);
 }
+
+/* Rendered Markdown (modules/git/MarkdownView.tsx), GitHub-like. */
+.markdown-scroll { flex: 1; min-height: 0; overflow: auto; }
+.markdown-body { max-width: 900px; margin: 0 auto; padding: 20px 28px 48px; line-height: 1.6; font-size: 1.05em; color: var(--text); user-select: text; overflow-wrap: break-word; }
+.markdown-body > :first-child { margin-top: 0; }
+.markdown-body h1, .markdown-body h2, .markdown-body h3, .markdown-body h4, .markdown-body h5, .markdown-body h6 { margin: 1.4em 0 .6em; line-height: 1.25; font-weight: 600; }
+.markdown-body h1 { font-size: 1.9em; padding-bottom: .3em; border-bottom: 1px solid var(--border-subtle); }
+.markdown-body h2 { font-size: 1.45em; padding-bottom: .3em; border-bottom: 1px solid var(--border-subtle); }
+.markdown-body h3 { font-size: 1.2em; } .markdown-body h4 { font-size: 1em; } .markdown-body h5, .markdown-body h6 { font-size: .9em; color: var(--text-muted); }
+.markdown-body p, .markdown-body ul, .markdown-body ol, .markdown-body blockquote, .markdown-body table, .markdown-body pre, .markdown-body details { margin: 0 0 1em; }
+.markdown-body ul, .markdown-body ol { padding-left: 2em; list-style: revert; }
+.markdown-body li + li { margin-top: .25em; }
+.markdown-body li.task-list-item { list-style: none; margin-left: -1.4em; }
+.markdown-body li.task-list-item input { margin: 0 .4em 0 0; vertical-align: middle; }
+.markdown-body a { color: var(--accent); text-decoration: none; cursor: pointer; }
+.markdown-body a:hover { text-decoration: underline; }
+.markdown-body code { padding: .15em .4em; border-radius: 4px; background: var(--bg-raised); font-size: .86em; }
+.markdown-body blockquote { padding: 0 1em; color: var(--text-muted); border-left: 3px solid var(--border-strong); }
+.markdown-body hr { height: 1px; margin: 1.5em 0; border: 0; background: var(--border); }
+.markdown-body table { display: block; width: max-content; max-width: 100%; overflow: auto; border-collapse: collapse; }
+.markdown-body th, .markdown-body td { padding: 6px 13px; border: 1px solid var(--border); }
+.markdown-body th { font-weight: 600; background: var(--bg-raised); }
+.markdown-body tr:nth-child(2n) td { background: color-mix(in srgb, var(--bg-raised) 50%, transparent); }
+.markdown-body img { max-width: 100%; border-radius: 4px; }
+.markdown-body details { padding: 6px 10px; border: 1px solid var(--border-subtle); border-radius: var(--radius); }
+.markdown-body summary { cursor: pointer; font-weight: 600; }
+.markdown-body kbd { padding: 1px 5px; border: 1px solid var(--border-strong); border-bottom-width: 2px; border-radius: 4px; font: .85em var(--font-mono); background: var(--bg-raised); }
+.markdown-body .footnotes { margin-top: 2em; font-size: .9em; color: var(--text-muted); border-top: 1px solid var(--border-subtle); }
+.md-code { margin: 0 0 1em; padding: 12px 14px; overflow: auto; border-radius: var(--radius); background: var(--bg-raised); font: .88em/1.5 var(--font-mono); font-variant-ligatures: var(--code-ligatures); }
+.md-code code { padding: 0; background: none; font-size: 1em; }
+.md-error { color: var(--danger); white-space: pre-wrap; }
+.md-mermaid { margin: 0 0 1em; display: flex; justify-content: center; overflow: auto; }
+.md-mermaid svg { max-width: 100%; height: auto; }
+.md-img-placeholder { display: inline-block; padding: 2px 8px; border: 1px dashed var(--border-strong); border-radius: 4px; color: var(--text-muted); font-size: .9em; }
+.markdown-body .katex { font-size: 1.1em; }
+.markdown-body .katex-display { overflow-x: auto; overflow-y: hidden; padding: 4px 0; }
+/* GitHub alerts: > [!NOTE], [!TIP], [!IMPORTANT], [!WARNING], [!CAUTION] */
+.markdown-alert { margin: 0 0 1em; padding: 8px 16px; border-left: 3px solid var(--alert); color: var(--text); --alert: var(--info); }
+.markdown-alert > :last-child { margin-bottom: 0; }
+.markdown-alert-title { display: flex; align-items: center; gap: 8px; font-weight: 600; color: var(--alert); }
+.markdown-alert-title svg { fill: currentColor; }
+.markdown-alert-tip { --alert: var(--ok); } .markdown-alert-important { --alert: var(--accent); }
+.markdown-alert-warning { --alert: var(--warn); } .markdown-alert-caution { --alert: var(--danger); }
+/* Code colors outside CodeMirror (Markdown code blocks). */
+.syn-keyword { color: var(--syn-keyword); } .syn-string { color: var(--syn-string); } .syn-number { color: var(--syn-number); }
+.syn-constant { color: var(--syn-constant); } .syn-function { color: var(--syn-function); } .syn-type { color: var(--syn-type); }
+.syn-property { color: var(--syn-property); } .syn-comment { color: var(--syn-comment); font-style: italic; } .syn-meta { color: var(--text-muted); }
+.syn-inserted { color: var(--ok); } .syn-deleted { color: var(--danger); }

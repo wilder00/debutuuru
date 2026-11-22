@@ -45,6 +45,8 @@ export const codeTheme = EditorView.theme(
     "& .cm-panels .cm-search .cm-textfield:focus": { outline: "none", borderColor: "var(--accent)", boxShadow: "0 0 0 2px var(--accent-soft)" },
     ".cm-search label": { display: "inline-flex", alignItems: "center", gap: "4px", color: "var(--text-muted)" },
     ".cm-search [name=close]": { marginLeft: "auto", background: "none", border: "0", color: "var(--text-muted)", cursor: "pointer" },
+    // Imports become links while Ctrl/Cmd is held (see importLinks.ts).
+    "&.cm-ctrl-held .cm-import-link": { textDecoration: "underline", textUnderlineOffset: "3px", color: "var(--accent)", cursor: "pointer" },
   },
   { dark: true },
 );

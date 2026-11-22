@@ -222,7 +222,13 @@
       "selectFile": "파일을 선택하면 내용이 표시됩니다",
       "symlink": "<code>{{target}}</code>에 대한 심볼릭 링크",
       "binary": "바이너리 파일({{size}})이므로 표시하지 않습니다",
-      "truncated": "큰 파일: {{size}} 중 처음 {{shown}}만 표시합니다."
+      "truncated": "큰 파일: {{size}} 중 처음 {{shown}}만 표시합니다.",
+      "followLink": "Ctrl+클릭하여 열기",
+      "linkNotFound": "“{{spec}}”은(는) 이 저장소의 파일이 아닙니다(외부 패키지이거나 확인할 수 없는 경로).",
+      "back": "뒤로 (Alt+←)",
+      "markdownMode": "Markdown 보기",
+      "rendered": "렌더링",
+      "source": "소스"
     },
     "remote": {
       "starting": "시작하는 중…",

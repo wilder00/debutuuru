@@ -14,7 +14,9 @@ pub const MODULE: &str = "git";
 /// 5: [`OpOutcome::message`], so UIs can word (and translate) the summary.
 /// 6: commit changes and diffs of any kind: `git.commit_details` and
 ///    `git.file_versions`.
-pub const MODULE_VERSION: u32 = 6;
+/// 7: `git.stat_paths` (follow imports and links) and `git.read_bytes`
+///    (images in rendered Markdown).
+pub const MODULE_VERSION: u32 = 7;
 
 /// [`RepoParams`] → [`Snapshot`]
 pub const SNAPSHOT: &str = "git.snapshot";
@@ -40,6 +42,10 @@ pub const COMMIT_DETAILS: &str = "git.commit_details";
 /// [`FileVersionsParams`] → [`debutuuru_core::changes::FileVersions`]: both
 /// sides of a file, so the UI draws any diff view itself.
 pub const FILE_VERSIONS: &str = "git.file_versions";
+/// [`StatPathsParams`] → `Vec<Option<EntryKind>>`, one per path: what exists.
+pub const STAT_PATHS: &str = "git.stat_paths";
+/// [`ReadFileParams`] → [`debutuuru_core::files::FileBytes`] (base64, ≤ 10 MiB).
+pub const READ_BYTES: &str = "git.read_bytes";
 /// [`RepoParams`] → `null`. Starts emitting [`CHANGED`] for this repo (idempotent).
 pub const WATCH: &str = "git.watch";
 /// [`RepoParams`] → `null`
@@ -113,6 +119,18 @@ pub struct DiffParams {
     pub path: String,
     pub staged: bool,
     pub untracked: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct StatPathsParams {
+    pub repo: String,
+    /// Commit; `None` = the working tree.
+    #[serde(default)]
+    #[ts(optional)]
+    pub rev: Option<String>,
+    /// Repo-relative, `/`-separated (at most 64).
+    pub paths: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]

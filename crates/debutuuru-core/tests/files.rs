@@ -116,5 +116,48 @@ fn tree_and_contents_on_disk_and_at_a_commit() {
         .is_err());
     assert!(repo.read_file(None, "src").is_err());
 
+    // Which paths exist (imports and links), on disk and at the commit.
+    let paths: Vec<String> = [
+        "src/main.rs",
+        "src/nested",
+        "new.txt",
+        "nope.rs",
+        "../x",
+        "",
+    ]
+    .map(String::from)
+    .to_vec();
+    assert_eq!(
+        repo.stat_paths(None, &paths).unwrap(),
+        [
+            Some(EntryKind::File),
+            Some(EntryKind::Dir),
+            Some(EntryKind::File),
+            None,
+            None,
+            None
+        ]
+    );
+    assert_eq!(
+        repo.stat_paths(Some("HEAD"), &paths).unwrap(),
+        [
+            Some(EntryKind::File),
+            Some(EntryKind::Dir),
+            None, // untracked: not in the commit
+            None,
+            None,
+            None
+        ]
+    );
+    assert!(repo.stat_paths(None, &vec![String::new(); 65]).is_err());
+
+    // Raw bytes (images), from disk and from the commit.
+    for rev in [None, Some("HEAD")] {
+        let b = repo.read_bytes(rev, "logo.bin").unwrap();
+        assert_eq!((b.size, b.base64.as_str()), (4, "AAECAw=="), "{rev:?}");
+    }
+    assert!(repo.read_bytes(None, "src").is_err());
+    assert!(repo.read_bytes(None, "../outside.txt").is_err());
+
     let _ = std::fs::remove_dir_all(&dir);
 }

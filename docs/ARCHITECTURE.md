@@ -187,6 +187,20 @@ means adding a module, not a new transport.
   binaries by NUL bytes, never follows symlinks, and refuses paths outside
   the repo. The viewer is CodeMirror 6, read-only, lazy-loaded (only renders
   visible lines; languages load on demand) and colored with `--syn-*` tokens.
+- Following imports (Ctrl+click in Files): `links.ts` finds imports and links
+  by language with regexes (TS/JS, CSS/SCSS/Less, Rust, Go, Markdown, HTML,
+  Python, C/C++) and turns each into candidate repo paths: relative paths,
+  tsconfig/jsconfig `paths` and `baseUrl`, `mod`/`crate::`/`super::` and
+  workspace crates, the `go.mod` module, Python packages. `git.stat_paths`
+  (≤ 64 per call, working tree or a commit) says which exist; the first one
+  opens. No language server: external packages aren't followed.
+- Markdown renders by default (Rendered / Source): react-markdown with GFM,
+  emoji, GitHub alerts, KaTeX math and Mermaid (loaded only when a document
+  has a diagram). Repo content is untrusted, so raw HTML goes through
+  rehype-sanitize with GitHub's schema, Mermaid runs with securityLevel
+  `strict`, the CSP still blocks scripts and remote images, repo images come
+  as data URLs from `git.read_bytes` (≤ 10 MiB), and external links open in
+  the browser through the opener plugin (http, https, mailto, tel only).
 - Diffs: the agent returns data, not diff text. `git.commit_details` gives a
   commit's message and its files against the first parent (`diff-tree -M`,
   name-status + numstat, so renames and binaries are known), and
