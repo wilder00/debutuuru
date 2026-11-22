@@ -69,6 +69,10 @@
         "forest": "Forest",
         "ember": "Ember",
         "rose": "Rosé",
+        "neon": "Neon",
+        "cyberpunk": "Cyberpunk",
+        "crimson": "Crimson",
+        "toxic": "Toxic",
         "high-contrast": "High contrast"
       }
     },
@@ -133,6 +137,14 @@
       "failed": "Couldn't update: {{message}}",
       "checkOnStart": "Check for updates when the app starts",
       "checkOnStartHint": "Only checks and shows a button in the status bar; nothing is installed until you click it. Updates are signed and verified before installing."
+    },
+    "style": {
+      "title": "Style",
+      "standard": "Standard",
+      "gamer": "Gamer",
+      "rgb": "Animated RGB",
+      "rgbHint": "The RGB bars cycle their colors. Off when the system asks to reduce animations.",
+      "hint": "Gamer adds neon glow, sharper corners and RGB bars to any theme; the Neon, Cyberpunk, Crimson and Toxic themes are made for it."
     }
   },
   "git": {
@@ -370,7 +382,8 @@
       "openFolder": "Open folder…",
       "openFile": "Open file…",
       "browseWsl": "Browse in WSL…",
-      "openRecent": "Open recent repository…"
+      "openRecent": "Open recent repository…",
+      "style": "Change style…"
     }
   },
   "open": {

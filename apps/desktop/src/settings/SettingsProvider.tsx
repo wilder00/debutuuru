@@ -50,6 +50,8 @@ export const DEFAULT_SETTINGS: Settings = {
     font_size: 13,
     ligatures: true,
     density: "compact",
+    style: "standard",
+    rgb_animation: true,
   },
   session: { open_repos: [], active: null, recent_repos: [] },
   git: { windows_ssh: "system", wsl_distro: null },
@@ -72,6 +74,9 @@ function applyAppearance(a: Appearance, hasBackground: boolean): ThemeReport {
   root.setProperty("--row-h", a.density === "compact" ? "26px" : "32px");
   root.setProperty("--code-ligatures", a.ligatures ? "normal" : "none");
   root.setProperty("--panel-blur", hasBackground ? "14px" : "0px");
+  // The style is pure CSS (styles.css › [data-style="gamer"]).
+  document.documentElement.dataset.style = a.style;
+  document.documentElement.dataset.rgb = a.rgb_animation ? "on" : "off";
   return report;
 }
 

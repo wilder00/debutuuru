@@ -2,6 +2,7 @@
 import type { Background } from "./Background";
 import type { Density } from "./Density";
 import type { ThemeInputs } from "./ThemeInputs";
+import type { UiStyle } from "./UiStyle";
 
 export type Appearance = { 
 /**
@@ -23,4 +24,13 @@ font_size: number,
 /**
  * Programming ligatures in code views (never in the UI chrome).
  */
-ligatures: boolean, density: Density, };
+ligatures: boolean, density: Density, 
+/**
+ * Visual style on top of the theme. Added without a schema bump.
+ */
+style: UiStyle, 
+/**
+ * Gamer style: the RGB bars cycle their colors (off under the system's
+ * "reduce motion"). Added without a schema bump.
+ */
+rgb_animation: boolean, };

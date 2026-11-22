@@ -64,6 +64,15 @@ export function useCommands(c: Ctx): PaletteItem[] {
           { id: "theme.custom", label: t("settings.theme.custom"), detail: appearance.theme === CUSTOM ? "✓" : undefined, run: () => update({ theme: CUSTOM }) },
         ],
       }),
+      g("settings", "style", {
+        pick: () =>
+          (["standard", "gamer"] as const).map((s) => ({
+            id: `style.${s}`,
+            label: t(`settings.style.${s}`),
+            detail: appearance.style === s ? "✓" : undefined,
+            run: () => update({ style: s }),
+          })),
+      }),
       g("settings", "checkUpdates", { run: () => void checkForUpdate() }),
       g("diff", "layout", {
         pick: () =>
@@ -119,5 +128,5 @@ export function useCommands(c: Ctx): PaletteItem[] {
       }
     }
     return items;
-  }, [t, c, appearance.theme, update, language, updateLanguage, diff, updateDiff]);
+  }, [t, c, appearance.theme, appearance.style, update, language, updateLanguage, diff, updateDiff]);
 }

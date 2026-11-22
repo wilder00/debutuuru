@@ -69,6 +69,10 @@
         "forest": "Forest",
         "ember": "Ember",
         "rose": "Rosé",
+        "neon": "Neon",
+        "cyberpunk": "Cyberpunk",
+        "crimson": "Crimson",
+        "toxic": "Toxic",
         "high-contrast": "ハイコントラスト"
       }
     },
@@ -133,6 +137,14 @@
       "failed": "更新できませんでした: {{message}}",
       "checkOnStart": "アプリの起動時にアップデートを確認する",
       "checkOnStartHint": "確認してステータスバーにボタンを表示するだけで、クリックするまで何もインストールしません。アップデートは署名されており、インストール前に検証されます。"
+    },
+    "style": {
+      "title": "スタイル",
+      "standard": "標準",
+      "gamer": "ゲーマー",
+      "rgb": "RGB アニメーション",
+      "rgbHint": "RGB バーの色が循環します。システムでアニメーションを減らす設定の場合はオフになります。",
+      "hint": "ゲーマーは、どのテーマにもネオンの光、角張った角、RGB バーを加えます。Neon、Cyberpunk、Crimson、Toxic のテーマはこのスタイル向けです。"
     }
   },
   "git": {
@@ -367,7 +379,8 @@
       "openFolder": "フォルダーを開く…",
       "openFile": "ファイルを開く…",
       "browseWsl": "WSL で参照…",
-      "openRecent": "最近使用したリポジトリを開く…"
+      "openRecent": "最近使用したリポジトリを開く…",
+      "style": "スタイルを変更…"
     }
   },
   "open": {

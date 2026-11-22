@@ -149,6 +149,22 @@ pub struct Appearance {
     /// Programming ligatures in code views (never in the UI chrome).
     pub ligatures: bool,
     pub density: Density,
+    /// Visual style on top of the theme. Added without a schema bump.
+    pub style: UiStyle,
+    /// Gamer style: the RGB bars cycle their colors (off under the system's
+    /// "reduce motion"). Added without a schema bump.
+    pub rgb_animation: bool,
+}
+
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export)]
+pub enum UiStyle {
+    /// Calm, as described in docs/DESIGN.md.
+    #[default]
+    Standard,
+    /// Neon glow, sharper corners and RGB accent bars.
+    Gamer,
 }
 
 /// Linear-style theme generation: everything derives from these three.
@@ -213,6 +229,8 @@ impl Default for Appearance {
             font_size: 13,
             ligatures: true,
             density: Density::Compact,
+            style: UiStyle::Standard,
+            rgb_animation: true,
         }
     }
 }

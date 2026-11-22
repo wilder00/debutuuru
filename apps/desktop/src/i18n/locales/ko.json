@@ -69,6 +69,10 @@
         "forest": "Forest",
         "ember": "Ember",
         "rose": "Rosé",
+        "neon": "Neon",
+        "cyberpunk": "Cyberpunk",
+        "crimson": "Crimson",
+        "toxic": "Toxic",
         "high-contrast": "고대비"
       }
     },
@@ -133,6 +137,14 @@
       "failed": "업데이트하지 못했습니다: {{message}}",
       "checkOnStart": "앱을 시작할 때 업데이트 확인",
       "checkOnStartHint": "확인 후 상태 표시줄에 버튼만 표시하며, 클릭하기 전에는 아무것도 설치하지 않습니다. 업데이트는 서명되어 있으며 설치 전에 검증됩니다."
+    },
+    "style": {
+      "title": "스타일",
+      "standard": "기본",
+      "gamer": "게이머",
+      "rgb": "RGB 애니메이션",
+      "rgbHint": "RGB 막대의 색이 순환합니다. 시스템에서 애니메이션 줄이기를 요청하면 꺼집니다.",
+      "hint": "게이머 스타일은 어떤 테마에든 네온 광채, 각진 모서리, RGB 막대를 더합니다. Neon, Cyberpunk, Crimson, Toxic 테마는 이 스타일에 맞춰 만들었습니다."
     }
   },
   "git": {
@@ -367,7 +379,8 @@
       "openFolder": "폴더 열기…",
       "openFile": "파일 열기…",
       "browseWsl": "WSL에서 찾아보기…",
-      "openRecent": "최근 저장소 열기…"
+      "openRecent": "최근 저장소 열기…",
+      "style": "스타일 변경…"
     }
   },
   "open": {

@@ -69,6 +69,10 @@
         "forest": "Forest",
         "ember": "Ember",
         "rose": "Rosé",
+        "neon": "Neon",
+        "cyberpunk": "Cyberpunk",
+        "crimson": "Crimson",
+        "toxic": "Toxic",
         "high-contrast": "Alto contraste"
       }
     },
@@ -133,6 +137,14 @@
       "failed": "No se pudo actualizar: {{message}}",
       "checkOnStart": "Buscar actualizaciones al iniciar la app",
       "checkOnStartHint": "Solo comprueba y muestra un botón en la barra de estado; no se instala nada hasta que hagas clic. Las actualizaciones están firmadas y se verifican antes de instalarse."
+    },
+    "style": {
+      "title": "Estilo",
+      "standard": "Estándar",
+      "gamer": "Gamer",
+      "rgb": "RGB animado",
+      "rgbHint": "Las barras RGB van cambiando de color. Se desactiva si el sistema pide reducir animaciones.",
+      "hint": "Gamer añade brillo neón, esquinas más rectas y barras RGB a cualquier tema; los temas Neon, Cyberpunk, Crimson y Toxic están pensados para él."
     }
   },
   "git": {
@@ -373,7 +385,8 @@
       "openFolder": "Abrir carpeta…",
       "openFile": "Abrir archivo…",
       "browseWsl": "Explorar en WSL…",
-      "openRecent": "Abrir repositorio reciente…"
+      "openRecent": "Abrir repositorio reciente…",
+      "style": "Cambiar estilo…"
     }
   },
   "open": {

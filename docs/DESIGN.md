@@ -71,6 +71,26 @@ see VERSIONING). Everything previews live.
 - **Fonts**: UI and mono family (any installed font, falling back to the
   bundled ones), base size, code ligatures on/off.
 - **Density**: compact / comfortable.
+- **Style**: Standard (everything above) or Gamer (below).
+
+## Styles
+
+A style changes how the tokens are used, never the tokens themselves, so it
+works with every theme (presets or custom) and the contrast report still
+applies. It's set on `<html data-style>` and lives in `styles.css`.
+
+- **Standard**: the calm design described in this document.
+- **Gamer**: neon glow (`--accent-ring`) on what's active, focused or
+  selected; sharper corners (radius 3/5 px); borders tinted with the accent;
+  and RGB bars (title bar, status bar, active tab, logo) drawn with the
+  commit-graph lane palette, which has equal lightness and hues rotated from
+  the accent, so it suits any theme. The Neon, Cyberpunk, Crimson and Toxic
+  presets are made for it; Cyberpunk and Crimson use lighter accents than
+  their pure neon color so button text keeps 4.5:1.
+- **Motion exception**: with "Animated RGB" on (the default for Gamer), the
+  RGB bars cycle their colors continuously, beyond the 120 ms rule above.
+  It's opt-in through the style, has its own switch, and the global
+  `prefers-reduced-motion` rule turns it off.
 
 Later: import Warp `.yaml` themes, share themes as files, light mode (the
 generator supports it; it needs its own lightness curve).
