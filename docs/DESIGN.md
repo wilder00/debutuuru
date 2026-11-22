@@ -66,8 +66,10 @@ see VERSIONING). Everything previews live.
 - **Theme**: a preset, or custom **base + accent + contrast**.
 - **Background image** (as in Warp): pick any PNG/JPEG/WebP/GIF. It's copied
   into the app's data folder, and you set its **visibility** (opacity), **blur**
-  and **dim**. Panels become translucent (with backdrop blur) so the image shows
-  through, while text keeps contrast through the dim layer.
+  and **dim**. Panels become translucent so the image shows through
+  evenly across the whole window (no extra blur on panels: it made the side
+  panels look like a separate layer; the image's Blur setting blurs it
+  everywhere instead), while text keeps contrast through the dim layer.
 - **Fonts**: UI and mono family (any installed font, falling back to the
   bundled ones), base size, code ligatures on/off.
 - **Density**: compact / comfortable.

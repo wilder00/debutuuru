@@ -73,7 +73,10 @@ function applyAppearance(a: Appearance, hasBackground: boolean): ThemeReport {
   root.setProperty("--font-size", `${a.font_size}px`);
   root.setProperty("--row-h", a.density === "compact" ? "26px" : "32px");
   root.setProperty("--code-ligatures", a.ligatures ? "normal" : "none");
-  root.setProperty("--panel-blur", hasBackground ? "14px" : "0px");
+  // No extra blur on panels over a background image: it made the side panels
+  // look like a separate frosted layer next to the sharp center. The image's
+  // own Blur setting blurs it evenly behind the whole window instead.
+  root.setProperty("--panel-blur", "0px");
   // The style is pure CSS (styles.css › [data-style="gamer"]).
   document.documentElement.dataset.style = a.style;
   document.documentElement.dataset.rgb = a.rgb_animation ? "on" : "off";
