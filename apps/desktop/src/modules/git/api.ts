@@ -33,6 +33,8 @@ export const git = {
   /** One folder level; `rev` omitted = working tree. */
   tree: (repo: string, p: Params<TreeParams>) => rpc<TreeEntry[]>(repo, "git.tree", p),
   readFile: (repo: string, p: Params<ReadFileParams>) => rpc<FileContent>(repo, "git.read_file", p),
+  /** Every file (working tree, or `rev`), for quick open. */
+  listFiles: (repo: string, p: { rev?: string }) => rpc<string[]>(repo, "git.list_files", p),
   /** What each path is (file, folder…) or null: up to 64 per call. */
   statPaths: (repo: string, p: Params<StatPathsParams>) => rpc<(EntryKind | null)[]>(repo, "git.stat_paths", p),
   /** A file's bytes as base64 (≤ 10 MiB), for images. */

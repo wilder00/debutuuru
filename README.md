@@ -20,6 +20,9 @@ runner, GitHub/GitLab integration, containers and more.
 - **Files**: browse the file tree and read any file (syntax highlighting,
   search), as it is now with changes marked, or at any commit (double-click it
   in History). Ignored files are hidden unless you ask for them.
+- **Quick open and commands**: Ctrl+P finds any file of the repo by a few
+  letters of its name; Ctrl+Shift+P runs commands (fetch, pull, push, switch
+  branch, change theme or language…), like in VS Code.
 - **Code navigation**: Ctrl+click an import (TS/JS, CSS, Rust, Go, Python,
   C/C++, Markdown and HTML links) to open that file; Alt+← goes back.
 - **Markdown**: READMEs and docs render like on GitHub (tables, task lists,

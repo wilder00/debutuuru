@@ -11,7 +11,8 @@
     "saveSettingsFailed": "No se pudieron guardar los ajustes: {{error}}",
     "welcomeTitle": "Abre un repositorio",
     "welcomeBody": "Escribe una ruta en la barra de arriba (de Windows o <code>{{wslPath}}</code>), o desde cualquier terminal ejecuta",
-    "welcomeShortcuts": "Ctrl+, Ajustes · F5 actualizar · Ctrl+W cerrar pestaña"
+    "welcomeShortcuts": "Ctrl+, Ajustes · F5 actualizar · Ctrl+W cerrar pestaña",
+    "welcomePalette": "Ctrl+P buscar un archivo · Ctrl+Shift+P comandos"
   },
   "titlebar": {
     "pathPlaceholder": "Abre un repositorio: C:\\code\\app o \\\\wsl.localhost\\Ubuntu\\home\\yo\\app",
@@ -327,5 +328,48 @@
     "replaced match on line $": "coincidencia reemplazada en la línea $",
     "Control character": "Carácter de control",
     "$ unchanged lines": "$ líneas sin cambios"
+  },
+  "palette": {
+    "filesPlaceholder": "Busca archivos por nombre (escribe > para comandos)",
+    "commandsPlaceholder": "Escribe un comando",
+    "noRepo": "Abre un repositorio para buscar sus archivos",
+    "noResults": "Sin resultados",
+    "hintFiles": "↑↓ mover · Enter abrir · > comandos · Esc cerrar",
+    "hintCommands": "↑↓ mover · Enter ejecutar · Esc volver",
+    "systemLanguage": "Sistema",
+    "on": "activado",
+    "off": "desactivado",
+    "group": {
+      "general": "General",
+      "git": "Git",
+      "view": "Vista",
+      "diff": "Diff",
+      "settings": "Preferencias"
+    },
+    "cmd": {
+      "goToFile": "Ir a un archivo…",
+      "openRepo": "Abrir repositorio…",
+      "refresh": "Actualizar",
+      "closeTab": "Cerrar pestaña",
+      "switchRepo": "Cambiar a un repositorio abierto…",
+      "openSettings": "Abrir ajustes",
+      "language": "Cambiar idioma…",
+      "theme": "Cambiar tema…",
+      "checkUpdates": "Buscar actualizaciones",
+      "history": "Mostrar historial",
+      "files": "Mostrar archivos",
+      "fetch": "Fetch",
+      "pull": "Pull",
+      "pullRebase": "Pull (rebase)",
+      "pullMerge": "Pull (merge)",
+      "pullFfOnly": "Pull (solo fast-forward)",
+      "push": "Push",
+      "checkout": "Cambiar de rama…",
+      "layout": "Cambiar formato…",
+      "toggleWords": "Resaltar palabras cambiadas",
+      "toggleWhitespace": "Ignorar espacios",
+      "toggleSyntax": "Colores de sintaxis",
+      "toggleWrap": "Ajustar líneas largas"
+    }
   }
 }

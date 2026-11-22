@@ -151,6 +151,22 @@ fn tree_and_contents_on_disk_and_at_a_commit() {
     );
     assert!(repo.stat_paths(None, &vec![String::new(); 65]).is_err());
 
+    // Every file, for quick open: ignored ones left out, untracked ones in.
+    let on_disk = repo.list_files(None).unwrap();
+    assert!(on_disk.contains(&"new.txt".to_string()));
+    assert!(on_disk.contains(&"src/nested/deep.txt".to_string()));
+    assert!(!on_disk
+        .iter()
+        .any(|p| p.starts_with("target/") || p.ends_with(".log")));
+    let at_commit = repo.list_files(Some("HEAD")).unwrap();
+    assert!(at_commit.contains(&"src/main.rs".to_string()));
+    assert!(!at_commit.contains(&"new.txt".to_string()));
+    std::fs::remove_file(dir.join("src/nested/deep.txt")).unwrap();
+    assert!(!repo
+        .list_files(None)
+        .unwrap()
+        .contains(&"src/nested/deep.txt".to_string()));
+
     // Raw bytes (images), from disk and from the commit.
     for rev in [None, Some("HEAD")] {
         let b = repo.read_bytes(rev, "logo.bin").unwrap();

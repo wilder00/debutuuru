@@ -8,6 +8,7 @@ import type { OpOutcome } from "../../bindings/OpOutcome";
 import type { ProgressEvent } from "../../bindings/ProgressEvent";
 import type { PullMode } from "../../bindings/PullMode";
 import type { Snapshot } from "../../bindings/Snapshot";
+import { useBus } from "../../lib/bus";
 import { onAgentEvent, wslDistro } from "../../lib/rpc";
 import { git, GIT_PROGRESS } from "./api";
 
@@ -100,6 +101,12 @@ export function RemoteBar({ repo, snapshot, settings, onDone }: Props) {
     const t = window.setTimeout(() => setResult(null), 5000);
     return () => window.clearTimeout(t);
   }, [result]);
+
+  // Fetch / pull / push from the command palette (ignored while one runs).
+  useBus("git-op", repo, (e) => {
+    if (runningRef.current) return;
+    void run(e.op, e.op === "pull" ? { mode: e.mode } : {});
+  });
 
   async function run(kind: Kind, extra: { mode?: PullMode; force_with_lease?: boolean } = {}) {
     setMenu(null);

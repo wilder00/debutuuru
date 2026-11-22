@@ -16,7 +16,8 @@ pub const MODULE: &str = "git";
 ///    `git.file_versions`.
 /// 7: `git.stat_paths` (follow imports and links) and `git.read_bytes`
 ///    (images in rendered Markdown).
-pub const MODULE_VERSION: u32 = 7;
+/// 8: `git.list_files` (quick open).
+pub const MODULE_VERSION: u32 = 8;
 
 /// [`RepoParams`] → [`Snapshot`]
 pub const SNAPSHOT: &str = "git.snapshot";
@@ -46,6 +47,8 @@ pub const FILE_VERSIONS: &str = "git.file_versions";
 pub const STAT_PATHS: &str = "git.stat_paths";
 /// [`ReadFileParams`] → [`debutuuru_core::files::FileBytes`] (base64, ≤ 10 MiB).
 pub const READ_BYTES: &str = "git.read_bytes";
+/// [`TreeParams`] (only `rev` is used) → `Vec<String>`: every file, for quick open.
+pub const LIST_FILES: &str = "git.list_files";
 /// [`RepoParams`] → `null`. Starts emitting [`CHANGED`] for this repo (idempotent).
 pub const WATCH: &str = "git.watch";
 /// [`RepoParams`] → `null`

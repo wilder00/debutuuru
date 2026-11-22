@@ -11,7 +11,8 @@
     "saveSettingsFailed": "設定を保存できませんでした: {{error}}",
     "welcomeTitle": "リポジトリを開く",
     "welcomeBody": "上のバーにパス (Windows または <code>{{wslPath}}</code>) を入力するか、任意のターミナルで次を実行してください",
-    "welcomeShortcuts": "Ctrl+, 設定 · F5 再読み込み · Ctrl+W タブを閉じる"
+    "welcomeShortcuts": "Ctrl+, 設定 · F5 再読み込み · Ctrl+W タブを閉じる",
+    "welcomePalette": "Ctrl+P ファイルを検索 · Ctrl+Shift+P コマンド"
   },
   "titlebar": {
     "pathPlaceholder": "リポジトリを開く: C:\\code\\app または \\\\wsl.localhost\\Ubuntu\\home\\me\\app",
@@ -321,5 +322,48 @@
     "replaced match on line $": "$ 行目の一致を置換しました",
     "Control character": "制御文字",
     "$ unchanged lines": "変更のない $ 行"
+  },
+  "palette": {
+    "filesPlaceholder": "ファイル名で検索 (> と入力するとコマンド)",
+    "commandsPlaceholder": "コマンドを入力",
+    "noRepo": "ファイルを検索するにはリポジトリを開いてください",
+    "noResults": "一致するものはありません",
+    "hintFiles": "↑↓ 移動 · Enter 開く · > コマンド · Esc 閉じる",
+    "hintCommands": "↑↓ 移動 · Enter 実行 · Esc 戻る",
+    "systemLanguage": "システム",
+    "on": "オン",
+    "off": "オフ",
+    "group": {
+      "general": "全般",
+      "git": "Git",
+      "view": "表示",
+      "diff": "差分",
+      "settings": "設定"
+    },
+    "cmd": {
+      "goToFile": "ファイルに移動…",
+      "openRepo": "リポジトリを開く…",
+      "refresh": "再読み込み",
+      "closeTab": "タブを閉じる",
+      "switchRepo": "開いているリポジトリに切り替え…",
+      "openSettings": "設定を開く",
+      "language": "言語を変更…",
+      "theme": "テーマを変更…",
+      "checkUpdates": "アップデートを確認",
+      "history": "履歴を表示",
+      "files": "ファイルを表示",
+      "fetch": "フェッチ",
+      "pull": "プル",
+      "pullRebase": "プル (リベース)",
+      "pullMerge": "プル (マージ)",
+      "pullFfOnly": "プル (Fast-forward のみ)",
+      "push": "プッシュ",
+      "checkout": "ブランチを切り替え…",
+      "layout": "表示形式を変更…",
+      "toggleWords": "変更された単語を強調表示",
+      "toggleWhitespace": "空白を無視",
+      "toggleSyntax": "構文の色分け",
+      "toggleWrap": "長い行を折り返す"
+    }
   }
 }

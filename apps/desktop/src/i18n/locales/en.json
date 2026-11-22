@@ -11,7 +11,8 @@
     "saveSettingsFailed": "Couldn't save settings: {{error}}",
     "welcomeTitle": "Open a repository",
     "welcomeBody": "Type a path in the bar above (Windows or <code>{{wslPath}}</code>), or from any terminal run",
-    "welcomeShortcuts": "Ctrl+, Settings · F5 refresh · Ctrl+W close tab"
+    "welcomeShortcuts": "Ctrl+, Settings · F5 refresh · Ctrl+W close tab",
+    "welcomePalette": "Ctrl+P find a file · Ctrl+Shift+P commands"
   },
   "titlebar": {
     "pathPlaceholder": "Open a repository: C:\\code\\app or \\\\wsl.localhost\\Ubuntu\\home\\me\\app",
@@ -324,5 +325,48 @@
     "replaced match on line $": "replaced match on line $",
     "Control character": "Control character",
     "$ unchanged lines": "$ unchanged lines"
+  },
+  "palette": {
+    "filesPlaceholder": "Search files by name (type > for commands)",
+    "commandsPlaceholder": "Type a command",
+    "noRepo": "Open a repository to search its files",
+    "noResults": "No matches",
+    "hintFiles": "↑↓ move · Enter open · > commands · Esc close",
+    "hintCommands": "↑↓ move · Enter run · Esc back",
+    "systemLanguage": "System",
+    "on": "on",
+    "off": "off",
+    "group": {
+      "general": "General",
+      "git": "Git",
+      "view": "View",
+      "diff": "Diff",
+      "settings": "Preferences"
+    },
+    "cmd": {
+      "goToFile": "Go to file…",
+      "openRepo": "Open repository…",
+      "refresh": "Refresh",
+      "closeTab": "Close tab",
+      "switchRepo": "Switch to open repository…",
+      "openSettings": "Open settings",
+      "language": "Change language…",
+      "theme": "Change theme…",
+      "checkUpdates": "Check for updates",
+      "history": "Show history",
+      "files": "Show files",
+      "fetch": "Fetch",
+      "pull": "Pull",
+      "pullRebase": "Pull (rebase)",
+      "pullMerge": "Pull (merge)",
+      "pullFfOnly": "Pull (fast-forward only)",
+      "push": "Push",
+      "checkout": "Switch branch…",
+      "layout": "Change layout…",
+      "toggleWords": "Highlight changed words",
+      "toggleWhitespace": "Ignore whitespace",
+      "toggleSyntax": "Syntax colors",
+      "toggleWrap": "Wrap long lines"
+    }
   }
 }

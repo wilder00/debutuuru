@@ -15,6 +15,8 @@ pub const MAX_FILE_BYTES: usize = 2 * 1024 * 1024;
 pub const MAX_BYTES: u64 = 10 * 1024 * 1024;
 /// Paths [`Repo::stat_paths`] checks per call.
 pub const MAX_STAT_PATHS: usize = 64;
+/// Files [`Repo::list_files`] returns at most (quick open).
+pub const MAX_LIST_FILES: usize = 200_000;
 /// Bytes inspected for NULs to decide a file is binary (same idea as git).
 const BINARY_SNIFF: usize = 8000;
 
@@ -115,6 +117,47 @@ impl Repo {
                     .collect())
             }
         }
+    }
+
+    /// Every file of the repository, for quick open: at `rev`, or in the
+    /// working tree (tracked and untracked, without .gitignored ones and
+    /// without tracked files deleted from disk). Sorted, at most
+    /// [`MAX_LIST_FILES`].
+    pub fn list_files(&self, rev: Option<&str>) -> Result<Vec<String>> {
+        let split = |out: String| -> Vec<String> {
+            out.split('\0')
+                .filter(|p| !p.is_empty())
+                .map(str::to_string)
+                .collect()
+        };
+        let mut files = match rev {
+            Some(rev) => split(self.runner().git(&[
+                "ls-tree",
+                "-r",
+                "-z",
+                "--name-only",
+                check_rev(rev)?,
+            ])?),
+            None => {
+                let all = split(self.runner().git(&[
+                    "ls-files",
+                    "-z",
+                    "--cached",
+                    "--others",
+                    "--exclude-standard",
+                    "--deduplicate",
+                ])?);
+                let deleted: std::collections::HashSet<String> =
+                    split(self.runner().git(&["ls-files", "-z", "--deleted"])?)
+                        .into_iter()
+                        .collect();
+                all.into_iter().filter(|p| !deleted.contains(p)).collect()
+            }
+        };
+        files.sort();
+        files.dedup();
+        files.truncate(MAX_LIST_FILES);
+        Ok(files)
     }
 
     /// The bytes of `path` (base64), up to [`MAX_BYTES`].

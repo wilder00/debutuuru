@@ -11,7 +11,8 @@
     "saveSettingsFailed": "설정을 저장하지 못했습니다: {{error}}",
     "welcomeTitle": "저장소 열기",
     "welcomeBody": "위쪽 막대에 경로(Windows 또는 <code>{{wslPath}}</code>)를 입력하거나, 아무 터미널에서 다음을 실행하세요",
-    "welcomeShortcuts": "Ctrl+, 설정 · F5 새로 고침 · Ctrl+W 탭 닫기"
+    "welcomeShortcuts": "Ctrl+, 설정 · F5 새로 고침 · Ctrl+W 탭 닫기",
+    "welcomePalette": "Ctrl+P 파일 찾기 · Ctrl+Shift+P 명령"
   },
   "titlebar": {
     "pathPlaceholder": "저장소 열기: C:\\code\\app 또는 \\\\wsl.localhost\\Ubuntu\\home\\me\\app",
@@ -321,5 +322,48 @@
     "replaced match on line $": "$번 줄의 일치 항목을 바꿨습니다",
     "Control character": "제어 문자",
     "$ unchanged lines": "변경되지 않은 줄 $개"
+  },
+  "palette": {
+    "filesPlaceholder": "이름으로 파일 검색 (명령은 > 입력)",
+    "commandsPlaceholder": "명령 입력",
+    "noRepo": "파일을 검색하려면 저장소를 여세요",
+    "noResults": "일치하는 항목 없음",
+    "hintFiles": "↑↓ 이동 · Enter 열기 · > 명령 · Esc 닫기",
+    "hintCommands": "↑↓ 이동 · Enter 실행 · Esc 뒤로",
+    "systemLanguage": "시스템",
+    "on": "켜짐",
+    "off": "꺼짐",
+    "group": {
+      "general": "일반",
+      "git": "Git",
+      "view": "보기",
+      "diff": "차이",
+      "settings": "기본 설정"
+    },
+    "cmd": {
+      "goToFile": "파일로 이동…",
+      "openRepo": "저장소 열기…",
+      "refresh": "새로 고침",
+      "closeTab": "탭 닫기",
+      "switchRepo": "열린 저장소로 전환…",
+      "openSettings": "설정 열기",
+      "language": "언어 변경…",
+      "theme": "테마 변경…",
+      "checkUpdates": "업데이트 확인",
+      "history": "기록 보기",
+      "files": "파일 보기",
+      "fetch": "페치",
+      "pull": "풀",
+      "pullRebase": "풀 (리베이스)",
+      "pullMerge": "풀 (병합)",
+      "pullFfOnly": "풀 (Fast-forward만)",
+      "push": "푸시",
+      "checkout": "브랜치 전환…",
+      "layout": "표시 형식 변경…",
+      "toggleWords": "바뀐 단어 강조 표시",
+      "toggleWhitespace": "공백 무시",
+      "toggleSyntax": "구문 강조 색",
+      "toggleWrap": "긴 줄 바꿈"
+    }
   }
 }

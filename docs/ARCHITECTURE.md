@@ -187,6 +187,15 @@ means adding a module, not a new transport.
   binaries by NUL bytes, never follows symlinks, and refuses paths outside
   the repo. The viewer is CodeMirror 6, read-only, lazy-loaded (only renders
   visible lines; languages load on demand) and colored with `--syn-*` tokens.
+- Quick open (Ctrl+P) and command palette (Ctrl+Shift+P), as in VS Code:
+  one box (`shell/Palette.tsx`) searches the active repo's files
+  (`git.list_files`: tracked + untracked, minus ignored and deleted, or a
+  commit's tree) or, after ">", the commands (`shell/commands.ts`, "Group:
+  Action" labels). Matching is fuzzysort (Sublime-style); a command can open a
+  second list (branches, themes, languages). The palette acts on repo tabs
+  through a small event bus (`lib/bus.ts`), never by running git itself;
+  destructive commands (force push) stay out of it. Ctrl+P is caught in the
+  capture phase, so it works inside the editor and WebView2 doesn't print.
 - Following imports (Ctrl+click in Files): `links.ts` finds imports and links
   by language with regexes (TS/JS, CSS/SCSS/Less, Rust, Go, Markdown, HTML,
   Python, C/C++) and turns each into candidate repo paths: relative paths,

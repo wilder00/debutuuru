@@ -21,6 +21,8 @@ type Props = {
   /** Commits offered in the picker besides the working tree. */
   revOptions: { value: string; label: string }[];
   onRev: (rev: string | null) => void;
+  /** Quick open (Ctrl+P): reveal this file; `n` changes on every request. */
+  openRequest?: { path: string; n: number } | null;
 };
 
 
@@ -31,7 +33,7 @@ const MarkdownView = lazy(() => import("./MarkdownView").then((m) => ({ default:
 
 const parentsOf = (p: string) => p.split("/").slice(0, -1).map((_, i, parts) => parts.slice(0, i + 1).join("/"));
 
-export function FilesView({ repo, snapshot, rev, revOptions, onRev }: Props) {
+export function FilesView({ repo, snapshot, rev, revOptions, onRev, openRequest }: Props) {
   const { t } = useTranslation();
   const [showIgnored, setShowIgnored] = useState(false);
   const [dirs, setDirs] = useState<Map<string, Dir>>(new Map());
@@ -162,6 +164,14 @@ export function FilesView({ repo, snapshot, rev, revOptions, onRev }: Props) {
     },
     [repo, rev, selected, reveal, t],
   );
+
+  useEffect(() => {
+    if (!openRequest) return;
+    if (selected && selected !== openRequest.path) setHistory((h) => [...h.slice(-49), selected]);
+    void reveal(openRequest.path, false);
+    // Only for a new request, not when `reveal` changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openRequest]);
 
   const back = useCallback(() => {
     const prev = history[history.length - 1];

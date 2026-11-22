@@ -259,6 +259,9 @@ impl Module for GitModule {
             STAT_PATHS => handle_with(params, |p: StatPathsParams| {
                 self.repo(&p.repo)?.stat_paths(p.rev.as_deref(), &p.paths)
             }),
+            LIST_FILES => handle_with(params, |p: TreeParams| {
+                self.repo(&p.repo)?.list_files(p.rev.as_deref())
+            }),
             READ_BYTES => handle_with(params, |p: ReadFileParams| {
                 self.repo(&p.repo)?.read_bytes(p.rev.as_deref(), &p.path)
             }),

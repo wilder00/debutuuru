@@ -8,6 +8,7 @@ import { git, GIT_CHANGED } from "./api";
 import { ChangesPanel, type FileSelection } from "./ChangesPanel";
 import { CommitGraph } from "./CommitGraph";
 import { RemoteBar } from "./RemoteBar";
+import { useBus } from "../../lib/bus";
 import { ErrorBoundary } from "../../lib/ErrorBoundary";
 import { useSettings } from "../../settings/SettingsProvider";
 import { Sidebar } from "./Sidebar";
@@ -132,6 +133,16 @@ export function GitView({ repo, active, refreshKey, onError, onOpen, onLoaded }:
     [reload, onError],
   );
 
+  // Command palette: open a file in Files, switch views, check out a branch.
+  const [openRequest, setOpenRequest] = useState<{ path: string; n: number } | null>(null);
+  useBus("open-file", repo, (e) => {
+    setFilesRev(null);
+    setView("files");
+    setOpenRequest({ path: e.path, n: Date.now() });
+  });
+  useBus("show-view", repo, (e) => setView(e.view));
+  useBus("checkout", repo, (e) => void act(() => git.checkout(repo, { branch: e.branch })));
+
   if (!snapshot) {
     return (
       <div className="empty" hidden={!active}>
@@ -161,7 +172,7 @@ export function GitView({ repo, active, refreshKey, onError, onOpen, onLoaded }:
         {filesOpened && (
           <div className="view-pane" hidden={view !== "files"}>
             <Suspense fallback={<div className="empty">{t("common.loading")}</div>}>
-              <FilesView repo={repo} snapshot={snapshot} rev={filesRev} revOptions={revOptions(log, [filesRev, commit])} onRev={setFilesRev} />
+              <FilesView repo={repo} snapshot={snapshot} rev={filesRev} revOptions={revOptions(log, [filesRev, commit])} onRev={setFilesRev} openRequest={openRequest} />
             </Suspense>
           </div>
         )}

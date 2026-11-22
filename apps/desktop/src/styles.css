@@ -446,3 +446,20 @@ select { height: 28px; background: var(--bg-raised); border: 1px solid var(--bor
 .syn-constant { color: var(--syn-constant); } .syn-function { color: var(--syn-function); } .syn-type { color: var(--syn-type); }
 .syn-property { color: var(--syn-property); } .syn-comment { color: var(--syn-comment); font-style: italic; } .syn-meta { color: var(--text-muted); }
 .syn-inserted { color: var(--ok); } .syn-deleted { color: var(--danger); }
+
+/* Quick open / command palette (shell/Palette.tsx), at the top like VS Code. */
+.palette-backdrop { position: fixed; inset: 0; z-index: 40; display: flex; justify-content: center; align-items: flex-start; padding-top: 64px; background: rgb(0 0 0 / .25); }
+.palette { width: min(640px, calc(100vw - 48px)); display: flex; flex-direction: column; max-height: min(520px, calc(100vh - 120px)); border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--bg-solid); box-shadow: var(--shadow); overflow: hidden; }
+.palette-title { padding: 8px 12px 0; font-size: .85em; color: var(--text-muted); }
+.palette > input { margin: 8px; height: 34px; font-size: 1.05em; }
+.palette-list { flex: 1; min-height: 0; overflow: auto; padding: 0 6px 6px; }
+.palette-row { display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 8px; border-radius: var(--radius); cursor: pointer; white-space: nowrap; }
+.palette-row.on { background: var(--accent-soft); }
+.palette-icon { flex: none; display: inline-flex; color: var(--text-muted); }
+.palette-label { flex: none; max-width: 60%; overflow: hidden; text-overflow: ellipsis; color: var(--text); }
+.palette-detail { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; color: var(--text-faint); font-size: .9em; }
+.palette-row mark { background: none; color: var(--accent); font-weight: 600; }
+.palette-row kbd { margin-left: auto; padding: 0 6px; border: 1px solid var(--border); border-radius: 4px; font: .8em var(--font-mono); color: var(--text-muted); background: var(--bg-raised); }
+.palette-more { margin-left: auto; color: var(--text-faint); }
+.palette-empty { display: flex; justify-content: center; padding: 14px; color: var(--text-muted); }
+.palette-hint { padding: 6px 12px; border-top: 1px solid var(--border-subtle); font-size: .82em; }

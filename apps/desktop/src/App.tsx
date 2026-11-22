@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import type { Hello } from "./bindings/Hello";
 import type { Snapshot } from "./bindings/Snapshot";
+import { emit } from "./lib/bus";
 import { AgentError, agentHello, initialPath, onOpenRepo, resolvePath } from "./lib/rpc";
 import { checkForUpdate } from "./lib/updater";
 import { GitView } from "./modules/git/GitView";
@@ -11,6 +12,8 @@ import { AppearancePanel } from "./settings/AppearancePanel";
 import { BackgroundLayer } from "./settings/BackgroundLayer";
 import { useSettings } from "./settings/SettingsProvider";
 import { ActivityBar } from "./shell/ActivityBar";
+import { useCommands } from "./shell/commands";
+import { Palette } from "./shell/Palette";
 import { StatusBar } from "./shell/StatusBar";
 import { TabBar } from "./shell/TabBar";
 import { TitleBar } from "./shell/TitleBar";
@@ -23,6 +26,8 @@ export function App() {
   const [agent, setAgent] = useState<Hello | null>(null);
   const [appearanceOpen, setAppearanceOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  /** Open palette and its starting text ("" files, ">" commands). */
+  const [palette, setPalette] = useState<string | null>(null);
   const repos = session.open_repos;
   const active = session.active;
 
@@ -84,7 +89,13 @@ export function App() {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "F5") {
+      // Ctrl+P / Ctrl+Shift+P (Cmd on macOS), like VS Code. Also stops
+      // WebView2's own Ctrl+P (print).
+      if ((e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() === "p") {
+        e.preventDefault();
+        e.stopPropagation();
+        setPalette(e.shiftKey ? ">" : "");
+      } else if (e.key === "F5") {
         e.preventDefault();
         setRefreshKey((k) => k + 1);
       } else if (e.key === "," && e.ctrlKey) {
@@ -95,8 +106,9 @@ export function App() {
         close(sessionRef.current.active);
       }
     };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    // Capture phase: works while the code viewer or an input has focus.
+    window.addEventListener("keydown", onKey, true);
+    return () => window.removeEventListener("keydown", onKey, true);
   }, [close]);
 
   const onError = useCallback((e: unknown) => setError(e instanceof AgentError ? e.message : String(e)), []);
@@ -107,6 +119,23 @@ export function App() {
 
   const snapshot = active ? (snapshots[active] ?? null) : null;
   const banner = error ?? notice;
+  const commands = useCommands({
+    repos,
+    active,
+    snapshot,
+    openPalette: setPalette,
+    openSettings: () => setAppearanceOpen(true),
+    refresh: () => setRefreshKey((k) => k + 1),
+    closeTab: close,
+    selectTab: (r) => updateSession({ ...sessionRef.current, active: r }),
+    focusRepoInput: () => {
+      const input = document.querySelector<HTMLInputElement>(".repo-picker input");
+      input?.focus();
+      input?.select();
+    },
+  });
+  const closePalette = useCallback(() => setPalette(null), []);
+  const openFile = useCallback((path: string) => active && emit("open-file", { repo: active, path }), [active]);
   return (
     <>
       <BackgroundLayer />
@@ -135,6 +164,9 @@ export function App() {
       </div>
       {appearanceOpen && <AppearancePanel onClose={() => setAppearanceOpen(false)} />}
       <PromptDialog />
+      {palette !== null && (
+        <Palette key={palette} initial={palette} repo={active} commands={commands} onOpenFile={openFile} onClose={closePalette} />
+      )}
     </>
   );
 }
@@ -151,6 +183,7 @@ function Welcome() {
         </p>
         <code className="mono">debutuuru .</code>
         <p className="hint">{t("app.welcomeShortcuts")}</p>
+        <p className="hint">{t("app.welcomePalette")}</p>
       </div>
     </div>
   );

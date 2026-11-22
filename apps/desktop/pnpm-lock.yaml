@@ -53,6 +53,9 @@ importers:
       '@tauri-apps/plugin-updater':
         specifier: 2.14.1
         version: 2.14.1
+      fuzzysort:
+        specifier: 4.0.2
+        version: 4.0.2
       i18next:
         specifier: 27.2.2
         version: 27.2.2(typescript@7.0.2)
@@ -1090,6 +1093,9 @@ packages:
     resolution: {integrity: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==}
     engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
     os: [darwin]
+
+  fuzzysort@4.0.2:
+    resolution: {integrity: sha512-3c7yD6rK1EXIsqpcu1ZVzXJugODWNMzvUij6yTiziaAHrpNS8kzFOI9mJLE8pmG4K9JOaVgzQRgklfOEk8f4Tg==}
 
   hachure-fill@0.5.2:
     resolution: {integrity: sha512-3GKBOn+m2LX9iq+JC1064cSFprJY4jL1jCXTcpnfER5HYE2l/4EfWSGzkPa/ZDBmYI0ZOEj5VHV/eKnPGkHuOg==}
@@ -2756,6 +2762,8 @@ snapshots:
 
   fsevents@2.3.3:
     optional: true
+
+  fuzzysort@4.0.2: {}
 
   hachure-fill@0.5.2: {}
 
