@@ -256,6 +256,13 @@ impl Module for GitModule {
             READ_FILE => handle_with(params, |p: ReadFileParams| {
                 self.repo(&p.repo)?.read_file(p.rev.as_deref(), &p.path)
             }),
+            COMMIT_DETAILS => handle_with(params, |p: RevParams| {
+                self.repo(&p.repo)?.commit_details(&p.rev)
+            }),
+            FILE_VERSIONS => handle_with(params, |p: FileVersionsParams| {
+                self.repo(&p.repo)?
+                    .file_versions(&p.source, &p.path, p.orig_path.as_deref())
+            }),
             WATCH => handle_with(params, |p: RepoParams| self.watch(p.repo)),
             UNWATCH => handle_with(params, |p: RepoParams| {
                 self.unwatch(&p.repo);

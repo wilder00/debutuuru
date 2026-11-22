@@ -187,6 +187,18 @@ means adding a module, not a new transport.
   binaries by NUL bytes, never follows symlinks, and refuses paths outside
   the repo. The viewer is CodeMirror 6, read-only, lazy-loaded (only renders
   visible lines; languages load on demand) and colored with `--syn-*` tokens.
+- Diffs: the agent returns data, not diff text. `git.commit_details` gives a
+  commit's message and its files against the first parent (`diff-tree -M`,
+  name-status + numstat, so renames and binaries are known), and
+  `git.file_versions` gives both sides of one file for a commit, staged
+  (HEAD → index), unstaged (index → disk) or untracked change, with
+  `read_file`'s limits. The UI draws them with `@codemirror/merge`: unified,
+  split or whole file, word-level highlights, syntax colors, wrapping,
+  unchanged runs folded to N context lines, Alt+↑/↓ between changes, and
+  "ignore whitespace" as a line diff of whitespace-stripped lines (like
+  `git diff -w`). Options live in `Settings.diff`. When one side is all LF and
+  the other all CRLF (`core.autocrlf` checkouts), lines are compared without
+  their endings.
 - Languages: English (source and fallback), Spanish, Japanese and Korean, with
   i18next + react-i18next. Texts live in `src/i18n/locales/<lang>.json`
   (i18next JSON v4: plural keys follow each language's CLDR categories, and

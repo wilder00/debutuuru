@@ -7,13 +7,16 @@ import { AGENT_DISCONNECTED, agentPathToRepo, onAgentEvent, wslDistro } from "..
 import { git, GIT_CHANGED } from "./api";
 import { ChangesPanel, type FileSelection } from "./ChangesPanel";
 import { CommitGraph } from "./CommitGraph";
-import { DiffView } from "./DiffView";
 import { RemoteBar } from "./RemoteBar";
+import { ErrorBoundary } from "../../lib/ErrorBoundary";
 import { useSettings } from "../../settings/SettingsProvider";
 import { Sidebar } from "./Sidebar";
 
 // Code viewer (CodeMirror) is only downloaded when Files is first opened.
 const FilesView = lazy(() => import("./FilesView").then((m) => ({ default: m.FilesView })));
+// Same for the diff viewer (CodeMirror merge), loaded when a diff is first opened.
+const FileDiffPanel = lazy(() => import("./FileDiffPanel").then((m) => ({ default: m.FileDiffPanel })));
+const CommitPanel = lazy(() => import("./CommitPanel").then((m) => ({ default: m.CommitPanel })));
 
 const LOG_LIMIT = 2000; // paginated loading comes with a later phase
 
@@ -35,7 +38,6 @@ export function GitView({ repo, active, refreshKey, onError, onOpen, onLoaded }:
   const [log, setLog] = useState<LogEntry[]>([]);
   const [commit, setCommit] = useState<string | null>(null);
   const [file, setFile] = useState<FileSelection | null>(null);
-  const [diff, setDiff] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [view, setView] = useState<"history" | "files">("history");
   /** Commit browsed in Files; null = working tree. */
@@ -102,17 +104,6 @@ export function GitView({ repo, active, refreshKey, onError, onOpen, onLoaded }:
     return () => void un.then((f) => f());
   }, [repo, reload, onError]);
 
-  // Load the diff for the selected file, again after every reload (the file
-  // may have been edited while it's open).
-  useEffect(() => {
-    if (!file) return;
-    const untracked = file.file.worktree === "?";
-    git
-      .diff(repo, { path: file.file.path, staged: file.staged, untracked: untracked && !file.staged })
-      .then(setDiff)
-      .catch((e) => setDiff(String(e)));
-  }, [repo, file, snapshot]);
-
   // Keep the selected file in sync with the latest status (it may move
   // between staged/unstaged or disappear after a commit).
   useEffect(() => {
@@ -150,7 +141,7 @@ export function GitView({ repo, active, refreshKey, onError, onOpen, onLoaded }:
   }
 
   return (
-    <div className={"git-view" + (file && view === "history" ? " with-diff" : "")} hidden={!active}>
+    <div className={"git-view" + ((file || commit) && view === "history" ? " with-diff" : "")} hidden={!active}>
       <Sidebar
         snapshot={snapshot}
         onCheckout={(branch) => act(() => git.checkout(repo, { branch }))}
@@ -178,31 +169,38 @@ export function GitView({ repo, active, refreshKey, onError, onOpen, onLoaded }:
           <CommitGraph
             log={log}
             selected={commit}
-            onSelect={setCommit}
+            onSelect={(hash) => {
+              setFile(null);
+              setCommit(hash);
+            }}
             onOpen={(hash) => {
               setFilesRev(hash);
               setView("files");
             }}
           />
         </div>
+        <ErrorBoundary resetKey={file?.file.path ?? commit}>
+        <Suspense fallback={<div className="empty">{t("common.loading")}</div>}>
         {view === "history" && file && (
-          <DiffView
+          <FileDiffPanel
+            repo={repo}
+            source={file.staged ? { kind: "staged" } : file.file.worktree === "?" ? { kind: "untracked" } : { kind: "unstaged" }}
             path={file.file.path}
-            staged={file.staged}
-            diff={diff}
-            onClose={() => {
-              setFile(null);
-              setDiff(null);
-            }}
+            origPath={file.staged ? file.file.orig_path : null}
+            reloadKey={snapshot}
+            onClose={() => setFile(null)}
           />
         )}
+        {view === "history" && !file && commit && <CommitPanel repo={repo} hash={commit} onClose={() => setCommit(null)} />}
+        </Suspense>
+        </ErrorBoundary>
       </div>
       <ChangesPanel
         repo={repo}
         status={snapshot.status}
         selected={file}
         onSelect={(s) => {
-          setDiff(null);
+          setCommit(null);
           setFile(s);
           setView("history");
         }}

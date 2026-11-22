@@ -184,7 +184,30 @@
       "staged": "스테이징됨",
       "workingTree": "작업 트리",
       "close": "차이 닫기",
-      "noTextChanges": "텍스트 변경 사항 없음(바이너리 파일 또는 모드 변경)"
+      "noTextChanges": "텍스트 변경 사항 없음(바이너리 파일 또는 모드 변경)",
+      "binary": "바이너리 파일이므로 표시하지 않습니다(변경 전: {{old}}, 변경 후: {{new}})",
+      "symlink": "심볼릭 링크: {{old}} → {{new}}",
+      "truncated": "큰 파일: 각 버전의 처음 2MB만 비교합니다.",
+      "onlyLineEndings": "줄 끝 문자(CRLF / LF)만 변경되었습니다",
+      "layout": "차이 표시 형식",
+      "layouts": {
+        "unified": "통합",
+        "split": "나란히",
+        "file": "전체 파일"
+      },
+      "contextTitle": "각 변경 사항 주변에 표시할 변경되지 않은 줄 수",
+      "words": "단어",
+      "wordsTitle": "줄 안에서 바뀐 단어 강조 표시",
+      "whitespace": "공백 무시",
+      "whitespaceTitle": "공백을 추가, 제거 또는 이동하기만 한 변경 사항 숨기기",
+      "syntax": "구문",
+      "syntaxTitle": "구문 강조 색",
+      "wrap": "줄 바꿈",
+      "wrapTitle": "긴 줄 바꿈",
+      "previous": "이전 변경 사항 (Alt+↑)",
+      "next": "다음 변경 사항 (Alt+↓)",
+      "options": "표시 옵션",
+      "contextLines_other": "{{count}}줄"
     },
     "filesView": {
       "revision": "표시할 파일 버전",
@@ -260,6 +283,13 @@
       "trust": "신뢰하고 계속",
       "notStored": "이 git 프로세스에만 전송됩니다. Debutuuru는 절대 저장하지 않습니다.",
       "continue": "계속"
+    },
+    "commitPanel": {
+      "copyHash": "커밋의 전체 해시 복사",
+      "merge": "병합: 첫 번째 부모({{parent}})와 비교한 변경 사항",
+      "files_other": "파일 {{count}}개",
+      "noFiles": "이 커밋에서 변경된 파일이 없습니다",
+      "binary": "바이너리"
     }
   },
   "time": {
@@ -283,6 +313,7 @@
     "go": "이동",
     "replaced $ matches": "일치 항목 $개를 바꿨습니다",
     "replaced match on line $": "$번 줄의 일치 항목을 바꿨습니다",
-    "Control character": "제어 문자"
+    "Control character": "제어 문자",
+    "$ unchanged lines": "변경되지 않은 줄 $개"
   }
 }

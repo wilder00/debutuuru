@@ -3,6 +3,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { Appearance } from "../bindings/Appearance";
+import type { DiffSettings } from "../bindings/DiffSettings";
 import type { GitSettings } from "../bindings/GitSettings";
 import type { LoadedSettings } from "../bindings/LoadedSettings";
 import type { Session } from "../bindings/Session";
@@ -21,6 +22,7 @@ type Ctx = {
   updates: UpdateSettings;
   /** Saved UI language; `null` follows the system. */
   language: string | null;
+  diff: DiffSettings;
   backgroundPath: string | null;
   readOnly: boolean;
   notice: string | null;
@@ -30,6 +32,7 @@ type Ctx = {
   updateGit: (patch: Partial<GitSettings>) => void;
   updateUpdates: (patch: Partial<UpdateSettings>) => void;
   updateLanguage: (language: string | null) => void;
+  updateDiff: (patch: Partial<DiffSettings>) => void;
   setBackground: (bg: Appearance["background"], path: string | null) => void;
   dismissNotice: () => void;
 };
@@ -52,6 +55,7 @@ export const DEFAULT_SETTINGS: Settings = {
   git: { windows_ssh: "system", wsl_distro: null },
   updates: { check_on_start: true },
   language: null,
+  diff: { layout: "unified", word_highlight: true, ignore_whitespace: false, context_lines: 3, syntax_highlight: true, wrap_lines: false },
 };
 
 /** Font names come from the user; keep only characters valid in a family name. */
@@ -127,6 +131,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     [change],
   );
   const updateLanguage = useCallback((language: string | null) => change((s) => ({ ...s, language })), [change]);
+  const updateDiff = useCallback((patch: Partial<DiffSettings>) => change((s) => ({ ...s, diff: { ...s.diff, ...patch } })), [change]);
   const setBackground = useCallback(
     (bg: Appearance["background"], path: string | null) => {
       setBackgroundPath(path);
@@ -142,6 +147,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     git: settings.git,
     updates: settings.updates,
     language: settings.language,
+    diff: settings.diff,
     backgroundPath,
     readOnly,
     notice,
@@ -151,6 +157,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     updateGit,
     updateUpdates,
     updateLanguage,
+    updateDiff,
     setBackground,
     dismissNotice: () => setNotice(null),
   };

@@ -1,6 +1,7 @@
 //! `git.*` methods. Every request names the repository by its path *as seen by
 //! the agent* (a Linux path for a WSL agent); the desktop app translates.
 
+use debutuuru_core::changes::DiffSource;
 use debutuuru_core::repo::{Branch, Remote, RepoInfo, Status, Worktree};
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
@@ -11,7 +12,9 @@ pub const MODULE: &str = "git";
 ///    `remotes` in [`Snapshot`].
 /// 4: file browsing: `git.tree` and `git.read_file`.
 /// 5: [`OpOutcome::message`], so UIs can word (and translate) the summary.
-pub const MODULE_VERSION: u32 = 5;
+/// 6: commit changes and diffs of any kind: `git.commit_details` and
+///    `git.file_versions`.
+pub const MODULE_VERSION: u32 = 6;
 
 /// [`RepoParams`] → [`Snapshot`]
 pub const SNAPSHOT: &str = "git.snapshot";
@@ -31,6 +34,12 @@ pub const DIFF: &str = "git.diff";
 pub const TREE: &str = "git.tree";
 /// [`ReadFileParams`] → [`FileContent`]
 pub const READ_FILE: &str = "git.read_file";
+/// [`RevParams`] → [`debutuuru_core::changes::CommitDetails`]: message, author
+/// and the files changed against the first parent.
+pub const COMMIT_DETAILS: &str = "git.commit_details";
+/// [`FileVersionsParams`] → [`debutuuru_core::changes::FileVersions`]: both
+/// sides of a file, so the UI draws any diff view itself.
+pub const FILE_VERSIONS: &str = "git.file_versions";
 /// [`RepoParams`] → `null`. Starts emitting [`CHANGED`] for this repo (idempotent).
 pub const WATCH: &str = "git.watch";
 /// [`RepoParams`] → `null`
@@ -104,6 +113,26 @@ pub struct DiffParams {
     pub path: String,
     pub staged: bool,
     pub untracked: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct RevParams {
+    pub repo: String,
+    /// Any revision git understands (a hash, `HEAD~2`…).
+    pub rev: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct FileVersionsParams {
+    pub repo: String,
+    pub source: DiffSource,
+    pub path: String,
+    /// Old name of a renamed or copied file.
+    #[serde(default)]
+    #[ts(optional)]
+    pub orig_path: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]

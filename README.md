@@ -20,6 +20,10 @@ runner, GitHub/GitLab integration, containers and more.
 - **Files**: browse the file tree and read any file (syntax highlighting,
   search), as it is now with changes marked, or at any commit (double-click it
   in History). Ignored files are hidden unless you ask for them.
+- **Diffs**: click a commit to see the files it changed and their diffs; the
+  same viewer shows staged and unstaged changes. Unified, side by side or the
+  whole file, with changed words highlighted, syntax colors, ignore
+  whitespace and adjustable context.
 - **Updates**: the app tells you when a new version is out and installs it
   with one click (signed, verified before installing).
 - **Languages**: English, Spanish, Japanese and Korean. It follows your

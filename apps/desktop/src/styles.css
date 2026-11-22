@@ -32,12 +32,11 @@ body {
   -webkit-font-smoothing: antialiased;
   user-select: none;
 }
-input, textarea, .diff-body, .label, .subject { user-select: text; }
+input, textarea, .label, .subject { user-select: text; }
 /* Messages people copy into bug reports or chats: results, git output, prompts. */
 .op-result-body, .op-log, .prompt-text, .modal .hint { user-select: text; cursor: text; }
 .op-result-body button { cursor: pointer; }
-.mono, code, .diff-body { font-family: var(--font-mono); font-size: .92em; }
-.diff-body { font-variant-ligatures: var(--code-ligatures); }
+.mono, code { font-family: var(--font-mono); font-size: .92em; }
 h1, h2, h3 { margin: 0; font-weight: 600; }
 ::selection { background: var(--accent-soft); }
 
@@ -189,17 +188,32 @@ ul { list-style: none; margin: 0; padding: 0; }
 .diff { flex: 1; display: flex; flex-direction: column; min-height: 0; border-top: 1px solid var(--border); }
 .diff-head { display: flex; align-items: center; gap: 10px; height: 34px; padding: 0 6px 0 12px; border-bottom: 1px solid var(--border-subtle); }
 .diff-head .path { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.diff-body { flex: 1; overflow: auto; padding: 4px 0; line-height: 1.55; }
-.dl { display: grid; grid-template-columns: 48px 48px 18px auto; white-space: pre; min-width: max-content; }
-.dl .ln { padding-right: 8px; text-align: right; color: var(--text-faint); user-select: none; }
-.dl .sign { text-align: center; user-select: none; }
-.dl-add { background: color-mix(in srgb, var(--ok) 12%, transparent); }
-.dl-add .sign, .dl-add .code { color: color-mix(in srgb, var(--ok) 55%, var(--text)); }
-.dl-del { background: color-mix(in srgb, var(--danger) 12%, transparent); }
-.dl-del .sign, .dl-del .code { color: color-mix(in srgb, var(--danger) 55%, var(--text)); }
-.dl-hunk { color: var(--info); background: color-mix(in srgb, var(--info) 8%, transparent); margin: 4px 0; }
-.dl-hunk .code { grid-column: 1 / -1; padding: 2px 12px; }
-.dl-hunk .ln, .dl-hunk .sign { display: none; }
+/* Diff viewer (@codemirror/merge; its colors are in modules/git/codemirror.ts). */
+.diff-toolbar { display: flex; align-items: center; gap: 8px; padding: 5px 8px 5px 12px; border-bottom: 1px solid var(--border-subtle); }
+.diff-toolbar .segmented button { height: 24px; padding: 0 8px; font-size: .9em; white-space: nowrap; }
+.diff-toolbar .context-select { height: 28px; font-size: .9em; width: auto; }
+.diff-options { position: relative; }
+.diff-options .menu { left: auto; right: 0; min-width: 190px; }
+.diff-options .icon-btn { position: relative; }
+.diff-options .icon-btn.on { background: var(--bg-active); }
+.badge-dot { position: absolute; top: 3px; right: 3px; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+.menu-check { width: 16px; display: inline-flex; justify-content: center; color: var(--accent); }
+.diff-viewer { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+.diff-viewer > .cm-editor { flex: 1; min-height: 0; }
+.diff-viewer.split > .cm-mergeView { flex: 1; min-height: 0; overflow: auto; }
+
+/* A commit's changes: header, files on the left, the selected file's diff. */
+.commit-panel { flex: 1; display: flex; flex-direction: column; min-height: 0; border-top: 1px solid var(--border); }
+.commit-info { flex: none; padding: 8px 8px 8px 12px; border-bottom: 1px solid var(--border-subtle); }
+.commit-title { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.commit-title .subject { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.commit-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; margin-top: 2px; }
+.commit-meta .link-btn { display: inline-flex; align-items: center; gap: 4px; font-size: 1em; }
+.commit-body { margin: 6px 0 0; max-height: 4.4em; overflow: auto; white-space: pre-wrap; font-family: var(--font-ui); color: var(--text-muted); user-select: text; }
+.commit-content { flex: 1; display: grid; grid-template-columns: minmax(180px, 280px) minmax(0, 1fr); min-height: 0; }
+.commit-files { overflow: auto; padding: 4px; border-right: 1px solid var(--border-subtle); }
+.commit-content .diff { border-top: 0; }
+.file-stat { flex: none; font-size: .82em; white-space: nowrap; }
 
 /* Changes panel */
 .changes { display: flex; flex-direction: column; min-height: 0; border-left: 1px solid var(--border-subtle); }
@@ -368,7 +382,7 @@ select { height: 28px; background: var(--bg-raised); border: 1px solid var(--bor
 .code-viewer { flex: 1; min-height: 0; overflow: hidden; }
 @media (prefers-reduced-motion: reduce) { .chev { transition: none; } }
 .view-pane { flex: 1; display: flex; flex-direction: column; min-height: 0; }
-.git-view.with-diff .view-pane { flex: 0 0 45%; }
+.git-view.with-diff .view-pane { flex: 0 0 38%; }
 
 /* Updates */
 .statusbar-update {

@@ -183,7 +183,7 @@ impl Repo {
             .collect())
     }
 
-    fn read_at(&self, rev: &str, path: &str) -> Result<FileContent> {
+    pub(crate) fn read_at(&self, rev: &str, path: &str) -> Result<FileContent> {
         let spec = format!("{rev}:{path}");
         let size: u64 = self
             .runner()
@@ -200,7 +200,7 @@ impl Repo {
         Ok(content(path, size, out.stdout, None))
     }
 
-    fn read_on_disk(&self, path: &str) -> Result<FileContent> {
+    pub(crate) fn read_on_disk(&self, path: &str) -> Result<FileContent> {
         let full = self.inside_root(path)?;
         let meta = std::fs::symlink_metadata(&full).map_err(io_err)?;
         if meta.file_type().is_symlink() {
@@ -262,7 +262,7 @@ fn content(path: &str, size: u64, mut bytes: Vec<u8>, link_target: Option<String
 }
 
 /// A repo-relative path with `/` separators; no `..`, no absolute paths.
-fn clean_rel(p: &str) -> Result<String> {
+pub(crate) fn clean_rel(p: &str) -> Result<String> {
     let p = p.replace('\\', "/");
     let p = p.trim_matches('/');
     let mut parts = Vec::new();
@@ -281,7 +281,7 @@ fn clean_rel(p: &str) -> Result<String> {
 }
 
 /// A revision for `ls-tree`/`cat-file`: never an option.
-fn check_rev(rev: &str) -> Result<&str> {
+pub(crate) fn check_rev(rev: &str) -> Result<&str> {
     if rev.is_empty() || rev.starts_with('-') || rev.contains(['\0', '\n']) {
         return Err(Error::InvalidPath(format!("invalid revision: {rev}")));
     }

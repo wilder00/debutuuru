@@ -3,7 +3,6 @@
 import { rpc, type Params } from "../../lib/rpc";
 import type { CheckoutParams } from "../../bindings/CheckoutParams";
 import type { CommitParams } from "../../bindings/CommitParams";
-import type { DiffParams } from "../../bindings/DiffParams";
 import type { FetchParams } from "../../bindings/FetchParams";
 import type { OpOutcome } from "../../bindings/OpOutcome";
 import type { PullParams } from "../../bindings/PullParams";
@@ -16,6 +15,10 @@ import type { FileContent } from "../../bindings/FileContent";
 import type { ReadFileParams } from "../../bindings/ReadFileParams";
 import type { TreeEntry } from "../../bindings/TreeEntry";
 import type { TreeParams } from "../../bindings/TreeParams";
+import type { CommitDetails } from "../../bindings/CommitDetails";
+import type { FileVersions } from "../../bindings/FileVersions";
+import type { FileVersionsParams } from "../../bindings/FileVersionsParams";
+import type { RevParams } from "../../bindings/RevParams";
 
 export const git = {
   snapshot: (repo: string) => rpc<Snapshot>(repo, "git.snapshot"),
@@ -24,10 +27,13 @@ export const git = {
   unstage: (repo: string, p: Params<PathsParams>) => rpc<null>(repo, "git.unstage", p),
   commit: (repo: string, p: Params<CommitParams>) => rpc<string>(repo, "git.commit", p),
   checkout: (repo: string, p: Params<CheckoutParams>) => rpc<null>(repo, "git.checkout", p),
-  diff: (repo: string, p: Params<DiffParams>) => rpc<string>(repo, "git.diff", p),
   /** One folder level; `rev` omitted = working tree. */
   tree: (repo: string, p: Params<TreeParams>) => rpc<TreeEntry[]>(repo, "git.tree", p),
   readFile: (repo: string, p: Params<ReadFileParams>) => rpc<FileContent>(repo, "git.read_file", p),
+  /** Message, author and the files changed against the first parent. */
+  commitDetails: (repo: string, p: Params<RevParams>) => rpc<CommitDetails>(repo, "git.commit_details", p),
+  /** Both versions of a file (unstaged, staged, untracked or in a commit). */
+  fileVersions: (repo: string, p: Params<FileVersionsParams>) => rpc<FileVersions>(repo, "git.file_versions", p),
   /** Idempotent: the agent emits `git.changed` for this repo until unwatched. */
   watch: (repo: string) => rpc<null>(repo, "git.watch"),
   unwatch: (repo: string) => rpc<null>(repo, "git.unwatch"),

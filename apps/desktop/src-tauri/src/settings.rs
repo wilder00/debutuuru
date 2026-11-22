@@ -31,6 +31,51 @@ pub struct Settings {
     /// UI language as a BCP 47 tag (`"es"`, `"ja"`…); `None` follows the
     /// system language. Added without a schema bump.
     pub language: Option<String>,
+    /// How diffs are shown. Added without a schema bump.
+    pub diff: DiffSettings,
+}
+
+/// Diff viewer preferences, shared by commits, staged and unstaged changes.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(default)]
+#[ts(export)]
+pub struct DiffSettings {
+    pub layout: DiffLayout,
+    /// Mark the words that changed inside a line.
+    pub word_highlight: bool,
+    /// Hide changes that only add, remove or move whitespace.
+    pub ignore_whitespace: bool,
+    /// Unchanged lines kept around each change (unified and split; the rest
+    /// folds and opens with a click).
+    pub context_lines: u32,
+    pub syntax_highlight: bool,
+    pub wrap_lines: bool,
+}
+
+impl Default for DiffSettings {
+    fn default() -> Self {
+        Self {
+            layout: DiffLayout::Unified,
+            word_highlight: true,
+            ignore_whitespace: false,
+            context_lines: 3,
+            syntax_highlight: true,
+            wrap_lines: false,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export)]
+pub enum DiffLayout {
+    /// One column, removed and added lines interleaved.
+    #[default]
+    Unified,
+    /// Old version left, new version right.
+    Split,
+    /// The whole file with the changes marked.
+    File,
 }
 
 /// App updates (signed installers from the GitHub releases).
@@ -147,6 +192,7 @@ impl Default for Settings {
             git: GitSettings::default(),
             updates: UpdateSettings::default(),
             language: None,
+            diff: DiffSettings::default(),
         }
     }
 }
@@ -239,6 +285,7 @@ impl Settings {
         }) {
             self.language = None;
         }
+        self.diff.context_lines = self.diff.context_lines.clamp(1, 100);
         self.schema_version = SCHEMA_VERSION;
         self
     }
@@ -494,6 +541,24 @@ mod tests {
         )
         .unwrap();
         assert_eq!(store.load().settings.language, None);
+    }
+
+    #[test]
+    fn diff_settings_default_and_clamp() {
+        let d = tmp("diff");
+        let store = Store::new(&d, &d);
+        std::fs::write(&store.file, r#"{"schema_version": 1}"#).unwrap();
+        assert_eq!(store.load().settings.diff, DiffSettings::default());
+
+        std::fs::write(
+            &store.file,
+            r#"{"schema_version": 1, "diff": {"layout": "split", "context_lines": 5000}}"#,
+        )
+        .unwrap();
+        let diff = store.load().settings.diff;
+        assert_eq!(diff.layout, DiffLayout::Split);
+        assert_eq!(diff.context_lines, 100);
+        assert!(diff.word_highlight);
     }
 
     #[test]

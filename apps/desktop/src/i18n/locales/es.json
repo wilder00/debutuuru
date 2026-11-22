@@ -186,7 +186,32 @@
       "staged": "preparado",
       "workingTree": "directorio de trabajo",
       "close": "Cerrar diff",
-      "noTextChanges": "Sin cambios de texto (archivo binario o cambio de permisos)"
+      "noTextChanges": "Sin cambios de texto (archivo binario o cambio de permisos)",
+      "binary": "Archivo binario, no se muestra (antes: {{old}}, después: {{new}})",
+      "symlink": "Enlace simbólico: {{old}} → {{new}}",
+      "truncated": "Archivo grande: solo se comparan los primeros 2 MB de cada versión.",
+      "onlyLineEndings": "Solo cambiaron los finales de línea (CRLF / LF)",
+      "layout": "Formato del diff",
+      "layouts": {
+        "unified": "Unificado",
+        "split": "Lado a lado",
+        "file": "Archivo completo"
+      },
+      "contextTitle": "Líneas sin cambios que se muestran alrededor de cada cambio",
+      "words": "Palabras",
+      "wordsTitle": "Resaltar las palabras que cambiaron dentro de una línea",
+      "whitespace": "Ignorar espacios",
+      "whitespaceTitle": "Ocultar los cambios que solo añaden, quitan o mueven espacios",
+      "syntax": "Sintaxis",
+      "syntaxTitle": "Colores de sintaxis",
+      "wrap": "Ajustar",
+      "wrapTitle": "Ajustar las líneas largas",
+      "previous": "Cambio anterior (Alt+↑)",
+      "next": "Cambio siguiente (Alt+↓)",
+      "options": "Opciones de visualización",
+      "contextLines_one": "{{count}} línea",
+      "contextLines_many": "{{count}} líneas",
+      "contextLines_other": "{{count}} líneas"
     },
     "filesView": {
       "revision": "Qué versión de los archivos mostrar",
@@ -262,6 +287,15 @@
       "trust": "Confiar y continuar",
       "notStored": "Se envía solo a este proceso de git. Debutuuru nunca la guarda.",
       "continue": "Continuar"
+    },
+    "commitPanel": {
+      "copyHash": "Copiar el hash completo del commit",
+      "merge": "Merge: cambios respecto al primer padre ({{parent}})",
+      "files_one": "{{count}} archivo",
+      "files_many": "{{count}} archivos",
+      "files_other": "{{count}} archivos",
+      "noFiles": "Este commit no cambia ningún archivo",
+      "binary": "binario"
     }
   },
   "time": {
@@ -285,6 +319,7 @@
     "go": "ir",
     "replaced $ matches": "$ coincidencias reemplazadas",
     "replaced match on line $": "coincidencia reemplazada en la línea $",
-    "Control character": "Carácter de control"
+    "Control character": "Carácter de control",
+    "$ unchanged lines": "$ líneas sin cambios"
   }
 }

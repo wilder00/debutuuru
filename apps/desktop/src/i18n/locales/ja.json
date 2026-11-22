@@ -184,7 +184,30 @@
       "staged": "ステージ済み",
       "workingTree": "作業ツリー",
       "close": "差分を閉じる",
-      "noTextChanges": "テキストの変更はありません (バイナリファイルまたはモードの変更)"
+      "noTextChanges": "テキストの変更はありません (バイナリファイルまたはモードの変更)",
+      "binary": "バイナリファイルのため表示しません (変更前: {{old}}、変更後: {{new}})",
+      "symlink": "シンボリックリンク: {{old}} → {{new}}",
+      "truncated": "大きなファイルです: 各バージョンの最初の 2 MB のみを比較しています。",
+      "onlyLineEndings": "改行コード (CRLF / LF) のみが変更されています",
+      "layout": "差分の表示形式",
+      "layouts": {
+        "unified": "統合",
+        "split": "左右に並べる",
+        "file": "ファイル全体"
+      },
+      "contextTitle": "各変更の前後に表示する、変更のない行の数",
+      "words": "単語",
+      "wordsTitle": "行内で変更された単語を強調表示",
+      "whitespace": "空白を無視",
+      "whitespaceTitle": "空白の追加・削除・移動だけの変更を非表示にする",
+      "syntax": "構文",
+      "syntaxTitle": "構文の色分け",
+      "wrap": "折り返し",
+      "wrapTitle": "長い行を折り返す",
+      "previous": "前の変更 (Alt+↑)",
+      "next": "次の変更 (Alt+↓)",
+      "options": "表示オプション",
+      "contextLines_other": "{{count}} 行"
     },
     "filesView": {
       "revision": "表示するファイルのバージョン",
@@ -260,6 +283,13 @@
       "trust": "信頼して続行",
       "notStored": "この git プロセスにのみ送信されます。Debutuuru が保存することはありません。",
       "continue": "続行"
+    },
+    "commitPanel": {
+      "copyHash": "コミットの完全なハッシュをコピー",
+      "merge": "マージ: 最初の親 ({{parent}}) との差分",
+      "files_other": "{{count}} 個のファイル",
+      "noFiles": "このコミットで変更されたファイルはありません",
+      "binary": "バイナリ"
     }
   },
   "time": {
@@ -283,6 +313,7 @@
     "go": "移動",
     "replaced $ matches": "$ 件を置換しました",
     "replaced match on line $": "$ 行目の一致を置換しました",
-    "Control character": "制御文字"
+    "Control character": "制御文字",
+    "$ unchanged lines": "変更のない $ 行"
   }
 }

@@ -185,7 +185,31 @@
       "staged": "staged",
       "workingTree": "working tree",
       "close": "Close diff",
-      "noTextChanges": "No textual changes (binary file or mode change)"
+      "noTextChanges": "No textual changes (binary file or mode change)",
+      "binary": "Binary file, not shown (before: {{old}}, after: {{new}})",
+      "symlink": "Symbolic link: {{old}} → {{new}}",
+      "truncated": "Large file: only the first 2 MB of each version are compared.",
+      "onlyLineEndings": "Only the line endings changed (CRLF / LF)",
+      "layout": "Diff layout",
+      "layouts": {
+        "unified": "Unified",
+        "split": "Split",
+        "file": "Whole file"
+      },
+      "contextTitle": "Unchanged lines shown around each change",
+      "words": "Words",
+      "wordsTitle": "Highlight the words that changed inside a line",
+      "whitespace": "Ignore spaces",
+      "whitespaceTitle": "Hide changes that only add, remove or move whitespace",
+      "syntax": "Syntax",
+      "syntaxTitle": "Syntax colors",
+      "wrap": "Wrap",
+      "wrapTitle": "Wrap long lines",
+      "previous": "Previous change (Alt+↑)",
+      "next": "Next change (Alt+↓)",
+      "options": "Display options",
+      "contextLines_one": "{{count}} line",
+      "contextLines_other": "{{count}} lines"
     },
     "filesView": {
       "revision": "Which version of the files to show",
@@ -261,6 +285,14 @@
       "trust": "Trust and continue",
       "notStored": "Sent only to this git process. Debutuuru never stores it.",
       "continue": "Continue"
+    },
+    "commitPanel": {
+      "copyHash": "Copy the full commit hash",
+      "merge": "Merge: changes against the first parent ({{parent}})",
+      "files_one": "{{count}} file",
+      "files_other": "{{count}} files",
+      "noFiles": "This commit changes no files",
+      "binary": "binary"
     }
   },
   "time": {
@@ -284,6 +316,7 @@
     "go": "go",
     "replaced $ matches": "replaced $ matches",
     "replaced match on line $": "replaced match on line $",
-    "Control character": "Control character"
+    "Control character": "Control character",
+    "$ unchanged lines": "$ unchanged lines"
   }
 }
