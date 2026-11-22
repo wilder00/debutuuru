@@ -687,8 +687,11 @@ select { height: 28px; background: var(--bg-raised); border: 1px solid var(--bor
 /* Expanded diff / commit panel: it takes the whole tab; the sidebar, the
    changes, the remote bar and the history step aside until restored. */
 .git-view.expanded { grid-template-columns: minmax(0, 1fr); }
+/* A staged/unstaged file's diff keeps the changed files at its side, to
+   move between them without leaving the expanded view. */
+.git-view.expanded.keep-changes { grid-template-columns: minmax(0, 1fr) 320px; }
 .git-view.expanded > .sidebar,
-.git-view.expanded > .changes,
+.git-view.expanded:not(.keep-changes) > .changes,
 .git-view.expanded .remote-area,
 .git-view.expanded .view-tabs,
 .git-view.expanded .view-pane { display: none; }

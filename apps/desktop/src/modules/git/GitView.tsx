@@ -203,7 +203,7 @@ export function GitView({ repo, active, refreshKey, onError, onOpen, onLoaded }:
   }
 
   return (
-    <div className={"git-view" + (panelOpen ? " with-diff" : "") + (expanded ? " expanded" : "")} hidden={!active}>
+    <div className={"git-view" + (panelOpen ? " with-diff" : "") + (expanded ? " expanded" : "") + (expanded && file ? " keep-changes" : "")} hidden={!active}>
       <Sidebar
         snapshot={snapshot}
         onCheckout={(branch) => act(() => git.checkout(repo, { branch }))}
