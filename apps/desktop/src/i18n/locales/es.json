@@ -399,5 +399,11 @@
     "recent": "Recientes",
     "forget": "Quitar de recientes",
     "drop": "Suelta una carpeta para abrirla como repositorio, o un archivo para abrirlo en su repositorio"
+  },
+  "window": {
+    "minimize": "Minimizar",
+    "maximize": "Maximizar",
+    "restore": "Restaurar",
+    "close": "Cerrar"
   }
 }

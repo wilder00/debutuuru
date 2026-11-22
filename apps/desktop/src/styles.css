@@ -655,3 +655,14 @@ select { height: 28px; background: var(--bg-raised); border: 1px solid var(--bor
 /* Checked boxes glow in the louder styles. */
 [data-style="gamer"] input[type="checkbox"]:checked { box-shadow: 0 0 8px var(--accent-ring); }
 [data-style="circuit"] input[type="checkbox"]:checked { background: var(--grad); box-shadow: 0 0 8px var(--accent-ring); }
+
+/* Windows: our title bar replaces the native one (tauri.windows.conf.json),
+   so it carries the window buttons, sized like Windows' own. */
+.titlebar-drag { align-self: stretch; flex: 0 0 16px; }
+.window-controls { display: flex; align-self: stretch; margin: 0 -10px 0 4px; }
+.window-btn {
+  width: 46px; height: 100%; padding: 0; justify-content: center;
+  border: 0; border-radius: 0; background: transparent; color: var(--text-muted);
+}
+.window-btn:hover:not(:disabled) { background: var(--bg-hover); color: var(--text); border: 0; }
+.window-btn.close:hover:not(:disabled) { background: var(--danger); color: var(--bg-solid); }

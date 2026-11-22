@@ -396,5 +396,11 @@
     "recent": "Recent",
     "forget": "Remove from recent",
     "drop": "Drop a folder to open it as a repository, or a file to open it in its repository"
+  },
+  "window": {
+    "minimize": "Minimize",
+    "maximize": "Maximize",
+    "restore": "Restore",
+    "close": "Close"
   }
 }

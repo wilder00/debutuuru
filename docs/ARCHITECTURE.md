@@ -187,6 +187,17 @@ means adding a module, not a new transport.
   binaries by NUL bytes, never follows symlinks, and refuses paths outside
   the repo. The viewer is CodeMirror 6, read-only, lazy-loaded (only renders
   visible lines; languages load on demand) and colored with `--syn-*` tokens.
+- Window frame: on Windows the native title bar is off
+  (`src-tauri/tauri.windows.conf.json`, merged by Tauri only on Windows:
+  `decorations: false`, `shadow: true` for the shadow and Windows 11's
+  rounded corners). Our title bar is the drag region
+  (`data-tauri-drag-region`) and carries minimize / maximize / close
+  (`core:window:allow-minimize`, `-toggle-maximize`, `-close`,
+  `-start-dragging`). Tauri replaces arrays when merging configs, so that
+  file repeats the whole window entry: **change the window size or colors in
+  both files**. Linux keeps its window manager's title bar (Tauri has no
+  shadow for undecorated windows there). Windows 11's Snap Layouts popup on
+  the maximize button is lost; Win+Z and edge snapping still work.
 - Opening: besides the path bar and `debutuuru .`, "Open folder… / Open
   file…" (Ctrl+O) use the native dialog (`tauri-plugin-dialog`, only
   `dialog:allow-open`); on Windows "Browse in WSL (distro)…" starts it at
