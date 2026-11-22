@@ -19,7 +19,11 @@
     "pathLabel": "Ruta del repositorio",
     "linkedWorktree": "Worktree enlazado",
     "currentBranch": "Rama actual",
-    "refresh": "Actualizar (F5)"
+    "refresh": "Actualizar (F5)",
+    "hideSidebar": "Ocultar el panel izquierdo",
+    "showSidebar": "Mostrar el panel izquierdo",
+    "hideChanges": "Ocultar el panel de cambios",
+    "showChanges": "Mostrar el panel de cambios"
   },
   "tabs": {
     "label": "Repositorios abiertos",
@@ -249,7 +253,8 @@
       "contextLines_many": "{{count}} líneas",
       "contextLines_other": "{{count}} líneas",
       "expand": "Expandir a toda la ventana (Esc para restaurar)",
-      "restore": "Restaurar la vista normal (Esc)"
+      "restore": "Restaurar la vista normal (Esc)",
+      "headToWorkingTree": "HEAD → copia de trabajo"
     },
     "filesView": {
       "revision": "Qué versión de los archivos mostrar",
@@ -270,7 +275,19 @@
       "back": "Atrás (Alt+←)",
       "markdownMode": "Vista de Markdown",
       "rendered": "Renderizado",
-      "source": "Código"
+      "source": "Código",
+      "changes": {
+        "toggle": "Cambios",
+        "toggleHint": "Mostrar los cambios de este archivo en lugar de su contenido",
+        "uncommitted": "Cambios sin commit en este archivo (en stage y sin stage, juntos):",
+        "untracked": "Archivo nuevo, aún sin commit: todo su contenido es nuevo.",
+        "yourCopy": "tu copia",
+        "noHistory": "Ningún commit tiene este archivo todavía.",
+        "lastCommit": "Sin cambios pendientes. Se muestra el último commit que cambió este archivo:",
+        "thisCommit": "Cambios que hizo este commit en el archivo:",
+        "before": "Este archivo no cambió en {{rev}}. Se muestra el último commit anterior que lo cambió:",
+        "parent": "commit anterior"
+      }
     },
     "remote": {
       "starting": "Iniciando…",
@@ -453,7 +470,10 @@
       "maximizeTerminal": "Solo terminal (toda la ventana)",
       "createTag": "Crear tag…",
       "showTag": "Ir a un tag…",
-      "closeGroup": "Cerrar el grupo de esta pestaña"
+      "closeGroup": "Cerrar el grupo de esta pestaña",
+      "toggleSidebar": "Mostrar/ocultar el panel izquierdo",
+      "toggleChanges": "Mostrar/ocultar el panel de cambios",
+      "focusMode": "Enfoque: ocultar/mostrar ambos paneles laterales"
     }
   },
   "open": {

@@ -21,7 +21,8 @@ pub const MODULE: &str = "git";
 /// 9: tags: `tags` in [`Snapshot`], `git.create_tag`, `git.delete_tag`,
 ///    `git.push_tag`, and their [`OutcomeMessage`]s.
 /// 10: `git.find_repos` (open a folder of repositories).
-pub const MODULE_VERSION: u32 = 10;
+/// 11: `DiffSource::Head` and `git.last_change` (a file's changes in Files).
+pub const MODULE_VERSION: u32 = 11;
 
 /// [`RepoParams`] → [`Snapshot`]
 pub const SNAPSHOT: &str = "git.snapshot";
@@ -47,6 +48,9 @@ pub const COMMIT_DETAILS: &str = "git.commit_details";
 /// [`FileVersionsParams`] → [`debutuuru_core::changes::FileVersions`]: both
 /// sides of a file, so the UI draws any diff view itself.
 pub const FILE_VERSIONS: &str = "git.file_versions";
+/// [`ReadFileParams`] → `Option<`[`debutuuru_core::changes::LastChange`]`>`: the
+/// last commit that changed the file, at `rev` (default HEAD) or before.
+pub const LAST_CHANGE: &str = "git.last_change";
 /// [`StatPathsParams`] → `Vec<Option<EntryKind>>`, one per path: what exists.
 pub const STAT_PATHS: &str = "git.stat_paths";
 /// [`ReadFileParams`] → [`debutuuru_core::files::FileBytes`] (base64, ≤ 10 MiB).

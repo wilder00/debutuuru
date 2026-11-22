@@ -253,6 +253,11 @@ means adding a module, not a new transport.
   (Han unification), and `:lang()` picks the Japanese or Korean fallback
   fonts. Agent results carry `OpOutcome.message` (git module v5) so the UI
   words them itself; git's own output stays in git's language.
+- A file's changes in Files (git module v11): `DiffSource::Head` (HEAD →
+  working tree, staged and unstaged together) for files with uncommitted
+  changes, else `git.last_change` (`git log -1 --follow`, with the old name
+  when that commit renamed it) shown as that commit's diff. The panel says
+  which of the two it is. Side panels can be hidden (`Settings.layout`).
 - Folders of repositories (git module v10): opening a folder asks the agent
   `git.find_repos` first. Inside a repository it opens as before; otherwise
   the agent lists the clones and worktrees (`.git` folder or file) up to two

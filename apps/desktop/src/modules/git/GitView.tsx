@@ -35,7 +35,7 @@ type Props = {
 
 export function GitView({ repo, active, refreshKey, onError, onOpen, onLoaded }: Props) {
   const { t } = useTranslation();
-  const { git: gitSettings } = useSettings();
+  const { git: gitSettings, layout } = useSettings();
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
   const [log, setLog] = useState<LogEntry[]>([]);
   const [commit, setCommit] = useState<string | null>(null);
@@ -203,7 +203,7 @@ export function GitView({ repo, active, refreshKey, onError, onOpen, onLoaded }:
   }
 
   return (
-    <div className={"git-view" + (panelOpen ? " with-diff" : "") + (expanded ? " expanded" : "") + (expanded && file ? " keep-changes" : "")} hidden={!active}>
+    <div className={"git-view" + (panelOpen ? " with-diff" : "") + (expanded ? " expanded" : "") + (expanded && file && layout.changes ? " keep-changes" : "") + (layout.sidebar ? "" : " no-sidebar") + (layout.changes ? "" : " no-changes")} hidden={!active}>
       <Sidebar
         snapshot={snapshot}
         onCheckout={(branch) => act(() => git.checkout(repo, { branch }))}

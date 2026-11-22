@@ -25,6 +25,7 @@ import type { StatPathsParams } from "../../bindings/StatPathsParams";
 import type { CreateTagParams } from "../../bindings/CreateTagParams";
 import type { PushTagParams } from "../../bindings/PushTagParams";
 import type { FoundRepos } from "../../bindings/FoundRepos";
+import type { LastChange } from "../../bindings/LastChange";
 
 export const git = {
   /** `folder` is any folder: a repository, or one holding several. */
@@ -44,6 +45,8 @@ export const git = {
   statPaths: (repo: string, p: Params<StatPathsParams>) => rpc<(EntryKind | null)[]>(repo, "git.stat_paths", p),
   /** A file's bytes as base64 (≤ 10 MiB), for images. */
   readBytes: (repo: string, p: Params<ReadFileParams>) => rpc<FileBytes>(repo, "git.read_bytes", p),
+  /** The last commit that changed a file, at `rev` (default HEAD) or before. */
+  lastChange: (repo: string, p: Params<ReadFileParams>) => rpc<LastChange | null>(repo, "git.last_change", p),
   /** Message, author and the files changed against the first parent. */
   commitDetails: (repo: string, p: Params<RevParams>) => rpc<CommitDetails>(repo, "git.commit_details", p),
   /** Both versions of a file (unstaged, staged, untracked or in a commit). */

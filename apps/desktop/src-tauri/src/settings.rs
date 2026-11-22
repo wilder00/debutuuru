@@ -38,6 +38,8 @@ pub struct Settings {
     pub diff: DiffSettings,
     /// Integrated terminal. Added without a schema bump.
     pub terminal: TerminalSettings,
+    /// Side panels shown. Added without a schema bump.
+    pub layout: LayoutSettings,
 }
 
 /// The terminal panel: the user's own profiles (detected ones aren't stored),
@@ -81,6 +83,27 @@ pub struct TerminalProfile {
     /// Icon shown on its tabs (`ubuntu`, `powershell`, `git`…); `None` =
     /// guessed from the program or distro.
     pub icon: Option<String>,
+}
+
+/// Which side panels of a repository tab are shown (hide them to focus on
+/// the history, a diff or a file).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(default)]
+#[ts(export)]
+pub struct LayoutSettings {
+    /// Branches, remotes, tags and worktrees, on the left.
+    pub sidebar: bool,
+    /// Staged and unstaged changes with the commit box, on the right.
+    pub changes: bool,
+}
+
+impl Default for LayoutSettings {
+    fn default() -> Self {
+        Self {
+            sidebar: true,
+            changes: true,
+        }
+    }
 }
 
 /// Diff viewer preferences, shared by commits, staged and unstaged changes.
@@ -282,6 +305,7 @@ impl Default for Settings {
             updates: UpdateSettings::default(),
             language: None,
             diff: DiffSettings::default(),
+            layout: LayoutSettings::default(),
             terminal: TerminalSettings::default(),
         }
     }

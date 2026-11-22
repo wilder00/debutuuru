@@ -34,7 +34,7 @@ type Ctx = {
 
 export function useCommands(c: Ctx): PaletteItem[] {
   const { t } = useTranslation();
-  const { appearance, update, language, updateLanguage, diff, updateDiff } = useSettings();
+  const { appearance, update, language, updateLanguage, diff, updateDiff, layout, updateLayout } = useSettings();
 
   return useMemo(() => {
     const g = (group: "general" | "git" | "view" | "diff" | "settings" | "terminal", key: string, rest: Omit<PaletteItem, "id" | "label">): PaletteItem => ({
@@ -133,6 +133,14 @@ export function useCommands(c: Ctx): PaletteItem[] {
         g("view", "history", { run: () => emit("show-view", { repo, view: "history" }) }),
         g("view", "files", { run: () => emit("show-view", { repo, view: "files" }) }),
         g("view", "toggleExpand", { run: () => emit("toggle-expand", { repo }) }),
+        g("view", "toggleSidebar", { keys: "Ctrl+B", run: () => updateLayout({ sidebar: !layout.sidebar }) }),
+        g("view", "toggleChanges", { keys: "Ctrl+Alt+B", run: () => updateLayout({ changes: !layout.changes }) }),
+        g("view", "focusMode", {
+          run: () => {
+            const show = !layout.sidebar && !layout.changes;
+            updateLayout({ sidebar: show, changes: show });
+          },
+        }),
         g("git", "fetch", { run: () => emit("git-op", { repo, op: "fetch" }) }),
         g("git", "pull", { run: () => emit("git-op", { repo, op: "pull", mode: "default" }) }),
         g("git", "pullRebase", { run: () => emit("git-op", { repo, op: "pull", mode: "rebase" }) }),
@@ -158,5 +166,5 @@ export function useCommands(c: Ctx): PaletteItem[] {
       }
     }
     return items;
-  }, [t, c, appearance.theme, appearance.style, update, language, updateLanguage, diff, updateDiff]);
+  }, [t, c, appearance.theme, appearance.style, update, language, updateLanguage, diff, updateDiff, layout, updateLayout]);
 }

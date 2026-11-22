@@ -19,7 +19,11 @@
     "pathLabel": "Repository path",
     "linkedWorktree": "Linked worktree",
     "currentBranch": "Current branch",
-    "refresh": "Refresh (F5)"
+    "refresh": "Refresh (F5)",
+    "hideSidebar": "Hide the left panel",
+    "showSidebar": "Show the left panel",
+    "hideChanges": "Hide the changes panel",
+    "showChanges": "Show the changes panel"
   },
   "tabs": {
     "label": "Open repositories",
@@ -247,7 +251,8 @@
       "contextLines_one": "{{count}} line",
       "contextLines_other": "{{count}} lines",
       "expand": "Expand to the whole window (Esc to restore)",
-      "restore": "Restore the normal layout (Esc)"
+      "restore": "Restore the normal layout (Esc)",
+      "headToWorkingTree": "HEAD → working tree"
     },
     "filesView": {
       "revision": "Which version of the files to show",
@@ -268,7 +273,19 @@
       "back": "Back (Alt+←)",
       "markdownMode": "Markdown view",
       "rendered": "Rendered",
-      "source": "Source"
+      "source": "Source",
+      "changes": {
+        "toggle": "Changes",
+        "toggleHint": "Show this file's changes instead of its content",
+        "uncommitted": "Uncommitted changes in this file (staged and unstaged together):",
+        "untracked": "New file, not committed yet: all of it is new.",
+        "yourCopy": "your copy",
+        "noHistory": "No commit has this file yet.",
+        "lastCommit": "No uncommitted changes. Showing the last commit that changed this file:",
+        "thisCommit": "Changes this commit made to the file:",
+        "before": "This file didn't change in {{rev}}. Showing the last commit before it that did:",
+        "parent": "previous commit"
+      }
     },
     "remote": {
       "starting": "Starting…",
@@ -450,7 +467,10 @@
       "maximizeTerminal": "Terminal only (whole window)",
       "createTag": "Create tag…",
       "showTag": "Go to tag…",
-      "closeGroup": "Close this tab's group"
+      "closeGroup": "Close this tab's group",
+      "toggleSidebar": "Show/hide the left panel",
+      "toggleChanges": "Show/hide the changes panel",
+      "focusMode": "Focus: hide/show both side panels"
     }
   },
   "open": {

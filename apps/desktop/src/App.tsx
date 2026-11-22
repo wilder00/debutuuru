@@ -30,7 +30,9 @@ import { TitleBar } from "./shell/TitleBar";
 
 export function App() {
   const { t } = useTranslation();
-  const { ready, session, updateSession, notice, dismissNotice, updates } = useSettings();
+  const { ready, session, updateSession, notice, dismissNotice, updates, layout, updateLayout } = useSettings();
+  const layoutRef = useRef(layout);
+  layoutRef.current = layout;
   const [snapshots, setSnapshots] = useState<Record<string, Snapshot>>({});
   const [error, setError] = useState<string | null>(null);
   const [agent, setAgent] = useState<Hello | null>(null);
@@ -265,6 +267,11 @@ export function App() {
       } else if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase() === "o") {
         e.preventDefault();
         openActionsRef.current.openFolder();
+      } else if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.code === "KeyB") {
+        // Like VS Code: Ctrl+B the left panel, Ctrl+Alt+B the right one.
+        e.preventDefault();
+        const l = layoutRef.current;
+        updateLayout(e.altKey ? { changes: !l.changes } : { sidebar: !l.sidebar });
       } else if (e.key === "F5") {
         e.preventDefault();
         setRefreshKey((k) => k + 1);
@@ -279,7 +286,7 @@ export function App() {
     // Capture phase: works while the code viewer or an input has focus.
     window.addEventListener("keydown", onKey, true);
     return () => window.removeEventListener("keydown", onKey, true);
-  }, [close, toggleTerminal]);
+  }, [close, toggleTerminal, updateLayout]);
 
   const onError = useCallback((e: unknown) => setError(e instanceof AgentError ? e.message : String(e)), []);
   const onLoaded = useCallback((repo: string, s: Snapshot) => {

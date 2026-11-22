@@ -24,7 +24,12 @@ runner, GitHub/GitLab integration, containers and more.
   show their parent folder (`ssr-site · NED-2550`).
 - **Files**: browse the file tree and read any file (syntax highlighting,
   search), as it is now with changes marked, or at any commit (double-click it
-  in History). Ignored files are hidden unless you ask for them.
+  in History). Ignored files are hidden unless you ask for them. **Changes**
+  shows the open file's diff and says what it compares: your uncommitted
+  edits against HEAD, or, when there are none, the last commit that changed
+  the file against the one before.
+- **Focus**: hide the left panel (Ctrl+B), the changes panel (Ctrl+Alt+B) or
+  both, from the title bar or the palette.
 - **Open anything**: Open folder or file (Ctrl+O) with the system dialog,
   Browse in WSL on Windows, drag and drop folders or files onto the window,
   and a list of recent repositories.

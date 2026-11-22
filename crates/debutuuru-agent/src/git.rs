@@ -320,6 +320,9 @@ impl Module for GitModule {
             READ_BYTES => handle_with(params, |p: ReadFileParams| {
                 self.repo(&p.repo)?.read_bytes(p.rev.as_deref(), &p.path)
             }),
+            LAST_CHANGE => handle_with(params, |p: ReadFileParams| {
+                self.repo(&p.repo)?.last_change(p.rev.as_deref(), &p.path)
+            }),
             COMMIT_DETAILS => handle_with(params, |p: RevParams| {
                 self.repo(&p.repo)?.commit_details(&p.rev)
             }),

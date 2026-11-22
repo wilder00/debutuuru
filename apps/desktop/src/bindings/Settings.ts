@@ -2,6 +2,7 @@
 import type { Appearance } from "./Appearance";
 import type { DiffSettings } from "./DiffSettings";
 import type { GitSettings } from "./GitSettings";
+import type { LayoutSettings } from "./LayoutSettings";
 import type { Session } from "./Session";
 import type { TerminalSettings } from "./TerminalSettings";
 import type { UpdateSettings } from "./UpdateSettings";
@@ -31,4 +32,8 @@ diff: DiffSettings,
 /**
  * Integrated terminal. Added without a schema bump.
  */
-terminal: TerminalSettings, };
+terminal: TerminalSettings, 
+/**
+ * Side panels shown. Added without a schema bump.
+ */
+layout: LayoutSettings, };

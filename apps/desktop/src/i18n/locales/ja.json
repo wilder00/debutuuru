@@ -19,7 +19,11 @@
     "pathLabel": "リポジトリのパス",
     "linkedWorktree": "リンクされたワークツリー",
     "currentBranch": "現在のブランチ",
-    "refresh": "再読み込み (F5)"
+    "refresh": "再読み込み (F5)",
+    "hideSidebar": "左パネルを隠す",
+    "showSidebar": "左パネルを表示",
+    "hideChanges": "変更パネルを隠す",
+    "showChanges": "変更パネルを表示"
   },
   "tabs": {
     "label": "開いているリポジトリ",
@@ -245,7 +249,8 @@
       "options": "表示オプション",
       "contextLines_other": "{{count}} 行",
       "expand": "ウィンドウ全体に広げる (Esc で元に戻す)",
-      "restore": "通常の表示に戻す (Esc)"
+      "restore": "通常の表示に戻す (Esc)",
+      "headToWorkingTree": "HEAD → 作業ツリー"
     },
     "filesView": {
       "revision": "表示するファイルのバージョン",
@@ -266,7 +271,19 @@
       "back": "戻る (Alt+←)",
       "markdownMode": "Markdown の表示",
       "rendered": "プレビュー",
-      "source": "ソース"
+      "source": "ソース",
+      "changes": {
+        "toggle": "変更",
+        "toggleHint": "内容の代わりにこのファイルの変更を表示",
+        "uncommitted": "このファイルの未コミットの変更（ステージ済みと未ステージをまとめて）:",
+        "untracked": "まだコミットされていない新しいファイルです。すべてが新規です。",
+        "yourCopy": "あなたのコピー",
+        "noHistory": "このファイルを含むコミットはまだありません。",
+        "lastCommit": "未コミットの変更はありません。このファイルを最後に変更したコミットを表示しています:",
+        "thisCommit": "このコミットでのファイルの変更:",
+        "before": "このファイルは {{rev}} で変更されていません。それ以前に変更した最後のコミットを表示しています:",
+        "parent": "前のコミット"
+      }
     },
     "remote": {
       "starting": "開始中…",
@@ -447,7 +464,10 @@
       "maximizeTerminal": "ターミナルのみ (ウィンドウ全体)",
       "createTag": "タグを作成…",
       "showTag": "タグへ移動…",
-      "closeGroup": "このタブのグループを閉じる"
+      "closeGroup": "このタブのグループを閉じる",
+      "toggleSidebar": "左パネルの表示/非表示",
+      "toggleChanges": "変更パネルの表示/非表示",
+      "focusMode": "集中: 両側のパネルを隠す/表示"
     }
   },
   "open": {
