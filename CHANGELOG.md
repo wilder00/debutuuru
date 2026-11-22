@@ -4,6 +4,33 @@ All notable changes are recorded here by release-plz from Conventional Commits.
 
 ## [Unreleased]
 
+## [0.1.2](https://github.com/wilder00/debutuuru/compare/v0.1.1...v0.1.2) - 2026-11-22
+
+### Added
+
+- see a commit's changes, and choose how diffs are shown
+- the UI speaks English, Spanish, Japanese and Korean
+- tags panel with details, create, push and delete
+- quick open (Ctrl+P) and command palette (Ctrl+Shift+P)
+- Ctrl+click an import to open the file, and rendered Markdown
+- terminal panel with tabs, profiles and a terminal-only mode
+- our own title bar on Windows, without the native one
+- Circuit style, an electric blue-green look with circuit traces
+- Gamer style with neon glow and RGB bars, and neon themes
+- open folders and files with the system dialog, WSL browsing, drag and drop
+- expand a diff or a commit's changes to the whole tab
+
+### Fixed
+
+- the background image shows evenly behind the side panels too
+- menus stay open until a click outside or Esc
+- checkboxes clearly show whether they're checked
+
+### Other
+
+- settings tests remove their temp folders when they end
+- document merging main back after a release and drop stale settings
+
 ## [0.1.1](https://github.com/wilder00/debutuuru/compare/v0.1.0...v0.1.1) - 2026-11-21
 
 ### Added
