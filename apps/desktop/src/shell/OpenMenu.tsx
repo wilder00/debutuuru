@@ -5,6 +5,7 @@ import { Clock, File, FolderOpen, Monitor, X } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { repoName, wslDistro } from "../lib/rpc";
+import { useDismiss } from "../lib/useDismiss";
 
 export type OpenActions = {
   openFolder: () => void;
@@ -21,12 +22,13 @@ export type OpenActions = {
 export function OpenMenuButton({ actions }: { actions: OpenActions }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
+  const ref = useDismiss<HTMLDivElement>(open, () => setOpen(false));
   const run = (fn: () => void) => () => {
     setOpen(false);
     fn();
   };
   return (
-    <div className="open-menu" onMouseLeave={() => setOpen(false)}>
+    <div className="open-menu" ref={ref}>
       <button className={"icon-btn" + (open ? " on" : "")} aria-expanded={open} title={t("open.menu")} onClick={() => setOpen(!open)}>
         <FolderOpen size={15} />
       </button>

@@ -9,6 +9,7 @@ import type { ProgressEvent } from "../../bindings/ProgressEvent";
 import type { PullMode } from "../../bindings/PullMode";
 import type { Snapshot } from "../../bindings/Snapshot";
 import { useBus } from "../../lib/bus";
+import { useDismiss } from "../../lib/useDismiss";
 import { onAgentEvent, wslDistro } from "../../lib/rpc";
 import { git, GIT_PROGRESS } from "./api";
 
@@ -83,6 +84,8 @@ export function RemoteBar({ repo, snapshot, settings, onDone }: Props) {
   const [confirmForce, setConfirmForce] = useState(false);
   const { t } = useTranslation();
   const runningRef = useRef<Running | null>(null);
+  const pullMenu = useDismiss<HTMLDivElement>(menu === "pull", () => setMenu(null));
+  const pushMenu = useDismiss<HTMLDivElement>(menu === "push", () => (setMenu(null), setConfirmForce(false)));
   runningRef.current = running;
 
   useEffect(() => {
@@ -145,7 +148,7 @@ export function RemoteBar({ repo, snapshot, settings, onDone }: Props) {
         <button onClick={() => run("fetch")} disabled={busy || noRemote} title={tip ?? t("git.remote.fetchTitle")}>
           <RefreshCw size={14} className={running?.kind === "fetch" ? "spin" : ""} /> {t("git.remote.fetch")}
         </button>
-        <div className="split">
+        <div className="split" ref={pullMenu}>
           <button onClick={() => run("pull")} disabled={busy || noRemote || !snapshot.upstream} title={snapshot.upstream ? t("git.remote.pullTitle", { upstream: snapshot.upstream }) : t("git.remote.noUpstream")}>
             <ArrowDown size={14} /> {t("git.remote.pull")}
             {behind > 0 && <span className="badge-count">{behind}</span>}
@@ -154,14 +157,14 @@ export function RemoteBar({ repo, snapshot, settings, onDone }: Props) {
             <ChevronDown size={13} />
           </button>
           {menu === "pull" && (
-            <div className="menu" onMouseLeave={() => setMenu(null)}>
+            <div className="menu">
               <button onClick={() => run("pull", { mode: "ff_only" })}>{t("git.remote.ffOnly")}</button>
               <button onClick={() => run("pull", { mode: "rebase" })}>{t("git.remote.rebase")}</button>
               <button onClick={() => run("pull", { mode: "merge" })}>{t("git.remote.merge")}</button>
             </div>
           )}
         </div>
-        <div className="split">
+        <div className="split" ref={pushMenu}>
           <button onClick={() => run("push")} disabled={busy || noRemote || !snapshot.info.head_branch} title={snapshot.upstream ? t("git.remote.pushTitle", { upstream: snapshot.upstream }) : t("git.remote.publishTitle")}>
             <ArrowUp size={14} /> {snapshot.upstream ? t("git.remote.push") : t("git.remote.publish")}
             {ahead > 0 && <span className="badge-count">{ahead}</span>}
@@ -170,7 +173,7 @@ export function RemoteBar({ repo, snapshot, settings, onDone }: Props) {
             <ChevronDown size={13} />
           </button>
           {menu === "push" && (
-            <div className="menu" onMouseLeave={() => (setMenu(null), setConfirmForce(false))}>
+            <div className="menu">
               <button
                 className={confirmForce ? "danger" : ""}
                 onClick={() => (confirmForce ? run("push", { force_with_lease: true }) : setConfirmForce(true))}

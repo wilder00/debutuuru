@@ -9,6 +9,7 @@ import type { FileVersions } from "../../bindings/FileVersions";
 import { formatBytes } from "../../lib/format";
 import { useSettings } from "../../settings/SettingsProvider";
 import { git } from "./api";
+import { useDismiss } from "../../lib/useDismiss";
 import { DiffViewer, type DiffNav } from "./DiffViewer";
 
 type Props = {
@@ -117,6 +118,7 @@ function DiffToolbar({ onNext, onPrevious }: { onNext: () => void; onPrevious: (
   const { t } = useTranslation();
   const { diff: o, updateDiff } = useSettings();
   const [menu, setMenu] = useState(false);
+  const options = useDismiss<HTMLDivElement>(menu, () => setMenu(false));
   const toggles: [Toggle, string, string][] = [
     ["word_highlight", t("git.diff.words"), t("git.diff.wordsTitle")],
     ["ignore_whitespace", t("git.diff.whitespace"), t("git.diff.whitespaceTitle")],
@@ -148,7 +150,7 @@ function DiffToolbar({ onNext, onPrevious }: { onNext: () => void; onPrevious: (
           ))}
         </select>
       )}
-      <div className="diff-options" onMouseLeave={() => setMenu(false)}>
+      <div className="diff-options" ref={options}>
         <button className={"icon-btn" + (menu ? " on" : "")} aria-expanded={menu} title={t("git.diff.options")} onClick={() => setMenu(!menu)}>
           <SlidersHorizontal size={14} />
           {active > 0 && <span className="badge-dot" />}
