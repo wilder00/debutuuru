@@ -10,7 +10,8 @@ pub const MODULE: &str = "git";
 /// 3: remote operations (fetch/pull/push), progress and credential prompts,
 ///    `remotes` in [`Snapshot`].
 /// 4: file browsing: `git.tree` and `git.read_file`.
-pub const MODULE_VERSION: u32 = 4;
+/// 5: [`OpOutcome::message`], so UIs can word (and translate) the summary.
+pub const MODULE_VERSION: u32 = 5;
 
 /// [`RepoParams`] → [`Snapshot`]
 pub const SNAPSHOT: &str = "git.snapshot";
@@ -268,11 +269,45 @@ pub enum FailureHint {
 #[ts(export)]
 pub struct OpOutcome {
     pub ok: bool,
-    /// One-line, human summary ("Pushed main → origin/main").
+    /// One-line, human summary in English ("Pushed main → origin/main").
     pub summary: String,
     pub hint: Option<FailureHint>,
     /// git's output (stderr), for a "details" view. Never contains answers to prompts.
     pub log: String,
+    /// What `summary` says, as data, so a UI can word it in its own language.
+    /// `None` when the summary is git's own error line, and from agents
+    /// older than module version 5.
+    #[serde(default)]
+    pub message: Option<OutcomeMessage>,
+}
+
+/// The outcomes the agent words itself; see [`OpOutcome::message`].
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+#[ts(export)]
+pub enum OutcomeMessage {
+    /// `remote: None` = all remotes.
+    Fetched {
+        remote: Option<String>,
+    },
+    UpToDate,
+    Pulled {
+        upstream: String,
+    },
+    NothingToPush,
+    Pushed {
+        branch: String,
+        target: String,
+    },
+    /// Pull without an upstream branch.
+    NoUpstream,
+    /// Push from a repository without remotes.
+    NoRemote,
+    /// Publishing a branch when several remotes could take it.
+    SeveralRemotes,
+    Cancelled,
+    /// The user rejected the server's host key.
+    HostKeyDeclined,
 }
 
 /// Everything the sidebar and changes panel need, in one round trip.

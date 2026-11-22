@@ -16,4 +16,9 @@ git: GitSettings,
 /**
  * Added without a schema bump.
  */
-updates: UpdateSettings, };
+updates: UpdateSettings, 
+/**
+ * UI language as a BCP 47 tag (`"es"`, `"ja"`…); `None` follows the
+ * system language. Added without a schema bump.
+ */
+language: string | null, };

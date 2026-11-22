@@ -7,7 +7,8 @@
   "packageManager": "pnpm@11.28.13",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build": "node scripts/check-locales.mjs && tsc --noEmit && vite build",
+    "check:locales": "node scripts/check-locales.mjs",
     "typecheck": "tsc --noEmit",
     "tauri": "tauri"
   },
@@ -25,9 +26,11 @@
     "@tauri-apps/api": "2.12.5",
     "@tauri-apps/plugin-process": "2.4.0",
     "@tauri-apps/plugin-updater": "2.14.1",
+    "i18next": "27.2.2",
     "lucide-react": "1.77.0",
     "react": "19.3.1",
-    "react-dom": "19.3.1"
+    "react-dom": "19.3.1",
+    "react-i18next": "18.0.3"
   },
   "devDependencies": {
     "@tauri-apps/cli": "2.12.6",

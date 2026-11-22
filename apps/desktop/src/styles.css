@@ -7,13 +7,20 @@
   --accent: #5aa9ff; --accent-hover: #74b8ff; --accent-soft: rgb(90 169 255 / .16); --accent-ring: rgb(90 169 255 / .55); --on-accent: #0b1220;
   --text: #eef0f3; --text-muted: #a7adb8; --text-faint: rgb(167 173 184 / .7);
   --ok: #5fd39a; --warn: #e2b54d; --danger: #f07a6e; --info: #69aef5;
-  --font-ui: "Inter Variable", system-ui, "Segoe UI", sans-serif;
-  --font-mono: "JetBrains Mono Variable", "Cascadia Code", Consolas, monospace;
+  /* Inter and JetBrains Mono have no Japanese or Korean glyphs: these system
+     fonts (Windows, then Noto CJK on Linux) draw them. The order follows the
+     UI language (:lang below) so shared Han characters get that language's
+     shapes. */
+  --font-cjk: "Yu Gothic UI", "Malgun Gothic", "Noto Sans CJK JP", "Noto Sans CJK KR";
+  --font-ui: "Inter Variable", var(--font-cjk), system-ui, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono Variable", "Cascadia Code", Consolas, var(--font-cjk), monospace;
   --font-size: 13px; --row-h: 26px; --code-ligatures: normal; --panel-blur: 0px;
   --radius: 6px; --radius-lg: 10px;
   --shadow: 0 8px 24px rgb(0 0 0 / .4);
   color-scheme: dark;
 }
+:root:lang(ja) { --font-cjk: "Yu Gothic UI", "Meiryo UI", "Noto Sans CJK JP", "Malgun Gothic", "Noto Sans CJK KR"; }
+:root:lang(ko) { --font-cjk: "Malgun Gothic", "Noto Sans CJK KR", "Yu Gothic UI", "Noto Sans CJK JP"; }
 
 * { box-sizing: border-box; }
 html, body, #root { margin: 0; height: 100%; overflow: hidden; }

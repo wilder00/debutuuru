@@ -61,6 +61,9 @@ impl GitModule {
                 Some(r) => format!("Fetched {r}"),
                 None => "Fetched all remotes".into(),
             };
+            out.message = Some(OutcomeMessage::Fetched {
+                remote: p.remote.clone(),
+            });
         }
         Ok(out)
     }
@@ -73,6 +76,7 @@ impl GitModule {
                 summary: "This branch has no upstream to pull from. Push it first, or set one with `git branch -u`.".into(),
                 hint: Some(FailureHint::NoRemote),
                 log: String::new(),
+                message: Some(OutcomeMessage::NoUpstream),
             });
         };
         let mut args = vec!["pull".to_string(), "--progress".into()];
@@ -84,11 +88,17 @@ impl GitModule {
         }
         let mut out = self.remote_op(&p.repo, &p.options, args)?;
         if out.ok {
-            out.summary = if out.log.contains("Already up to date") {
+            let up_to_date = out.log.contains("Already up to date");
+            out.summary = if up_to_date {
                 "Already up to date".into()
             } else {
                 format!("Pulled {upstream}")
             };
+            out.message = Some(if up_to_date {
+                OutcomeMessage::UpToDate
+            } else {
+                OutcomeMessage::Pulled { upstream }
+            });
         }
         Ok(out)
     }
@@ -128,6 +138,11 @@ impl GitModule {
                         },
                         hint: Some(FailureHint::NoRemote),
                         log: String::new(),
+                        message: Some(if remotes.is_empty() {
+                            OutcomeMessage::NoRemote
+                        } else {
+                            OutcomeMessage::SeveralRemotes
+                        }),
                     });
                 };
                 args.extend(["-u".into(), remote.clone(), "HEAD".into()]);
@@ -136,11 +151,17 @@ impl GitModule {
         };
         let mut out = self.remote_op(&p.repo, &p.options, args)?;
         if out.ok {
-            out.summary = if out.log.contains("Everything up-to-date") {
+            let nothing = out.log.contains("Everything up-to-date");
+            out.summary = if nothing {
                 "Nothing to push".into()
             } else {
                 format!("Pushed {branch} → {target}")
             };
+            out.message = Some(if nothing {
+                OutcomeMessage::NothingToPush
+            } else {
+                OutcomeMessage::Pushed { branch, target }
+            });
         }
         Ok(out)
     }

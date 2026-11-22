@@ -1,7 +1,9 @@
 import { invoke } from "@tauri-apps/api/core";
 import { Check, ImagePlus, Trash2, X } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { Trans, useTranslation } from "react-i18next";
 import type { ImportedBackground } from "../bindings/ImportedBackground";
+import { LANGUAGES, systemLanguage } from "../i18n";
 import { wslDistros } from "../lib/rpc";
 import { generateTheme } from "../theme/generate";
 import { CUSTOM, PRESETS, resolveInputs } from "../theme/presets";
@@ -10,6 +12,7 @@ import { UpdatesSection } from "./UpdatesSection";
 import { WslCommandSection } from "./WslCommandSection";
 
 export function AppearancePanel({ onClose }: { onClose: () => void }) {
+  const { t } = useTranslation();
   const { appearance: a, update, setBackground, backgroundPath, report, readOnly } = useSettings();
   const fileInput = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string | null>(null);
@@ -31,49 +34,52 @@ export function AppearancePanel({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="drawer-backdrop" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <aside className="drawer" role="dialog" aria-label="Settings" onKeyDown={(e) => e.key === "Escape" && onClose()}>
+      <aside className="drawer" role="dialog" aria-label={t("settings.title")} onKeyDown={(e) => e.key === "Escape" && onClose()}>
         <header className="drawer-head">
-          <h2>Settings</h2>
-          <button className="icon-btn" onClick={onClose} title="Close (Esc)" autoFocus>
+          <h2>{t("settings.title")}</h2>
+          <button className="icon-btn" onClick={onClose} title={t("common.close")} autoFocus>
             <X size={16} />
           </button>
         </header>
-        {readOnly && <p className="note warn">Settings come from a newer version; changes apply now but won't be saved.</p>}
+        {readOnly && <p className="note warn">{t("settings.readOnly")}</p>}
 
-        <Section title="Theme">
+        <LanguageSection />
+
+        <Section title={t("settings.theme.title")}>
           <div className="theme-grid">
             {PRESETS.map((p) => (
-              <ThemeCard key={p.id} name={p.name} inputs={p.inputs} active={a.theme === p.id} onClick={() => update({ theme: p.id })} />
+              <ThemeCard key={p.id} name={t(`settings.theme.presets.${p.id}` as "settings.theme.presets.debutuuru", { defaultValue: p.name })} inputs={p.inputs} active={a.theme === p.id} onClick={() => update({ theme: p.id })} />
             ))}
-            <ThemeCard name="Custom" inputs={a.custom} active={a.theme === CUSTOM} onClick={() => update({ theme: CUSTOM, custom: inputs })} />
+            <ThemeCard name={t("settings.theme.custom")} inputs={a.custom} active={a.theme === CUSTOM} onClick={() => update({ theme: CUSTOM, custom: inputs })} />
           </div>
           {a.theme === CUSTOM && (
             <div className="field-grid">
               <label>
-                Base
+                {t("settings.theme.base")}
                 <input type="color" value={a.custom.base} onChange={(e) => update({ custom: { ...a.custom, base: e.target.value } })} />
               </label>
               <label>
-                Accent
+                {t("settings.theme.accent")}
                 <input type="color" value={a.custom.accent} onChange={(e) => update({ custom: { ...a.custom, accent: e.target.value } })} />
               </label>
-              <Slider label="Contrast" value={a.custom.contrast} max={100} onChange={(v) => update({ custom: { ...a.custom, contrast: v } })} />
+              <Slider label={t("settings.theme.contrast")} value={a.custom.contrast} max={100} onChange={(v) => update({ custom: { ...a.custom, contrast: v } })} />
             </div>
           )}
           <p className="contrast-report">
-            Text contrast <Ratio value={report.text} target={7} /> · secondary <Ratio value={report.muted} target={4.5} /> · buttons{" "}
+            {t("settings.theme.textContrast")} <Ratio value={report.text} target={7} /> · {t("settings.theme.secondary")} <Ratio value={report.muted} target={4.5} /> ·{" "}
+            {t("settings.theme.buttons")}{" "}
             <Ratio value={report.onAccent} target={4.5} />
           </p>
         </Section>
 
-        <Section title="Background image">
+        <Section title={t("settings.background.title")}>
           <div className="row-actions">
             <button onClick={() => fileInput.current?.click()}>
-              <ImagePlus size={14} /> {a.background ? "Change image" : "Choose image"}
+              <ImagePlus size={14} /> {a.background ? t("settings.background.change") : t("settings.background.choose")}
             </button>
             {a.background && (
               <button onClick={() => setBackground(null, null)}>
-                <Trash2 size={14} /> Remove
+                <Trash2 size={14} /> {t("settings.background.remove")}
               </button>
             )}
             <input
@@ -91,41 +97,41 @@ export function AppearancePanel({ onClose }: { onClose: () => void }) {
           {error && <p className="note danger">{error}</p>}
           {a.background && backgroundPath && (
             <div className="field-grid">
-              <Slider label="Visibility" value={a.background.opacity} max={100} unit="%" onChange={(v) => setBg({ opacity: v })} />
-              <Slider label="Blur" value={a.background.blur} max={40} unit="px" onChange={(v) => setBg({ blur: v })} />
-              <Slider label="Dim" value={a.background.dim} max={90} unit="%" onChange={(v) => setBg({ dim: v })} />
+              <Slider label={t("settings.background.visibility")} value={a.background.opacity} max={100} unit="%" onChange={(v) => setBg({ opacity: v })} />
+              <Slider label={t("settings.background.blur")} value={a.background.blur} max={40} unit="px" onChange={(v) => setBg({ blur: v })} />
+              <Slider label={t("settings.background.dim")} value={a.background.dim} max={90} unit="%" onChange={(v) => setBg({ dim: v })} />
             </div>
           )}
-          <p className="hint">The image is copied into Debutuuru's data folder. Panels turn translucent so it shows through.</p>
+          <p className="hint">{t("settings.background.hint")}</p>
         </Section>
 
-        <Section title="Text">
+        <Section title={t("settings.text.title")}>
           <div className="field-grid">
             <label>
-              UI font
-              <input placeholder="Inter (bundled)" value={a.ui_font ?? ""} onChange={(e) => update({ ui_font: e.target.value || null })} />
+              {t("settings.text.uiFont")}
+              <input placeholder={t("settings.text.uiFontPlaceholder")} value={a.ui_font ?? ""} onChange={(e) => update({ ui_font: e.target.value || null })} />
             </label>
             <label>
-              Code font
+              {t("settings.text.codeFont")}
               <input
-                placeholder="JetBrains Mono (bundled)"
+                placeholder={t("settings.text.codeFontPlaceholder")}
                 value={a.mono_font ?? ""}
                 onChange={(e) => update({ mono_font: e.target.value || null })}
               />
             </label>
-            <Slider label="Size" value={a.font_size} min={12} max={16} unit="px" onChange={(v) => update({ font_size: v })} />
+            <Slider label={t("settings.text.size")} value={a.font_size} min={12} max={16} unit="px" onChange={(v) => update({ font_size: v })} />
             <label className="check">
               <input type="checkbox" checked={a.ligatures} onChange={(e) => update({ ligatures: e.target.checked })} />
-              Code ligatures
+              {t("settings.text.ligatures")}
             </label>
           </div>
         </Section>
 
-        <Section title="Density">
+        <Section title={t("settings.density.title")}>
           <div className="segmented" role="radiogroup">
             {(["compact", "comfortable"] as const).map((d) => (
               <button key={d} role="radio" aria-checked={a.density === d} className={a.density === d ? "on" : ""} onClick={() => update({ density: d })}>
-                {d[0].toUpperCase() + d.slice(1)}
+                {t(`settings.density.${d}`)}
               </button>
             ))}
           </div>
@@ -141,7 +147,33 @@ export function AppearancePanel({ onClose }: { onClose: () => void }) {
 
 /** How Windows repositories authenticate over SSH. WSL repos always use their
  *  own distro's ssh, keys and ssh-agent, so nothing to configure for them. */
+/** UI language: follow the system (default) or a fixed one. Names are shown
+ *  in their own language, so anyone can find theirs. */
+function LanguageSection() {
+  const { t } = useTranslation();
+  const { language, updateLanguage } = useSettings();
+  const system = LANGUAGES.find((l) => l.code === systemLanguage())?.name ?? "English";
+  return (
+    <Section title={t("settings.language.title")}>
+      <div className="field-grid">
+        <label>
+          <select value={language ?? ""} aria-label={t("settings.language.title")} onChange={(e) => updateLanguage(e.target.value || null)}>
+            <option value="">{t("settings.language.system", { language: system })}</option>
+            {LANGUAGES.map((l) => (
+              <option key={l.code} value={l.code} lang={l.code}>
+                {l.name}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+      <p className="hint">{t("settings.language.hint")}</p>
+    </Section>
+  );
+}
+
 function GitSshSection() {
+  const { t } = useTranslation();
   const { git: g, updateGit } = useSettings();
   const [distros, setDistros] = useState<string[]>([]);
   useEffect(() => {
@@ -149,7 +181,7 @@ function GitSshSection() {
   }, []);
   if (!navigator.userAgent.includes("Windows")) return null;
   return (
-    <Section title="Git & SSH">
+    <Section title={t("settings.ssh.title")}>
       <label className="check toggle-row">
         <input
           type="checkbox"
@@ -158,20 +190,18 @@ function GitSshSection() {
           onChange={(e) => updateGit({ windows_ssh: e.target.checked ? "wsl" : "system" })}
         />
         <span>
-          Use WSL's SSH keys for Windows repositories
+          {t("settings.ssh.useWslKeys")}
           <span className="hint block">
-            Push/pull of Windows repos runs <code className="mono">wsl.exe -e ssh</code>, so the keys, ssh-agent and <code className="mono">~/.ssh/config</code> from
-            your distro work here too. Off: your normal Git for Windows setup (keys in <code className="mono">%USERPROFILE%\.ssh</code>, Credential Manager for
-            HTTPS).
+            <Trans i18nKey="settings.ssh.useWslKeysHint" components={{ code: <code className="mono" /> }} />
           </span>
         </span>
       </label>
       {g.windows_ssh === "wsl" && distros.length > 1 && (
         <div className="field-grid">
           <label>
-            Distro
+            {t("settings.ssh.distro")}
             <select value={g.wsl_distro ?? ""} onChange={(e) => updateGit({ wsl_distro: e.target.value || null })}>
-              <option value="">Default distro</option>
+              <option value="">{t("settings.ssh.defaultDistro")}</option>
               {distros.map((d) => (
                 <option key={d}>{d}</option>
               ))}
@@ -179,8 +209,8 @@ function GitSshSection() {
           </label>
         </div>
       )}
-      {distros.length === 0 && <p className="hint">No WSL distro found.</p>}
-      <p className="hint">Repositories inside WSL always use that distro's own ssh. Passwordless keys and ssh-agent need no setup; when a passphrase or password is needed, Debutuuru asks in a dialog and never stores it.</p>
+      {distros.length === 0 && <p className="hint">{t("settings.ssh.noDistro")}</p>}
+      <p className="hint">{t("settings.ssh.wslReposHint")}</p>
     </Section>
   );
 }
@@ -231,8 +261,9 @@ function Slider(p: { label: string; value: number; min?: number; max: number; un
 }
 
 function Ratio({ value, target }: { value: number; target: number }) {
+  const { t } = useTranslation();
   return (
-    <span className={"mono " + (value >= target ? "ok" : "danger")} title={`target ≥ ${target}:1 (WCAG)`}>
+    <span className={"mono " + (value >= target ? "ok" : "danger")} title={t("settings.theme.target", { target })}>
       {value.toFixed(1)}:1
     </span>
   );

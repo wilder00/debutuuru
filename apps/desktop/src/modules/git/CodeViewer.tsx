@@ -2,6 +2,7 @@
 // large files stay fast. Line numbers, Ctrl+F search, syntax colors from the
 // theme's --syn-* tokens, and languages loaded on demand by file name.
 import { useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { Compartment, EditorState, type Extension } from "@codemirror/state";
 import { EditorView, drawSelection, highlightSpecialChars, keymap, lineNumbers } from "@codemirror/view";
 import { HighlightStyle, LanguageDescription, syntaxHighlighting } from "@codemirror/language";
@@ -70,9 +71,12 @@ const highlight = HighlightStyle.define([
 
 /** Holds the file's language; swapped without resetting scroll or selection. */
 const language = new Compartment();
+/** The search panel's texts ("Find", "match case"…) in the UI language. */
+const phrases = new Compartment();
 
 const base: Extension = [
   language.of([]),
+  phrases.of([]),
   EditorState.readOnly.of(true),
   lineNumbers(),
   highlightSpecialChars(),
@@ -87,6 +91,8 @@ const base: Extension = [
 export function CodeViewer({ path, text }: { path: string; text: string }) {
   const host = useRef<HTMLDivElement>(null);
   const view = useRef<EditorView | null>(null);
+  const { t, i18n } = useTranslation();
+  const phraseExt = () => EditorState.phrases.of(t("editor", { returnObjects: true }));
 
   useEffect(() => {
     const v = new EditorView({ parent: host.current!, state: EditorState.create({ extensions: base }) });
@@ -100,6 +106,7 @@ export function CodeViewer({ path, text }: { path: string; text: string }) {
     const v = view.current;
     if (!v) return;
     v.setState(EditorState.create({ doc: text, extensions: base }));
+    v.dispatch({ effects: phrases.reconfigure(phraseExt()) });
     const name = path.split("/").pop() ?? path;
     const lang = LanguageDescription.matchFilename(languages, name);
     let stale = false;
@@ -113,6 +120,12 @@ export function CodeViewer({ path, text }: { path: string; text: string }) {
       stale = true;
     };
   }, [path, text]);
+
+  // UI language changed: retranslate an open search panel too.
+  useEffect(() => {
+    view.current?.dispatch({ effects: phrases.reconfigure(phraseExt()) });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [i18n.language]);
 
   return <div className="code-viewer" ref={host} />;
 }

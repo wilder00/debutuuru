@@ -1,5 +1,6 @@
 import { Minus, Plus } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { FileChange } from "../../bindings/FileChange";
 import type { Status } from "../../bindings/Status";
 import { splitPath } from "../../lib/format";
@@ -16,9 +17,10 @@ type Props = {
   act: (fn: () => Promise<unknown>) => Promise<boolean>;
 };
 
-const STATUS_NAME: Record<string, string> = { M: "modified", A: "added", D: "deleted", R: "renamed", C: "copied", "?": "untracked", U: "conflict" };
+import { statusName } from "./status";
 
 export function ChangesPanel({ repo, status, selected, onSelect, act }: Props) {
+  const { t } = useTranslation();
   const [message, setMessage] = useState("");
   const staged = status.files.filter((f) => f.index !== " " && f.index !== "?");
   const unstaged = status.files.filter((f) => f.worktree !== " ");
@@ -29,7 +31,7 @@ export function ChangesPanel({ repo, status, selected, onSelect, act }: Props) {
     const isSel = selected?.file.path === f.path && selected.staged === isStaged;
     return (
       <li key={(isStaged ? "s:" : "u:") + f.path} className={"item file" + (isSel ? " selected" : "")} onClick={() => onSelect({ file: f, staged: isStaged })}>
-        <span className={`status s-${letter === "?" ? "q" : letter}`} title={STATUS_NAME[letter] ?? letter}>
+        <span className={`status s-${letter === "?" ? "q" : letter}`} title={statusName(t, letter)}>
           {letter === "?" ? "U" : letter}
         </span>
         <span className="label" title={f.orig_path ? `${f.orig_path} → ${f.path}` : f.path}>
@@ -38,7 +40,7 @@ export function ChangesPanel({ repo, status, selected, onSelect, act }: Props) {
         </span>
         <button
           className="icon-btn hover-only"
-          title={isStaged ? "Unstage" : "Stage"}
+          title={isStaged ? t("git.changes.unstage") : t("git.changes.stage")}
           onClick={(ev) => {
             ev.stopPropagation();
             act(() => (isStaged ? git.unstage : git.stage)(repo, { paths: [f.path] }));
@@ -57,21 +59,21 @@ export function ChangesPanel({ repo, status, selected, onSelect, act }: Props) {
   return (
     <section className="changes panel">
       <div className="changes-lists">
-        <Header title="Staged" count={staged.length} action={staged.length > 0 ? "Unstage all" : null} onAction={() => act(() => git.unstage(repo, { paths: staged.map((f) => f.path) }))} />
-        <ul>{staged.length ? staged.map((f) => row(f, true)) : <li className="empty-line">Nothing staged</li>}</ul>
-        <Header title="Changes" count={unstaged.length} action={unstaged.length > 0 ? "Stage all" : null} onAction={() => act(() => git.stage(repo, { paths: unstaged.map((f) => f.path) }))} />
-        <ul>{unstaged.length ? unstaged.map((f) => row(f, false)) : <li className="empty-line">Working tree clean</li>}</ul>
+        <Header title={t("git.changes.staged")} count={staged.length} action={staged.length > 0 ? t("git.changes.unstageAll") : null} onAction={() => act(() => git.unstage(repo, { paths: staged.map((f) => f.path) }))} />
+        <ul>{staged.length ? staged.map((f) => row(f, true)) : <li className="empty-line">{t("git.changes.nothingStaged")}</li>}</ul>
+        <Header title={t("git.changes.changes")} count={unstaged.length} action={unstaged.length > 0 ? t("git.changes.stageAll") : null} onAction={() => act(() => git.stage(repo, { paths: unstaged.map((f) => f.path) }))} />
+        <ul>{unstaged.length ? unstaged.map((f) => row(f, false)) : <li className="empty-line">{t("git.changes.clean")}</li>}</ul>
       </div>
       <div className="commit-box">
         <textarea
-          placeholder="Commit message"
+          placeholder={t("git.changes.messagePlaceholder")}
           value={message}
           spellCheck
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && e.ctrlKey && commit()}
         />
         <button className="primary" disabled={!message.trim() || staged.length === 0} onClick={commit} title="Ctrl+Enter">
-          Commit {staged.length > 0 ? `${staged.length} file${staged.length > 1 ? "s" : ""}` : ""}
+          {staged.length > 0 ? t("git.changes.commitFiles", { count: staged.length }) : t("git.changes.commit")}
         </button>
       </div>
     </section>

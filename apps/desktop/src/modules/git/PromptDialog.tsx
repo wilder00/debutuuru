@@ -4,11 +4,13 @@
 // Answers go straight back to the waiting git process and are not stored.
 import { KeyRound, ShieldQuestion } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { PromptEvent } from "../../bindings/PromptEvent";
 import { onAgentEvent, repoName } from "../../lib/rpc";
 import { git, GIT_PROMPT } from "./api";
 
 export function PromptDialog() {
+  const { t } = useTranslation();
   const [queue, setQueue] = useState<PromptEvent[]>([]);
   const [value, setValue] = useState("");
   const input = useRef<HTMLInputElement>(null);
@@ -49,7 +51,7 @@ export function PromptDialog() {
       >
         <header>
           {confirm ? <ShieldQuestion size={18} /> : <KeyRound size={18} />}
-          <h2 id="prompt-title">{confirm ? "Confirm connection" : "Git needs your credentials"}</h2>
+          <h2 id="prompt-title">{confirm ? t("git.prompt.confirmTitle") : t("git.prompt.credentialsTitle")}</h2>
         </header>
         <p className="hint">
           {repoName(current.repo)} · {current.op_id.split("-")[0]}
@@ -57,13 +59,13 @@ export function PromptDialog() {
         <pre className="prompt-text mono">{current.prompt.trim()}</pre>
         {confirm ? (
           <>
-            <p className="hint">Only accept if this fingerprint matches what your Git host publishes.</p>
+            <p className="hint">{t("git.prompt.fingerprintHint")}</p>
             <div className="modal-actions">
               <button type="button" onClick={() => answer("no")} autoFocus>
-                Reject
+                {t("git.prompt.reject")}
               </button>
               <button type="button" className="primary" onClick={() => answer("yes")}>
-                Trust and continue
+                {t("git.prompt.trust")}
               </button>
             </div>
           </>
@@ -78,13 +80,13 @@ export function PromptDialog() {
               onChange={(e) => setValue(e.target.value)}
               autoFocus
             />
-            <p className="hint">Sent only to this git process. Debutuuru never stores it.</p>
+            <p className="hint">{t("git.prompt.notStored")}</p>
             <div className="modal-actions">
               <button type="button" onClick={() => answer(null)}>
-                Cancel
+                {t("common.cancel")}
               </button>
               <button type="submit" className="primary">
-                Continue
+                {t("git.prompt.continue")}
               </button>
             </div>
           </>

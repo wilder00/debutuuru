@@ -1,5 +1,6 @@
 import { X } from "lucide-react";
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 
 type Line = { kind: "add" | "del" | "ctx" | "hunk" | "meta"; text: string; old?: number; new?: number };
 
@@ -28,6 +29,7 @@ function parse(diff: string): Line[] {
 }
 
 export function DiffView({ path, staged, diff, onClose }: { path: string; staged: boolean; diff: string | null; onClose: () => void }) {
+  const { t } = useTranslation();
   const lines = useMemo(() => (diff ? parse(diff) : []), [diff]);
   const adds = lines.filter((l) => l.kind === "add").length;
   const dels = lines.filter((l) => l.kind === "del").length;
@@ -35,19 +37,19 @@ export function DiffView({ path, staged, diff, onClose }: { path: string; staged
     <section className="diff panel">
       <header className="diff-head">
         <span className="mono path">{path}</span>
-        <span className="chip">{staged ? "staged" : "working tree"}</span>
+        <span className="chip">{staged ? t("git.diff.staged") : t("git.diff.workingTree")}</span>
         <span className="mono ok">+{adds}</span>
         <span className="mono danger">−{dels}</span>
         <span className="spacer" />
-        <button className="icon-btn" onClick={onClose} title="Close diff">
+        <button className="icon-btn" onClick={onClose} title={t("git.diff.close")}>
           <X size={14} />
         </button>
       </header>
       <div className="diff-body mono">
         {diff === null ? (
-          <div className="empty-line">Loading…</div>
+          <div className="empty-line">{t("common.loading")}</div>
         ) : lines.length === 0 ? (
-          <div className="empty-line">No textual changes (binary file or mode change)</div>
+          <div className="empty-line">{t("git.diff.noTextChanges")}</div>
         ) : (
           lines
             .filter((l) => l.kind !== "meta")

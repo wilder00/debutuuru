@@ -2,12 +2,14 @@
 // tree (with live changes marked) or for any commit.
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ChevronRight, File, FileSymlink, Folder, FolderGit2, FolderOpen, Loader2 } from "lucide-react";
+import { Trans, useTranslation } from "react-i18next";
 import type { FileContent } from "../../bindings/FileContent";
 import type { Snapshot } from "../../bindings/Snapshot";
 import type { TreeEntry } from "../../bindings/TreeEntry";
 import { formatBytes } from "../../lib/format";
 import { git } from "./api";
 import { CodeViewer } from "./CodeViewer";
+import { statusName } from "./status";
 
 type Props = {
   repo: string;
@@ -19,11 +21,11 @@ type Props = {
   onRev: (rev: string | null) => void;
 };
 
-const STATUS_NAME: Record<string, string> = { M: "modified", A: "added", D: "deleted", R: "renamed", C: "copied", "?": "untracked", U: "conflict" };
 
 type Dir = TreeEntry[] | "loading" | { error: string };
 
 export function FilesView({ repo, snapshot, rev, revOptions, onRev }: Props) {
+  const { t } = useTranslation();
   const [showIgnored, setShowIgnored] = useState(false);
   const [dirs, setDirs] = useState<Map<string, Dir>>(new Map());
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
@@ -156,8 +158,8 @@ export function FilesView({ repo, snapshot, rev, revOptions, onRev }: Props) {
     <div className="files-view">
       <div className="files-tree">
         <div className="files-head">
-          <select className="rev-select" value={rev ?? ""} onChange={(e) => onRev(e.target.value || null)} title="Which version of the files to show">
-            <option value="">Working tree</option>
+          <select className="rev-select" value={rev ?? ""} onChange={(e) => onRev(e.target.value || null)} title={t("git.filesView.revision")}>
+            <option value="">{t("git.filesView.workingTree")}</option>
             {revOptions.map((o) => (
               <option key={o.value} value={o.value}>
                 {o.label}
@@ -165,14 +167,14 @@ export function FilesView({ repo, snapshot, rev, revOptions, onRev }: Props) {
             ))}
           </select>
           {rev === null && (
-            <label className="check ignored-toggle" title="Show files matched by .gitignore">
+            <label className="check ignored-toggle" title={t("git.filesView.ignoredHint")}>
               <input type="checkbox" checked={showIgnored} onChange={(e) => setShowIgnored(e.target.checked)} />
-              Ignored
+              {t("git.filesView.ignored")}
             </label>
           )}
         </div>
-        <div className="files-rows" ref={treeRef} tabIndex={0} onKeyDown={onKey} role="tree" aria-label="Files">
-          {root === "loading" && <div className="empty-line">Loading…</div>}
+        <div className="files-rows" ref={treeRef} tabIndex={0} onKeyDown={onKey} role="tree" aria-label={t("git.filesView.label")}>
+          {root === "loading" && <div className="empty-line">{t("common.loading")}</div>}
           {root && !Array.isArray(root) && root !== "loading" && <div className="empty-line danger">{root.error}</div>}
           {rows.map(({ entry, depth }) => {
             const open = expanded.has(entry.path);
@@ -197,29 +199,29 @@ export function FilesView({ repo, snapshot, rev, revOptions, onRev }: Props) {
                 <EntryIcon entry={entry} open={open} />
                 <span className="label">{entry.name}</span>
                 {status ? (
-                  <span className={"status s-" + (status === "?" ? "q" : status)} title={STATUS_NAME[status] ?? status}>
+                  <span className={"status s-" + (status === "?" ? "q" : status)} title={statusName(t, status)}>
                     {status === "?" ? "U" : status}
                   </span>
                 ) : (
-                  changes.folders.has(entry.path) && <span className="change-dot" title="Contains changes" />
+                  changes.folders.has(entry.path) && <span className="change-dot" title={t("git.filesView.containsChanges")} />
                 )}
               </div>
             );
           })}
-          {Array.isArray(root) && root.length === 0 && <div className="empty-line">No files</div>}
+          {Array.isArray(root) && root.length === 0 && <div className="empty-line">{t("git.filesView.noFiles")}</div>}
         </div>
       </div>
       <div className="files-content">
         {gone ? (
           <div className="empty">
             <span>
-              <code className="mono">{selected}</code> {rev ? "doesn’t exist at this commit" : "no longer exists"}
+              <Trans i18nKey={rev ? "git.filesView.goneAtCommit" : "git.filesView.gone"} values={{ path: selected }} components={{ code: <code className="mono" /> }} />
             </span>
           </div>
         ) : selectedIsFile && selected ? (
           <FilePane path={selected} content={content} rev={rev} />
         ) : (
-          <div className="empty">Select a file to see its content</div>
+          <div className="empty">{t("git.filesView.selectFile")}</div>
         )}
       </div>
     </div>
@@ -235,6 +237,7 @@ function EntryIcon({ entry, open }: { entry: TreeEntry; open: boolean }) {
 }
 
 function FilePane({ path, content, rev }: { path: string; content: FileContent | { error: string } | null; rev: string | null }) {
+  const { t } = useTranslation();
   const c = content && "path" in content && content.path === path ? content : null;
   const err = content && "error" in content ? content.error : null;
   return (
@@ -247,16 +250,16 @@ function FilePane({ path, content, rev }: { path: string; content: FileContent |
       {err ? (
         <div className="empty danger">{err}</div>
       ) : !c ? (
-        <div className="empty">Loading…</div>
+        <div className="empty">{t("common.loading")}</div>
       ) : c.link_target !== null ? (
         <div className="empty">
-          Symbolic link to <code className="mono">{c.link_target}</code>
+          <Trans i18nKey="git.filesView.symlink" values={{ target: c.link_target }} components={{ code: <code className="mono" /> }} />
         </div>
       ) : c.binary ? (
-        <div className="empty">Binary file ({formatBytes(c.size)}), not shown</div>
+        <div className="empty">{t("git.filesView.binary", { size: formatBytes(c.size) })}</div>
       ) : (
         <>
-          {c.truncated && <div className="banner warn">Large file: showing the first {formatBytes(c.text?.length ?? 0)} of {formatBytes(c.size)}.</div>}
+          {c.truncated && <div className="banner warn">{t("git.filesView.truncated", { shown: formatBytes(c.text?.length ?? 0), size: formatBytes(c.size) })}</div>}
           <CodeViewer path={path} text={c.text ?? ""} />
         </>
       )}

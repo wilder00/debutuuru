@@ -187,6 +187,17 @@ means adding a module, not a new transport.
   binaries by NUL bytes, never follows symlinks, and refuses paths outside
   the repo. The viewer is CodeMirror 6, read-only, lazy-loaded (only renders
   visible lines; languages load on demand) and colored with `--syn-*` tokens.
+- Languages: English (source and fallback), Spanish, Japanese and Korean, with
+  i18next + react-i18next. Texts live in `src/i18n/locales/<lang>.json`
+  (i18next JSON v4: plural keys follow each language's CLDR categories, and
+  tools like Weblate read the format), keys are typed against `en.json`, and
+  `scripts/check-locales.mjs` (part of `pnpm build`) fails on missing keys,
+  plural forms or `{{variables}}`. The first start follows the system
+  language; Settings › Language can fix one (`Settings.language`). `<html
+  lang>` follows the UI language for screen readers and CJK glyph shapes
+  (Han unification), and `:lang()` picks the Japanese or Korean fallback
+  fonts. Agent results carry `OpOutcome.message` (git module v5) so the UI
+  words them itself; git's own output stays in git's language.
 
 ## Roadmap
 

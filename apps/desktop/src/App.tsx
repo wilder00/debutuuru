@@ -1,5 +1,6 @@
 import { AlertTriangle, FolderOpen, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Trans, useTranslation } from "react-i18next";
 import type { Hello } from "./bindings/Hello";
 import type { Snapshot } from "./bindings/Snapshot";
 import { AgentError, agentHello, initialPath, onOpenRepo, resolvePath } from "./lib/rpc";
@@ -15,6 +16,7 @@ import { TabBar } from "./shell/TabBar";
 import { TitleBar } from "./shell/TitleBar";
 
 export function App() {
+  const { t } = useTranslation();
   const { ready, session, updateSession, notice, dismissNotice, updates } = useSettings();
   const [snapshots, setSnapshots] = useState<Record<string, Snapshot>>({});
   const [error, setError] = useState<string | null>(null);
@@ -118,7 +120,7 @@ export function App() {
               <div className={"banner " + (error ? "danger" : "warn")} role="alert">
                 <AlertTriangle size={14} />
                 <span>{banner}</span>
-                <button className="icon-btn" onClick={() => (error ? setError(null) : dismissNotice())} title="Dismiss">
+                <button className="icon-btn" onClick={() => (error ? setError(null) : dismissNotice())} title={t("common.dismiss")}>
                   <X size={14} />
                 </button>
               </div>
@@ -138,14 +140,17 @@ export function App() {
 }
 
 function Welcome() {
+  const { t } = useTranslation();
   return (
     <div className="empty welcome">
       <div className="welcome-card panel">
         <FolderOpen size={28} />
-        <h1>Open a repository</h1>
-        <p>Type a path in the bar above (Windows or <code className="mono">\\wsl.localhost\…</code>), or from any terminal run</p>
+        <h1>{t("app.welcomeTitle")}</h1>
+        <p>
+          <Trans i18nKey="app.welcomeBody" values={{ wslPath: String.raw`\\wsl.localhost\…` }} components={{ code: <code className="mono" /> }} />
+        </p>
         <code className="mono">debutuuru .</code>
-        <p className="hint">Ctrl+, Appearance · F5 refresh · Ctrl+W close tab</p>
+        <p className="hint">{t("app.welcomeShortcuts")}</p>
       </div>
     </div>
   );

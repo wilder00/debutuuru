@@ -1,0 +1,288 @@
+{
+  "common": {
+    "dismiss": "閉じる",
+    "cancel": "キャンセル",
+    "loading": "読み込み中…",
+    "detached": "デタッチ",
+    "close": "閉じる (Esc)"
+  },
+  "app": {
+    "loadSettingsFailed": "設定を読み込めませんでした: {{error}}",
+    "saveSettingsFailed": "設定を保存できませんでした: {{error}}",
+    "welcomeTitle": "リポジトリを開く",
+    "welcomeBody": "上のバーにパス (Windows または <code>{{wslPath}}</code>) を入力するか、任意のターミナルで次を実行してください",
+    "welcomeShortcuts": "Ctrl+, 設定 · F5 再読み込み · Ctrl+W タブを閉じる"
+  },
+  "titlebar": {
+    "pathPlaceholder": "リポジトリを開く: C:\\code\\app または \\\\wsl.localhost\\Ubuntu\\home\\me\\app",
+    "pathLabel": "リポジトリのパス",
+    "linkedWorktree": "リンクされたワークツリー",
+    "currentBranch": "現在のブランチ",
+    "refresh": "再読み込み (F5)"
+  },
+  "tabs": {
+    "label": "開いているリポジトリ",
+    "insideWsl": "WSL 内 ({{distro}})",
+    "close": "タブを閉じる (中クリック)"
+  },
+  "activity": {
+    "label": "モジュール",
+    "git": "Git",
+    "settings": "設定 (Ctrl+,)"
+  },
+  "statusbar": {
+    "detachedHead": "デタッチされた HEAD",
+    "aheadBehind": "アップストリームより先行 / 遅延",
+    "bare": "ベアリポジトリ",
+    "linkedWorktree": "リンクされたワークツリー",
+    "mainWorktree": "メインのワークツリー",
+    "modules": "モジュール: {{list}}",
+    "agent": "エージェント {{os}}",
+    "protocol": "プロトコル {{version}}",
+    "updateTitle": "Debutuuru をダウンロード、インストールして再起動します",
+    "updateTo": "v{{version}} に更新",
+    "updatingTo": "v{{version}} に更新中"
+  },
+  "settings": {
+    "title": "設定",
+    "readOnly": "この設定は新しいバージョンで作成されたものです。変更はすぐに反映されますが、保存はされません。",
+    "language": {
+      "title": "言語",
+      "system": "システム ({{language}})",
+      "hint": "git 自体のメッセージ (エラーや、フェッチ・プッシュの詳細) は、お使いの git の言語のまま表示されます。"
+    },
+    "theme": {
+      "title": "テーマ",
+      "custom": "カスタム",
+      "base": "ベース",
+      "accent": "アクセント",
+      "contrast": "コントラスト",
+      "textContrast": "テキストのコントラスト",
+      "secondary": "補助テキスト",
+      "buttons": "ボタン",
+      "target": "目標 ≥ {{target}}:1 (WCAG)",
+      "presets": {
+        "debutuuru": "Debutuuru",
+        "midnight": "Midnight",
+        "graphite": "Graphite",
+        "forest": "Forest",
+        "ember": "Ember",
+        "rose": "Rosé",
+        "high-contrast": "ハイコントラスト"
+      }
+    },
+    "background": {
+      "title": "背景画像",
+      "change": "画像を変更",
+      "choose": "画像を選択",
+      "remove": "削除",
+      "visibility": "表示の強さ",
+      "blur": "ぼかし",
+      "dim": "暗さ",
+      "hint": "画像は Debutuuru のデータフォルダーにコピーされます。画像が透けて見えるよう、パネルが半透明になります。"
+    },
+    "text": {
+      "title": "テキスト",
+      "uiFont": "UI フォント",
+      "uiFontPlaceholder": "Inter (同梱)",
+      "codeFont": "コードのフォント",
+      "codeFontPlaceholder": "JetBrains Mono (同梱)",
+      "size": "サイズ",
+      "ligatures": "コードの合字"
+    },
+    "density": {
+      "title": "表示密度",
+      "compact": "コンパクト",
+      "comfortable": "ゆったり"
+    },
+    "ssh": {
+      "title": "Git と SSH",
+      "useWslKeys": "Windows のリポジトリで WSL の SSH キーを使う",
+      "useWslKeysHint": "Windows のリポジトリのプッシュ・プルで <code>wsl.exe -e ssh</code> を実行するため、ディストリビューションのキー、ssh-agent、<code>~/.ssh/config</code> がここでも使えます。オフの場合: 通常の Git for Windows の設定 (キーは <code>%USERPROFILE%\\.ssh</code>、HTTPS は Credential Manager) を使います。",
+      "distro": "ディストリビューション",
+      "defaultDistro": "既定のディストリビューション",
+      "noDistro": "WSL のディストリビューションが見つかりません。",
+      "wslReposHint": "WSL 内のリポジトリは、常にそのディストリビューション自身の ssh を使います。パスワードなしのキーや ssh-agent は設定不要です。パスフレーズやパスワードが必要な場合は Debutuuru がダイアログで尋ね、保存することはありません。"
+    },
+    "wslCommand": {
+      "title": "WSL のコマンド",
+      "hint": "WSL のターミナルで <code>debutuuru .</code> を実行すると、そのフォルダーをここで開けるようになります。このアプリを呼び出すだけの小さなスクリプト <code>~/.local/bin/debutuuru</code> を追加します。",
+      "checking": "確認中…",
+      "installing": "インストール中…",
+      "updating": "更新中…",
+      "notRunning": "実行されていません",
+      "check": "確認",
+      "retry": "再試行",
+      "foreign": "<code>{{path}}</code> は既に存在し、Debutuuru が作成したものではないため、そのままにしています。",
+      "notInstalled": "未インストール",
+      "install": "インストール",
+      "ready": "準備完了。新しいターミナルを開いて <code>debutuuru .</code> を実行してください",
+      "shadowed": "インストール済みですが、PATH で先に見つかる <code>{{path}}</code> が <code>debutuuru</code> として実行されます。",
+      "notOnPath": "インストール済みですが、<code>~/.local/bin</code> が PATH に含まれていません。",
+      "addToPathHint": "「PATH に追加」は <code>{{file}}</code> に 1 行追加します。",
+      "addToPath": "PATH に追加"
+    },
+    "updates": {
+      "title": "アップデート",
+      "install": "v{{version}} をインストールして再起動",
+      "check": "アップデートを確認",
+      "latest": "最新バージョンです。",
+      "downloading": "v{{version}} をダウンロード中",
+      "restartNote": "インストールが終わると、アプリが閉じて再び開きます。",
+      "failed": "更新できませんでした: {{message}}",
+      "checkOnStart": "アプリの起動時にアップデートを確認する",
+      "checkOnStartHint": "確認してステータスバーにボタンを表示するだけで、クリックするまで何もインストールしません。アップデートは署名されており、インストール前に検証されます。"
+    }
+  },
+  "git": {
+    "connectingWsl": "WSL に接続中…",
+    "loadingRepo": "リポジトリを読み込み中…",
+    "history": "履歴",
+    "files": "ファイル",
+    "historyHint": "コミットをダブルクリックすると、そのファイルを参照できます",
+    "status": {
+      "M": "変更済み",
+      "A": "追加済み",
+      "D": "削除済み",
+      "R": "名前変更済み",
+      "C": "コピー済み",
+      "?": "追跡対象外",
+      "U": "競合"
+    },
+    "sidebar": {
+      "branches": "ブランチ",
+      "remotes": "リモート",
+      "worktrees": "ワークツリー",
+      "checkoutHint": "ダブルクリックでチェックアウト",
+      "noRemotes": "リモートなし",
+      "openHint": "クリックして開く",
+      "bare": "ベア"
+    },
+    "changes": {
+      "staged": "ステージ済み",
+      "changes": "変更",
+      "unstageAll": "すべてステージング解除",
+      "stageAll": "すべてステージ",
+      "nothingStaged": "ステージされた変更はありません",
+      "clean": "作業ツリーはクリーンです",
+      "stage": "ステージ",
+      "unstage": "ステージング解除",
+      "messagePlaceholder": "コミット メッセージ",
+      "commit": "コミット",
+      "commitFiles_other": "{{count}} 個のファイルをコミット"
+    },
+    "graph": {
+      "label": "コミット履歴",
+      "graph": "グラフ",
+      "message": "メッセージ",
+      "author": "作成者",
+      "date": "日付",
+      "commit": "コミット",
+      "empty": "まだコミットがありません。ファイルをステージして最初のコミットを作成してください。"
+    },
+    "diff": {
+      "staged": "ステージ済み",
+      "workingTree": "作業ツリー",
+      "close": "差分を閉じる",
+      "noTextChanges": "テキストの変更はありません (バイナリファイルまたはモードの変更)"
+    },
+    "filesView": {
+      "revision": "表示するファイルのバージョン",
+      "workingTree": "作業ツリー",
+      "ignored": "無視",
+      "ignoredHint": ".gitignore に一致するファイルを表示",
+      "label": "ファイル",
+      "containsChanges": "変更を含む",
+      "noFiles": "ファイルがありません",
+      "goneAtCommit": "<code>{{path}}</code> はこのコミットに存在しません",
+      "gone": "<code>{{path}}</code> は存在しなくなりました",
+      "selectFile": "ファイルを選択すると内容が表示されます",
+      "symlink": "<code>{{target}}</code> へのシンボリックリンク",
+      "binary": "バイナリファイル ({{size}}) のため表示しません",
+      "truncated": "大きなファイルです: {{size}} のうち最初の {{shown}} を表示しています。"
+    },
+    "remote": {
+      "starting": "開始中…",
+      "noRemote": "このリポジトリにはリモートがありません",
+      "fetch": "フェッチ",
+      "fetchTitle": "すべてのリモートからフェッチ (削除されたブランチを整理)",
+      "pull": "プル",
+      "pullTitle": "{{upstream}} からプル (マージかリベースかは git の設定で決まります)",
+      "noUpstream": "アップストリームがありません: 先にブランチをプッシュしてください",
+      "pullOptions": "プルのオプション",
+      "ffOnly": "Fast-forward のみ",
+      "rebase": "リベース",
+      "merge": "マージ",
+      "push": "プッシュ",
+      "publish": "発行",
+      "pushTitle": "{{upstream}} にプッシュ",
+      "publishTitle": "このブランチを発行 (アップストリームを設定)",
+      "pushOptions": "プッシュのオプション",
+      "forceTitle": "リモートのブランチを上書きします。ただし、最後のフェッチ以降に他の誰かがプッシュしていれば中止します",
+      "forceConfirm": "もう一度クリックすると強制プッシュします",
+      "force": "強制プッシュ (with lease)…",
+      "tracking": "追跡ブランチ",
+      "noUpstreamShort": "(アップストリームなし)",
+      "done": "完了",
+      "failed": "失敗",
+      "details": "詳細",
+      "hideDetails": "詳細を隠す",
+      "outcome": {
+        "fetched": "{{remote}} からフェッチしました",
+        "fetchedAll": "すべてのリモートからフェッチしました",
+        "up_to_date": "既に最新です",
+        "pulled": "{{upstream}} からプルしました",
+        "nothing_to_push": "プッシュするものはありません",
+        "pushed": "{{branch}} → {{target}} にプッシュしました",
+        "no_upstream": "このブランチにはプル元のアップストリームがありません。先にプッシュするか、`git branch -u` で設定してください。",
+        "no_remote": "このリポジトリにはリモートがありません。`git remote add origin <url>` で追加してください。",
+        "several_remotes": "リモートが複数あり、アップストリームがありません: `git push -u <remote> HEAD` でどれかを選んでください。",
+        "cancelled": "キャンセルしました",
+        "host_key_declined": "接続を中止しました: サーバーのホストキーが信頼されませんでした"
+      },
+      "advice": {
+        "sshAuthWindows": "Windows からの SSH で認証できませんでした。SSH キーが WSL にある場合は、設定 (Ctrl+,) で「Windows のリポジトリで WSL の SSH キーを使う」をオンにしてください。",
+        "sshAuth": "SSH で認証できませんでした。ターミナルで `ssh -T git@<host>` を実行し、キーが受け入れられることと、リポジトリの URL が正しいことを確認してください。",
+        "hostKey": "サーバーのホストキーが信頼されなかったため、何も送信していません。もう一度フェッチし、フィンガープリントが Git ホストの公開しているものと一致する場合は受け入れてください。",
+        "httpsAuth": "認証情報が拒否されました。多くのホストでは、パスワードの代わりに個人用アクセストークンか Git Credential Manager が必要です。",
+        "rejected": "リモートに手元にないコミットがあります。先にプルしてから、プッシュしてください。",
+        "diverged": "ブランチとリモートが分岐しています。プル ▸ リベース または プル ▸ マージ を使ってください。",
+        "localChanges": "プルする前に、ローカルの変更をコミットするかスタッシュしてください。",
+        "conflict": "競合が発生したため、プルが中断しました。競合を解決してからコミットしてください。",
+        "network": "リモートに接続できませんでした。ネットワーク接続、VPN、プロキシを確認してください。"
+      }
+    },
+    "prompt": {
+      "confirmTitle": "接続の確認",
+      "credentialsTitle": "Git が認証情報を求めています",
+      "fingerprintHint": "このフィンガープリントが Git ホストの公開しているものと一致する場合のみ受け入れてください。",
+      "reject": "拒否",
+      "trust": "信頼して続行",
+      "notStored": "この git プロセスにのみ送信されます。Debutuuru が保存することはありません。",
+      "continue": "続行"
+    }
+  },
+  "time": {
+    "justNow": "たった今"
+  },
+  "editor": {
+    "Find": "検索",
+    "Replace": "置換",
+    "next": "次へ",
+    "previous": "前へ",
+    "all": "すべて",
+    "match case": "大文字と小文字を区別",
+    "regexp": "正規表現",
+    "by word": "単語単位",
+    "replace": "置換",
+    "replace all": "すべて置換",
+    "close": "閉じる",
+    "current match": "現在の一致",
+    "on line": "行",
+    "Go to line": "行へ移動",
+    "go": "移動",
+    "replaced $ matches": "$ 件を置換しました",
+    "replaced match on line $": "$ 行目の一致を置換しました",
+    "Control character": "制御文字"
+  }
+}

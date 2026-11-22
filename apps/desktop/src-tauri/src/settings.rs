@@ -28,6 +28,9 @@ pub struct Settings {
     pub git: GitSettings,
     /// Added without a schema bump.
     pub updates: UpdateSettings,
+    /// UI language as a BCP 47 tag (`"es"`, `"ja"`…); `None` follows the
+    /// system language. Added without a schema bump.
+    pub language: Option<String>,
 }
 
 /// App updates (signed installers from the GitHub releases).
@@ -143,6 +146,7 @@ impl Default for Settings {
             session: Session::default(),
             git: GitSettings::default(),
             updates: UpdateSettings::default(),
+            language: None,
         }
     }
 }
@@ -225,6 +229,15 @@ impl Settings {
                     .all(|c| c.is_ascii_alphanumeric() || "._-".contains(c))
         }) {
             self.git.wsl_distro = None;
+        }
+        // A language tag is letters, digits and hyphens; anything else means
+        // the file was edited by hand: follow the system again.
+        if self.language.as_deref().is_some_and(|l| {
+            l.is_empty()
+                || l.len() > 35
+                || !l.chars().all(|c| c.is_ascii_alphanumeric() || c == '-')
+        }) {
+            self.language = None;
         }
         self.schema_version = SCHEMA_VERSION;
         self
@@ -446,6 +459,24 @@ mod tests {
         let loaded = store.load();
         assert!(!loaded.read_only);
         assert!(loaded.settings.updates.check_on_start);
+    }
+
+    #[test]
+    fn language_follows_the_system_unless_chosen() {
+        let d = tmp("language");
+        let store = Store::new(&d, &d);
+        std::fs::write(&store.file, r#"{"schema_version": 1}"#).unwrap();
+        assert_eq!(store.load().settings.language, None);
+
+        std::fs::write(&store.file, r#"{"schema_version": 1, "language": "ja"}"#).unwrap();
+        assert_eq!(store.load().settings.language.as_deref(), Some("ja"));
+
+        std::fs::write(
+            &store.file,
+            r#"{"schema_version": 1, "language": "es;rm -rf"}"#,
+        )
+        .unwrap();
+        assert_eq!(store.load().settings.language, None);
     }
 
     #[test]

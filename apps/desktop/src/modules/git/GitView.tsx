@@ -1,4 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { ChangedEvent } from "../../bindings/ChangedEvent";
 import type { LogEntry } from "../../bindings/LogEntry";
 import type { Snapshot } from "../../bindings/Snapshot";
@@ -28,6 +29,7 @@ type Props = {
 };
 
 export function GitView({ repo, active, refreshKey, onError, onOpen, onLoaded }: Props) {
+  const { t } = useTranslation();
   const { git: gitSettings } = useSettings();
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
   const [log, setLog] = useState<LogEntry[]>([]);
@@ -142,7 +144,7 @@ export function GitView({ repo, active, refreshKey, onError, onOpen, onLoaded }:
   if (!snapshot) {
     return (
       <div className="empty" hidden={!active}>
-        {loadError ? <span className="danger">{loadError}</span> : repo.startsWith("\\\\wsl") ? "Connecting to WSL…" : "Loading repository…"}
+        {loadError ? <span className="danger">{loadError}</span> : repo.startsWith("\\\\wsl") ? t("git.connectingWsl") : t("git.loadingRepo")}
       </div>
     );
   }
@@ -158,16 +160,16 @@ export function GitView({ repo, active, refreshKey, onError, onOpen, onLoaded }:
         <RemoteBar repo={repo} snapshot={snapshot} settings={gitSettings} onDone={() => void reload().catch(onError)} />
         <div className="view-tabs" role="tablist">
           <button role="tab" aria-selected={view === "history"} className={view === "history" ? "on" : ""} onClick={() => setView("history")}>
-            History
+            {t("git.history")}
           </button>
           <button role="tab" aria-selected={view === "files"} className={view === "files" ? "on" : ""} onClick={() => setView("files")}>
-            Files
+            {t("git.files")}
           </button>
-          {view === "history" && <span className="hint">Double-click a commit to browse its files</span>}
+          {view === "history" && <span className="hint">{t("git.historyHint")}</span>}
         </div>
         {filesOpened && (
           <div className="view-pane" hidden={view !== "files"}>
-            <Suspense fallback={<div className="empty">Loading…</div>}>
+            <Suspense fallback={<div className="empty">{t("common.loading")}</div>}>
               <FilesView repo={repo} snapshot={snapshot} rev={filesRev} revOptions={revOptions(log, [filesRev, commit])} onRev={setFilesRev} />
             </Suspense>
           </div>

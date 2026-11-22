@@ -7,7 +7,9 @@
 
 use debutuuru_agent::client::StdioClient;
 use debutuuru_agent::Transport;
-use debutuuru_protocol::git::{self, FailureHint, OpOutcome, PromptEvent, PromptKind};
+use debutuuru_protocol::git::{
+    self, FailureHint, OpOutcome, OutcomeMessage, PromptEvent, PromptKind,
+};
 use debutuuru_protocol::Event;
 use serde_json::json;
 use std::io::{BufRead, BufReader, Write};
@@ -98,6 +100,13 @@ fn push_pull_fetch_against_bare_remote() {
     );
     assert!(o.ok, "{o:?}");
     assert_eq!(o.summary, "Pushed main → origin/main");
+    assert_eq!(
+        o.message,
+        Some(OutcomeMessage::Pushed {
+            branch: "main".into(),
+            target: "origin/main".into()
+        })
+    );
     assert!(
         events.try_iter().any(|e| e.topic == git::PROGRESS),
         "progress events"
@@ -109,6 +118,7 @@ fn push_pull_fetch_against_bare_remote() {
             .unwrap(),
     );
     assert_eq!(o.summary, "Nothing to push");
+    assert_eq!(o.message, Some(OutcomeMessage::NothingToPush));
 
     // Someone else pushes; our push is rejected, then pull brings it in.
     git(
@@ -147,6 +157,12 @@ fn push_pull_fetch_against_bare_remote() {
     );
     assert!(o.ok, "{o:?}");
     assert_eq!(o.summary, "Pulled origin/main");
+    assert_eq!(
+        o.message,
+        Some(OutcomeMessage::Pulled {
+            upstream: "origin/main".into()
+        })
+    );
     let o = outcome(
         client
             .call(git::PUSH, json!({ "repo": ra, "op_id": "p4" }))
