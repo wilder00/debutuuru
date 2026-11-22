@@ -666,3 +666,13 @@ select { height: 28px; background: var(--bg-raised); border: 1px solid var(--bor
 }
 .window-btn:hover:not(:disabled) { background: var(--bg-hover); color: var(--text); border: 0; }
 .window-btn.close:hover:not(:disabled) { background: var(--danger); color: var(--bg-solid); }
+
+/* Expanded diff / commit panel: it takes the whole tab; the sidebar, the
+   changes, the remote bar and the history step aside until restored. */
+.git-view.expanded { grid-template-columns: minmax(0, 1fr); }
+.git-view.expanded > .sidebar,
+.git-view.expanded > .changes,
+.git-view.expanded .remote-area,
+.git-view.expanded .view-tabs,
+.git-view.expanded .view-pane { display: none; }
+.git-view.expanded :is(.diff, .commit-panel) { border-top: 0; }

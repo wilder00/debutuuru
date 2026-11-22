@@ -2,6 +2,7 @@
 // and shows them in the diff viewer with the shared toolbar. Used for
 // unstaged, staged and untracked changes and for a commit's files.
 import { Check, ChevronDown, ChevronUp, SlidersHorizontal, X } from "lucide-react";
+import { ExpandButton, type Expand } from "./ExpandButton";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { DiffSource } from "../../bindings/DiffSource";
@@ -21,13 +22,15 @@ type Props = {
    *  been edited while it's open. */
   reloadKey?: unknown;
   onClose?: () => void;
+  /** Expand to the whole tab (only the outermost panel gets it). */
+  expand?: Expand;
 };
 
 type Loaded = { key: string; versions: FileVersions } | { key: string; error: string };
 
 const keyOf = (s: DiffSource, path: string, orig?: string | null) => JSON.stringify([s, path, orig ?? null]);
 
-export function FileDiffPanel({ repo, source, path, origPath, reloadKey, onClose }: Props) {
+export function FileDiffPanel({ repo, source, path, origPath, reloadKey, onClose, expand }: Props) {
   const { t } = useTranslation();
   const { diff: options } = useSettings();
   const [loaded, setLoaded] = useState<Loaded | null>(null);
@@ -58,6 +61,7 @@ export function FileDiffPanel({ repo, source, path, origPath, reloadKey, onClose
         </span>
         <span className="chip">{sourceLabel}</span>
         <span className="spacer" />
+        {expand && <ExpandButton expand={expand} />}
         {onClose && (
           <button className="icon-btn" onClick={onClose} title={t("git.diff.close")}>
             <X size={14} />

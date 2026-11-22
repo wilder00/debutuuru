@@ -224,7 +224,9 @@
       "next": "Next change (Alt+↓)",
       "options": "Display options",
       "contextLines_one": "{{count}} line",
-      "contextLines_other": "{{count}} lines"
+      "contextLines_other": "{{count}} lines",
+      "expand": "Expand to the whole window (Esc to restore)",
+      "restore": "Restore the normal layout (Esc)"
     },
     "filesView": {
       "revision": "Which version of the files to show",
@@ -385,7 +387,8 @@
       "openFile": "Open file…",
       "browseWsl": "Browse in WSL…",
       "openRecent": "Open recent repository…",
-      "style": "Change style…"
+      "style": "Change style…",
+      "toggleExpand": "Expand or restore the diff"
     }
   },
   "open": {

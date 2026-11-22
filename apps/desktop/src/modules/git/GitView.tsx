@@ -141,6 +141,26 @@ export function GitView({ repo, active, refreshKey, onError, onOpen, onLoaded }:
     setOpenRequest({ path: e.path, n: Date.now() });
   });
   useBus("show-view", repo, (e) => setView(e.view));
+
+  // The diff / commit panel can take the whole tab (to read the details);
+  // the same button, Esc or the palette brings the normal layout back.
+  const panelOpen = !!(file || commit) && view === "history";
+  const [expanded, setExpanded] = useState(false);
+  useEffect(() => {
+    if (!panelOpen) setExpanded(false);
+  }, [panelOpen]);
+  useBus("toggle-expand", repo, () => panelOpen && setExpanded((x) => !x));
+  useEffect(() => {
+    if (!expanded || !active) return;
+    const onKey = (e: KeyboardEvent) => {
+      // Not when Esc already closed something (editor search, a menu, a dialog).
+      if (e.key !== "Escape" || e.defaultPrevented || document.querySelector(".palette, .drawer, .modal, .menu")) return;
+      setExpanded(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [expanded, active]);
+  const expand = { expanded, toggle: () => setExpanded((x) => !x) };
   useBus("checkout", repo, (e) => void act(() => git.checkout(repo, { branch: e.branch })));
 
   if (!snapshot) {
@@ -152,7 +172,7 @@ export function GitView({ repo, active, refreshKey, onError, onOpen, onLoaded }:
   }
 
   return (
-    <div className={"git-view" + ((file || commit) && view === "history" ? " with-diff" : "")} hidden={!active}>
+    <div className={"git-view" + (panelOpen ? " with-diff" : "") + (expanded ? " expanded" : "")} hidden={!active}>
       <Sidebar
         snapshot={snapshot}
         onCheckout={(branch) => act(() => git.checkout(repo, { branch }))}
@@ -199,10 +219,11 @@ export function GitView({ repo, active, refreshKey, onError, onOpen, onLoaded }:
             path={file.file.path}
             origPath={file.staged ? file.file.orig_path : null}
             reloadKey={snapshot}
+            expand={expand}
             onClose={() => setFile(null)}
           />
         )}
-        {view === "history" && !file && commit && <CommitPanel repo={repo} hash={commit} onClose={() => setCommit(null)} />}
+        {view === "history" && !file && commit && <CommitPanel repo={repo} hash={commit} onClose={() => setCommit(null)} expand={expand} />}
         </Suspense>
         </ErrorBoundary>
       </div>

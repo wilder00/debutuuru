@@ -112,6 +112,7 @@ export function useCommands(c: Ctx): PaletteItem[] {
         g("general", "closeTab", { keys: "Ctrl+W", run: () => c.closeTab(repo) }),
         g("view", "history", { run: () => emit("show-view", { repo, view: "history" }) }),
         g("view", "files", { run: () => emit("show-view", { repo, view: "files" }) }),
+        g("view", "toggleExpand", { run: () => emit("toggle-expand", { repo }) }),
         g("git", "fetch", { run: () => emit("git-op", { repo, op: "fetch" }) }),
         g("git", "pull", { run: () => emit("git-op", { repo, op: "pull", mode: "default" }) }),
         g("git", "pullRebase", { run: () => emit("git-op", { repo, op: "pull", mode: "rebase" }) }),

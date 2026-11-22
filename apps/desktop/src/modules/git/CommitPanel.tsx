@@ -8,12 +8,13 @@ import type { ChangedFile } from "../../bindings/ChangedFile";
 import type { CommitDetails } from "../../bindings/CommitDetails";
 import { fullDate, relativeTime, splitPath } from "../../lib/format";
 import { git } from "./api";
+import { ExpandButton, type Expand } from "./ExpandButton";
 import { FileDiffPanel } from "./FileDiffPanel";
 import { statusName } from "./status";
 
-type Props = { repo: string; hash: string; onClose: () => void };
+type Props = { repo: string; hash: string; onClose: () => void; expand?: Expand };
 
-export function CommitPanel({ repo, hash, onClose }: Props) {
+export function CommitPanel({ repo, hash, onClose, expand }: Props) {
   const { t } = useTranslation();
   const [details, setDetails] = useState<CommitDetails | { error: string } | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
@@ -47,6 +48,7 @@ export function CommitPanel({ repo, hash, onClose }: Props) {
         <div className="commit-title">
           <span className="subject">{details.subject}</span>
           <span className="spacer" />
+          {expand && <ExpandButton expand={expand} />}
           <button className="icon-btn" onClick={onClose} title={t("common.dismiss")}>
             <X size={14} />
           </button>

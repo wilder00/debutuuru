@@ -226,7 +226,9 @@
       "options": "Opciones de visualización",
       "contextLines_one": "{{count}} línea",
       "contextLines_many": "{{count}} líneas",
-      "contextLines_other": "{{count}} líneas"
+      "contextLines_other": "{{count}} líneas",
+      "expand": "Expandir a toda la ventana (Esc para restaurar)",
+      "restore": "Restaurar la vista normal (Esc)"
     },
     "filesView": {
       "revision": "Qué versión de los archivos mostrar",
@@ -388,7 +390,8 @@
       "openFile": "Abrir archivo…",
       "browseWsl": "Explorar en WSL…",
       "openRecent": "Abrir repositorio reciente…",
-      "style": "Cambiar estilo…"
+      "style": "Cambiar estilo…",
+      "toggleExpand": "Expandir o restaurar el diff"
     }
   },
   "open": {

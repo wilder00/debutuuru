@@ -10,6 +10,8 @@ export type BusEvents = {
   "show-view": { repo: string; view: "history" | "files" };
   "git-op": { repo: string; op: "fetch" | "push" } | { repo: string; op: "pull"; mode: PullMode };
   checkout: { repo: string; branch: string };
+  /** Expand the open diff / commit panel to the whole tab, or restore it. */
+  "toggle-expand": { repo: string };
 };
 
 type Handler<K extends keyof BusEvents> = (e: BusEvents[K]) => void;

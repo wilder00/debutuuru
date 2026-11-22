@@ -222,7 +222,9 @@
       "previous": "前の変更 (Alt+↑)",
       "next": "次の変更 (Alt+↓)",
       "options": "表示オプション",
-      "contextLines_other": "{{count}} 行"
+      "contextLines_other": "{{count}} 行",
+      "expand": "ウィンドウ全体に広げる (Esc で元に戻す)",
+      "restore": "通常の表示に戻す (Esc)"
     },
     "filesView": {
       "revision": "表示するファイルのバージョン",
@@ -382,7 +384,8 @@
       "openFile": "ファイルを開く…",
       "browseWsl": "WSL で参照…",
       "openRecent": "最近使用したリポジトリを開く…",
-      "style": "スタイルを変更…"
+      "style": "スタイルを変更…",
+      "toggleExpand": "差分を広げる / 元に戻す"
     }
   },
   "open": {
