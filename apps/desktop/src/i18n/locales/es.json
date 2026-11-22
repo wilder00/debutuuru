@@ -369,7 +369,20 @@
       "toggleWords": "Resaltar palabras cambiadas",
       "toggleWhitespace": "Ignorar espacios",
       "toggleSyntax": "Colores de sintaxis",
-      "toggleWrap": "Ajustar líneas largas"
+      "toggleWrap": "Ajustar líneas largas",
+      "openFolder": "Abrir carpeta…",
+      "openFile": "Abrir archivo…",
+      "browseWsl": "Explorar en WSL…",
+      "openRecent": "Abrir repositorio reciente…"
     }
+  },
+  "open": {
+    "menu": "Abrir…",
+    "folder": "Abrir carpeta…",
+    "file": "Abrir archivo…",
+    "browseWsl": "Explorar en WSL ({{distro}})…",
+    "recent": "Recientes",
+    "forget": "Quitar de recientes",
+    "drop": "Suelta una carpeta para abrirla como repositorio, o un archivo para abrirlo en su repositorio"
   }
 }

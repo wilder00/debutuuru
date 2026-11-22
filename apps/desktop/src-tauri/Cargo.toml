@@ -29,3 +29,5 @@ tauri-plugin-updater = "2.14"
 tauri-plugin-process = "2.4"
 # Links in rendered Markdown open in the default browser.
 tauri-plugin-opener = "2.7"
+# Native "Open folder / file" dialogs.
+tauri-plugin-dialog = "2.8"

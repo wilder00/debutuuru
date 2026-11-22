@@ -187,6 +187,15 @@ means adding a module, not a new transport.
   binaries by NUL bytes, never follows symlinks, and refuses paths outside
   the repo. The viewer is CodeMirror 6, read-only, lazy-loaded (only renders
   visible lines; languages load on demand) and colored with `--syn-*` tokens.
+- Opening: besides the path bar and `debutuuru .`, "Open folder… / Open
+  file…" (Ctrl+O) use the native dialog (`tauri-plugin-dialog`, only
+  `dialog:allow-open`); on Windows "Browse in WSL (distro)…" starts it at
+  `\wsl.localhost\<distro>\<home>` (`wsl_home`), so picked paths arrive in
+  the WSL form the agent routing already handles. Folders and files can also
+  be dropped on the window (Tauri's drag-drop event; `path_kind` tells them
+  apart). A file opens its repository (root found through the repo's agent,
+  so it works in WSL too) and shows the file in Files. Opened repos are
+  remembered in `session.recent_repos` (20, additive field).
 - Quick open (Ctrl+P) and command palette (Ctrl+Shift+P), as in VS Code:
   one box (`shell/Palette.tsx`) searches the active repo's files
   (`git.list_files`: tracked + untracked, minus ignored and deleted, or a

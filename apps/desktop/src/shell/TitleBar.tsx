@@ -1,5 +1,5 @@
 import { FolderOpen, GitBranch, RefreshCw } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import type { RepoInfo } from "../bindings/RepoInfo";
 
@@ -8,9 +8,11 @@ type Props = {
   info: RepoInfo | null;
   onOpen: (path: string) => void;
   onRefresh: () => void;
+  /** "Open…" menu (folder, file, WSL, recent). */
+  openMenu?: ReactNode;
 };
 
-export function TitleBar({ repo, info, onOpen, onRefresh }: Props) {
+export function TitleBar({ repo, info, onOpen, onRefresh, openMenu }: Props) {
   const { t } = useTranslation();
   // Shows the active tab's path in the form the user can type back
   // (for WSL repos the UNC path, not the Linux path the agent reports).
@@ -45,6 +47,7 @@ export function TitleBar({ repo, info, onOpen, onRefresh }: Props) {
           </span>
         )}
       </form>
+      {openMenu}
       <button className="icon-btn" onClick={onRefresh} disabled={!repo} title={t("titlebar.refresh")}>
         <RefreshCw size={15} />
       </button>

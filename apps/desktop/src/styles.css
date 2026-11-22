@@ -88,7 +88,10 @@ input[type="checkbox"] { accent-color: var(--accent); }
 /* Shell */
 .app { position: relative; z-index: 1; height: 100%; display: flex; flex-direction: column; background: var(--bg-app); }
 .panel { background: var(--bg-panel); backdrop-filter: blur(var(--panel-blur)); }
+/* position + z-index: its menus must float over the panels below, which make
+   their own stacking contexts (backdrop-filter). */
 .titlebar {
+  position: relative; z-index: 20;
   display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 10px 0 12px;
   border-bottom: 1px solid var(--border-subtle); background: var(--bg-panel); backdrop-filter: blur(var(--panel-blur));
 }
@@ -463,3 +466,21 @@ select { height: 28px; background: var(--bg-raised); border: 1px solid var(--bor
 .palette-more { margin-left: auto; color: var(--text-faint); }
 .palette-empty { display: flex; justify-content: center; padding: 14px; color: var(--text-muted); }
 .palette-hint { padding: 6px 12px; border-top: 1px solid var(--border-subtle); font-size: .82em; }
+
+/* "Open…" menu, welcome panel and drag and drop (shell/OpenMenu.tsx, App). */
+.open-menu { position: relative; }
+.open-menu .icon-btn.on { background: var(--bg-active); }
+.open-menu .menu { left: auto; right: 0; min-width: 280px; z-index: 30; }
+.menu button { gap: 8px; white-space: nowrap; }
+.menu kbd { margin-left: auto; padding: 0 5px; border: 1px solid var(--border); border-radius: 4px; font: .8em var(--font-mono); color: var(--text-muted); }
+.menu-label { padding: 8px 8px 4px; font-size: .75em; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--text-faint); }
+.menu-aside { margin-left: auto; padding-left: 12px; max-width: 180px; overflow: hidden; text-overflow: ellipsis; color: var(--text-faint); font-size: .85em; }
+.open-panel { width: 100%; display: flex; flex-direction: column; gap: 14px; margin-top: 6px; }
+.open-buttons { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.recent-list { text-align: left; }
+.recent-list .menu-label { padding-left: 4px; }
+.recent-item { gap: 8px; }
+.recent-item .aside { max-width: 55%; }
+.drop-overlay { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 24px; background: color-mix(in srgb, var(--bg-solid) 70%, transparent); pointer-events: none; }
+.drop-card { display: flex; flex-direction: column; align-items: center; gap: 12px; max-width: 420px; padding: 28px 32px; border: 2px dashed var(--accent); border-radius: var(--radius-lg); background: var(--bg-panel); color: var(--text); text-align: center; box-shadow: var(--shadow); }
+.drop-card svg { color: var(--accent); }

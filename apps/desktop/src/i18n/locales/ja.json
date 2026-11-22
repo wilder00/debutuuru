@@ -363,7 +363,20 @@
       "toggleWords": "変更された単語を強調表示",
       "toggleWhitespace": "空白を無視",
       "toggleSyntax": "構文の色分け",
-      "toggleWrap": "長い行を折り返す"
+      "toggleWrap": "長い行を折り返す",
+      "openFolder": "フォルダーを開く…",
+      "openFile": "ファイルを開く…",
+      "browseWsl": "WSL で参照…",
+      "openRecent": "最近使用したリポジトリを開く…"
     }
+  },
+  "open": {
+    "menu": "開く…",
+    "folder": "フォルダーを開く…",
+    "file": "ファイルを開く…",
+    "browseWsl": "WSL で参照 ({{distro}})…",
+    "recent": "最近使用したもの",
+    "forget": "最近使用した一覧から削除",
+    "drop": "フォルダーをドロップするとリポジトリとして開き、ファイルをドロップするとそのリポジトリで開きます"
   }
 }

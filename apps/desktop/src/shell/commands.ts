@@ -10,12 +10,14 @@ import { emit } from "../lib/bus";
 import { checkForUpdate } from "../lib/updater";
 import { useSettings } from "../settings/SettingsProvider";
 import { CUSTOM, PRESETS } from "../theme/presets";
+import type { OpenActions } from "./OpenMenu";
 import type { PaletteItem } from "./Palette";
 
 type Ctx = {
   repos: string[];
   active: string | null;
   snapshot: Snapshot | null;
+  open: OpenActions;
   openPalette: (initial: string) => void;
   openSettings: () => void;
   refresh: () => void;
@@ -39,6 +41,9 @@ export function useCommands(c: Ctx): PaletteItem[] {
     const repo = c.active;
     const items: PaletteItem[] = [
       g("general", "goToFile", { keys: "Ctrl+P", run: () => setTimeout(() => c.openPalette(""), 0) }),
+      g("general", "openFolder", { keys: "Ctrl+O", run: c.open.openFolder }),
+      g("general", "openFile", { run: c.open.openFile }),
+      ...c.open.distros.map((d) => ({ ...g("general", "browseWsl", { run: () => c.open.browseWsl(d) }), id: `general.browseWsl.${d}`, detail: d })),
       g("general", "openRepo", { run: c.focusRepoInput }),
       g("general", "refresh", { keys: "F5", run: c.refresh }),
       g("settings", "openSettings", { keys: "Ctrl+,", run: c.openSettings }),
@@ -78,6 +83,13 @@ export function useCommands(c: Ctx): PaletteItem[] {
         ] as const
       ).map(([k, key]) => g("diff", key, { detail: diff[k] ? t("palette.on") : t("palette.off"), run: () => updateDiff({ [k]: !diff[k] }) })),
     ];
+    if (c.open.recents.length) {
+      items.push(
+        g("general", "openRecent", {
+          pick: () => c.open.recents.map((r) => ({ id: `recent.${r}`, label: repoName(r), detail: r, run: () => c.open.openRecent(r) })),
+        }),
+      );
+    }
     if (c.repos.length > 1) {
       items.push(
         g("general", "switchRepo", {

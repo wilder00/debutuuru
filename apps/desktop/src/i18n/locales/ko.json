@@ -363,7 +363,20 @@
       "toggleWords": "바뀐 단어 강조 표시",
       "toggleWhitespace": "공백 무시",
       "toggleSyntax": "구문 강조 색",
-      "toggleWrap": "긴 줄 바꿈"
+      "toggleWrap": "긴 줄 바꿈",
+      "openFolder": "폴더 열기…",
+      "openFile": "파일 열기…",
+      "browseWsl": "WSL에서 찾아보기…",
+      "openRecent": "최근 저장소 열기…"
     }
+  },
+  "open": {
+    "menu": "열기…",
+    "folder": "폴더 열기…",
+    "file": "파일 열기…",
+    "browseWsl": "WSL에서 찾아보기 ({{distro}})…",
+    "recent": "최근 항목",
+    "forget": "최근 항목에서 제거",
+    "drop": "폴더를 놓으면 저장소로 열고, 파일을 놓으면 해당 저장소에서 엽니다"
   }
 }

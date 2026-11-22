@@ -51,7 +51,7 @@ export const DEFAULT_SETTINGS: Settings = {
     ligatures: true,
     density: "compact",
   },
-  session: { open_repos: [], active: null },
+  session: { open_repos: [], active: null, recent_repos: [] },
   git: { windows_ssh: "system", wsl_distro: null },
   updates: { check_on_start: true },
   language: null,

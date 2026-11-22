@@ -20,6 +20,9 @@ runner, GitHub/GitLab integration, containers and more.
 - **Files**: browse the file tree and read any file (syntax highlighting,
   search), as it is now with changes marked, or at any commit (double-click it
   in History). Ignored files are hidden unless you ask for them.
+- **Open anything**: Open folder or file (Ctrl+O) with the system dialog,
+  Browse in WSL on Windows, drag and drop folders or files onto the window,
+  and a list of recent repositories.
 - **Quick open and commands**: Ctrl+P finds any file of the repo by a few
   letters of its name; Ctrl+Shift+P runs commands (fetch, pull, push, switch
   branch, change theme or language…), like in VS Code.

@@ -7,4 +7,9 @@ export type Session = {
 /**
  * Tab keys in UI form (`C:\…` or `\\wsl.localhost\Distro\…`).
  */
-open_repos: Array<string>, active: string | null, };
+open_repos: Array<string>, active: string | null, 
+/**
+ * Repositories opened before, most recent first (same form as
+ * `open_repos`). Added without a schema bump.
+ */
+recent_repos: Array<string>, };

@@ -14,6 +14,8 @@ use std::path::{Path, PathBuf};
 use ts_rs::TS;
 
 pub const SCHEMA_VERSION: u32 = 1;
+/// Recent repositories kept (welcome screen, "Open recent…").
+pub const RECENT_REPOS: usize = 20;
 pub const MAX_BACKGROUND_BYTES: usize = 25 * 1024 * 1024;
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
@@ -125,6 +127,9 @@ pub struct Session {
     /// Tab keys in UI form (`C:\…` or `\\wsl.localhost\Distro\…`).
     pub open_repos: Vec<String>,
     pub active: Option<String>,
+    /// Repositories opened before, most recent first (same form as
+    /// `open_repos`). Added without a schema bump.
+    pub recent_repos: Vec<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
@@ -264,6 +269,9 @@ impl Settings {
         s.open_repos.retain(|r| !r.trim().is_empty());
         s.open_repos.dedup();
         s.open_repos.truncate(50);
+        s.recent_repos.retain(|r| !r.trim().is_empty());
+        s.recent_repos.dedup();
+        s.recent_repos.truncate(RECENT_REPOS);
         if s.active.as_ref().is_some_and(|a| !s.open_repos.contains(a)) {
             s.active = s.open_repos.first().cloned();
         }

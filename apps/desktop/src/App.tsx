@@ -1,10 +1,12 @@
-import { AlertTriangle, FolderOpen, X } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { getCurrentWebview } from "@tauri-apps/api/webview";
+import { AlertTriangle, FolderOpen, FolderInput, X } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import type { Hello } from "./bindings/Hello";
 import type { Snapshot } from "./bindings/Snapshot";
 import { emit } from "./lib/bus";
-import { AgentError, agentHello, initialPath, onOpenRepo, resolvePath } from "./lib/rpc";
+import { isWindowsHost, locateFile, pathKind, pickFile, pickFolder, userDistros, wslHome } from "./lib/open";
+import { AgentError, agentHello, initialPath, onOpenRepo, resolvePath, wslDistros } from "./lib/rpc";
 import { checkForUpdate } from "./lib/updater";
 import { GitView } from "./modules/git/GitView";
 import { PromptDialog } from "./modules/git/PromptDialog";
@@ -13,6 +15,7 @@ import { BackgroundLayer } from "./settings/BackgroundLayer";
 import { useSettings } from "./settings/SettingsProvider";
 import { ActivityBar } from "./shell/ActivityBar";
 import { useCommands } from "./shell/commands";
+import { OpenMenuButton, OpenPanel, type OpenActions } from "./shell/OpenMenu";
 import { Palette } from "./shell/Palette";
 import { StatusBar } from "./shell/StatusBar";
 import { TabBar } from "./shell/TabBar";
@@ -52,10 +55,77 @@ export function App() {
       const key = await resolvePath(p);
       const s = sessionRef.current;
       setError(null);
-      updateSession({ open_repos: s.open_repos.includes(key) ? s.open_repos : [...s.open_repos, key], active: key });
+      updateSession({
+        ...s,
+        open_repos: s.open_repos.includes(key) ? s.open_repos : [...s.open_repos, key],
+        active: key,
+        recent_repos: [key, ...s.recent_repos.filter((r) => r !== key)].slice(0, 20),
+      });
     },
     [updateSession],
   );
+
+  /** A folder opens as a tab; a file opens its repository and shows the
+   *  file in Files (dialogs, drag and drop). */
+  const openAny = useCallback(
+    async (path: string) => {
+      try {
+        if ((await pathKind(path)) !== "file") return await open(path);
+        const { repo, path: rel } = await locateFile(path);
+        await open(repo);
+        emit("open-file", { repo, path: rel });
+      } catch (e) {
+        setError(e instanceof Error ? e.message : String(e));
+      }
+    },
+    [open],
+  );
+
+  const [distros, setDistros] = useState<string[]>([]);
+  useEffect(() => {
+    if (isWindowsHost) wslDistros().then((d) => setDistros(userDistros(d)), () => {});
+  }, []);
+
+  /** Dialog result: null when cancelled. */
+  const openPicked = useCallback((p: string | null) => {
+    if (p) void openAny(p);
+  }, [openAny]);
+
+  const openActions: OpenActions = useMemo(
+    () => ({
+      openFolder: () => void pickFolder().then(openPicked, (e) => setError(String(e))),
+      openFile: () => void pickFile().then(openPicked, (e) => setError(String(e))),
+      browseWsl: (distro) =>
+        void wslHome(distro)
+          .then((home) => pickFolder(home))
+          .then(openPicked, (e) => setError(e instanceof Error ? e.message : String(e))),
+      openRecent: (r) => void open(r),
+      forgetRecent: (r) => updateSession({ ...sessionRef.current, recent_repos: sessionRef.current.recent_repos.filter((x) => x !== r) }),
+      distros,
+      recents: session.recent_repos,
+    }),
+    [openPicked, open, distros, session.recent_repos, updateSession],
+  );
+
+  const openActionsRef = useRef(openActions);
+  openActionsRef.current = openActions;
+
+  // Drag and drop: folders open as tabs, files open in their repository.
+  const [dragging, setDragging] = useState(false);
+  useEffect(() => {
+    const un = getCurrentWebview().onDragDropEvent((e) => {
+      const p = e.payload;
+      if (p.type === "enter" || p.type === "over") setDragging(true);
+      else if (p.type === "leave") setDragging(false);
+      else if (p.type === "drop") {
+        setDragging(false);
+        void (async () => {
+          for (const path of p.paths) await openAny(path);
+        })();
+      }
+    });
+    return () => void un.then((f) => f());
+  }, [openAny]);
 
   const close = useCallback(
     (repo: string) => {
@@ -63,7 +133,7 @@ export function App() {
       const i = s.open_repos.indexOf(repo);
       const open_repos = s.open_repos.filter((r) => r !== repo);
       const nextActive = s.active === repo ? (open_repos[Math.min(i, open_repos.length - 1)] ?? null) : s.active;
-      updateSession({ open_repos, active: nextActive });
+      updateSession({ ...s, open_repos, active: nextActive });
       setSnapshots(({ [repo]: _, ...rest }) => rest);
     },
     [updateSession],
@@ -95,6 +165,9 @@ export function App() {
         e.preventDefault();
         e.stopPropagation();
         setPalette(e.shiftKey ? ">" : "");
+      } else if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase() === "o") {
+        e.preventDefault();
+        openActionsRef.current.openFolder();
       } else if (e.key === "F5") {
         e.preventDefault();
         setRefreshKey((k) => k + 1);
@@ -123,6 +196,7 @@ export function App() {
     repos,
     active,
     snapshot,
+    open: openActions,
     openPalette: setPalette,
     openSettings: () => setAppearanceOpen(true),
     refresh: () => setRefreshKey((k) => k + 1),
@@ -140,7 +214,7 @@ export function App() {
     <>
       <BackgroundLayer />
       <div className="app">
-        <TitleBar repo={active} info={snapshot?.info ?? null} onOpen={open} onRefresh={() => setRefreshKey((k) => k + 1)} />
+        <TitleBar repo={active} info={snapshot?.info ?? null} onOpen={open} onRefresh={() => setRefreshKey((k) => k + 1)} openMenu={<OpenMenuButton actions={openActions} />} />
         <div className="body">
           <ActivityBar onAppearance={() => setAppearanceOpen(true)} />
           <div className="workspace">
@@ -157,13 +231,21 @@ export function App() {
             {repos.map((r) => (
               <GitView key={r} repo={r} active={r === active} refreshKey={refreshKey} onError={onError} onOpen={open} onLoaded={onLoaded} />
             ))}
-            {repos.length === 0 && <Welcome />}
+            {repos.length === 0 && <Welcome actions={openActions} />}
           </div>
         </div>
         <StatusBar snapshot={snapshot} agent={agent} />
       </div>
       {appearanceOpen && <AppearancePanel onClose={() => setAppearanceOpen(false)} />}
       <PromptDialog />
+      {dragging && (
+        <div className="drop-overlay">
+          <div className="drop-card">
+            <FolderInput size={28} />
+            <span>{t("open.drop")}</span>
+          </div>
+        </div>
+      )}
       {palette !== null && (
         <Palette key={palette} initial={palette} repo={active} commands={commands} onOpenFile={openFile} onClose={closePalette} />
       )}
@@ -171,7 +253,7 @@ export function App() {
   );
 }
 
-function Welcome() {
+function Welcome({ actions }: { actions: OpenActions }) {
   const { t } = useTranslation();
   return (
     <div className="empty welcome">
@@ -182,6 +264,7 @@ function Welcome() {
           <Trans i18nKey="app.welcomeBody" values={{ wslPath: String.raw`\\wsl.localhost\…` }} components={{ code: <code className="mono" /> }} />
         </p>
         <code className="mono">debutuuru .</code>
+        <OpenPanel actions={actions} />
         <p className="hint">{t("app.welcomeShortcuts")}</p>
         <p className="hint">{t("app.welcomePalette")}</p>
       </div>
