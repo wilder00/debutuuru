@@ -190,7 +190,7 @@ means adding a module, not a new transport.
 - Opening: besides the path bar and `debutuuru .`, "Open folder… / Open
   file…" (Ctrl+O) use the native dialog (`tauri-plugin-dialog`, only
   `dialog:allow-open`); on Windows "Browse in WSL (distro)…" starts it at
-  `\wsl.localhost\<distro>\<home>` (`wsl_home`), so picked paths arrive in
+  `\\wsl.localhost\<distro>\<home>` (`wsl_home`), so picked paths arrive in
   the WSL form the agent routing already handles. Folders and files can also
   be dropped on the window (Tauri's drag-drop event; `path_kind` tells them
   apart). A file opens its repository (root found through the repo's agent,
