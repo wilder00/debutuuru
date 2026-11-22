@@ -108,6 +108,13 @@ applies. It's set on `<html data-style>` and lives in `styles.css`.
   the gradient bars (Circuit), beyond the 120 ms rule above.
   It's opt-in through the style, has its own switch, and the global
   `prefers-reduced-motion` rule turns it off.
+- **Motion budget**: a running animation makes the webview draw ~60 frames a
+  second, about a third of a CPU core however small it is; an animated
+  background repaints too and cost a whole core. So decorative motion only
+  animates `transform`/`opacity` (`FxBar.tsx`), pauses while the window
+  isn't focused or is minimized (`data-active`), and Circuit's sweep runs
+  once every 7 s instead of nonstop (`data-sweep`), with nothing running in
+  between. Measure idle CPU before adding any decorative motion.
 
 Later: import Warp `.yaml` themes, share themes as files, light mode (the
 generator supports it; it needs its own lightness curve).

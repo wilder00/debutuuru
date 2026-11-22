@@ -3,6 +3,7 @@ import { useSettings } from "../settings/SettingsProvider";
 import { useEffect, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import type { RepoInfo } from "../bindings/RepoInfo";
+import { FxBar } from "./FxBar";
 import { WindowControls } from "./WindowControls";
 
 type Props = {
@@ -84,6 +85,7 @@ export function TitleBar({ repo, info, onOpen, onRefresh, openMenu }: Props) {
         <RefreshCw size={15} />
       </button>
       <WindowControls />
+      <FxBar at="top" />
     </header>
   );
 }

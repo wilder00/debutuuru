@@ -335,6 +335,20 @@ ul { list-style: none; margin: 0; padding: 0; }
 .tab.on { color: var(--text); background: var(--bg-app); border-color: var(--border-subtle); }
 .tab.on::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px; background: var(--bg-app); }
 .tab.on::before { content: ""; position: absolute; left: 10px; right: 10px; top: -1px; height: 2px; border-radius: 2px; background: var(--accent); }
+
+/* Accent bars of the Gamer and Circuit styles (FxBar.tsx); the moving part
+   only uses transform. Animations pause while the window isn't in use
+   (data-active, set in main.tsx). */
+.fx-bar { display: none; position: absolute; left: 0; right: 0; overflow: hidden; pointer-events: none; z-index: 1; }
+.fx-bar.fx-top { bottom: -1px; height: 2px; }
+.fx-bar.fx-bottom { top: -1px; height: 1px; }
+.fx-bar.fx-tab { top: -1px; height: 2px; }
+.fx-move { position: absolute; top: 0; bottom: 0; left: 0; will-change: transform; }
+:is([data-style="gamer"], [data-style="circuit"]) .fx-bar { display: block; }
+:is([data-style="gamer"], [data-style="circuit"]) .tab.on::before { display: none; }
+:is([data-style="gamer"], [data-style="circuit"]) .statusbar { position: relative; }
+[data-active="false"] .fx-move,
+[data-active="false"] .brand-mark::before { animation-play-state: paused !important; }
 .tab-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
 .tab-tag { padding: 0 5px; border-radius: 4px; font: 600 .72em var(--font-mono); color: var(--info); background: color-mix(in srgb, var(--info) 14%, transparent); }
 .tab-close { width: 20px; height: 20px; visibility: hidden; }
@@ -641,23 +655,19 @@ select { height: 28px; background: var(--bg-raised); border: 1px solid var(--bor
   --glow: 0 0 0 1px var(--accent-ring), 0 0 14px -3px var(--accent-ring);
   --edge: color-mix(in srgb, var(--accent) 24%, var(--border-subtle));
 }
-@keyframes rgb-cycle { to { background-position: 200% 0; } }
-[data-style="gamer"] .titlebar::after,
-[data-style="gamer"] .statusbar::before,
-[data-style="gamer"] .tab.on::before {
-  background: var(--rgb); background-size: 200% 100%;
-}
-[data-style="gamer"] .titlebar::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; opacity: .9; }
-[data-style="gamer"] .statusbar { position: relative; }
-[data-style="gamer"] .statusbar::before { content: ""; position: absolute; left: 0; right: 0; top: -1px; height: 1px; opacity: .75; }
-[data-style="gamer"] .tab.on::before { left: 0; right: 0; border-radius: 0; box-shadow: 0 0 10px var(--accent-ring); }
-[data-style="gamer"][data-rgb="on"] .titlebar::after,
-[data-style="gamer"][data-rgb="on"] .statusbar::before,
-[data-style="gamer"][data-rgb="on"] .tab.on::before { animation: rgb-cycle 6s linear infinite; }
+/* RGB bars: two copies of the colors side by side, slid by half (transform
+   only, see FxBar.tsx) so the loop is seamless. */
+@keyframes rgb-flow { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+[data-style="gamer"] .fx-bar .fx-move { width: 200%; background: var(--rgb); background-size: 50% 100%; }
+[data-style="gamer"] .fx-bar.fx-top { opacity: .9; }
+[data-style="gamer"] .fx-bar.fx-bottom { opacity: .75; }
+[data-style="gamer"] .fx-bar.fx-tab { box-shadow: 0 0 10px var(--accent-ring); }
+[data-style="gamer"][data-rgb="on"] .fx-bar .fx-move { animation: rgb-flow 6s linear infinite; }
 
 [data-style="gamer"] .brand { text-transform: uppercase; letter-spacing: .12em; text-shadow: 0 0 12px var(--accent-ring); }
-[data-style="gamer"] .brand-mark { border-radius: 3px; background: var(--rgb); background-size: 200% 100%; box-shadow: 0 0 14px var(--accent-ring); }
-[data-style="gamer"][data-rgb="on"] .brand-mark { animation: rgb-cycle 6s linear infinite; }
+[data-style="gamer"] .brand-mark { position: relative; overflow: hidden; border-radius: 3px; box-shadow: 0 0 14px var(--accent-ring); }
+[data-style="gamer"] .brand-mark::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 200%; background: var(--rgb); background-size: 50% 100%; }
+[data-style="gamer"][data-rgb="on"] .brand-mark::before { animation: rgb-flow 6s linear infinite; }
 [data-style="gamer"] .activity.on { color: var(--accent); }
 [data-style="gamer"] .activity.on svg { filter: drop-shadow(0 0 5px var(--accent-ring)); }
 [data-style="gamer"] .activity.on::before { box-shadow: 0 0 8px var(--accent); }
@@ -705,7 +715,9 @@ select { height: 28px; background: var(--bg-raised); border: 1px solid var(--bor
 @supports (color: oklch(from red l c h)) {
   :root[data-style="circuit"] { --grad-end: oklch(from var(--accent) calc(l + 0.1) c calc(h - 95)); }
 }
-@keyframes circuit-sweep { from { background-position: -40% 0, 0 0; } to { background-position: 140% 0, 0 0; } }
+/* The light is 30% of the bar wide: -100% puts it just before the start,
+   333% just past the end. */
+@keyframes circuit-sweep { from { transform: translateX(-100%); } to { transform: translateX(333%); } }
 
 [data-style="circuit"] :is(.titlebar, .statusbar, .activitybar, .sidebar, .changes, .tabbar, .commit-table, .files-view, .welcome, .drawer) {
   background-image: var(--carbon);
@@ -713,22 +725,14 @@ select { height: 28px; background: var(--bg-raised); border: 1px solid var(--bor
 [data-style="circuit"] .welcome { background-image: radial-gradient(ellipse 60% 45% at 50% 40%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 70%), var(--carbon); }
 
 /* Gradient bars, glowing; a light sweeps across them when animated. */
-[data-style="circuit"] .titlebar::after,
-[data-style="circuit"] .statusbar::before,
-[data-style="circuit"] .tab.on::before {
-  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--text) 85%, transparent), transparent) no-repeat, var(--grad);
-  background-size: 30% 100%, 100% 100%;
-  background-position: -40% 0, 0 0;
-  box-shadow: 0 0 10px var(--accent-ring), 0 0 14px -4px var(--grad-end);
+[data-style="circuit"] .fx-bar { background: var(--grad); box-shadow: 0 0 10px var(--accent-ring), 0 0 14px -4px var(--grad-end); }
+[data-style="circuit"] .fx-bar .fx-move {
+  width: 30%; transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--text) 85%, transparent), transparent);
 }
-[data-style="circuit"] .titlebar { position: relative; z-index: 20; }
-[data-style="circuit"] .titlebar::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; }
-[data-style="circuit"] .statusbar { position: relative; }
-[data-style="circuit"] .statusbar::before { content: ""; position: absolute; left: 0; right: 0; top: -1px; height: 1px; }
-[data-style="circuit"] .tab.on::before { left: 0; right: 0; border-radius: 0; }
-[data-style="circuit"][data-rgb="on"] .titlebar::after,
-[data-style="circuit"][data-rgb="on"] .statusbar::before,
-[data-style="circuit"][data-rgb="on"] .tab.on::before { animation: circuit-sweep 3.5s ease-in-out infinite; }
+/* One sweep now and then (main.tsx sets data-sweep): between sweeps
+   nothing runs, so the window draws no frames at all. */
+[data-style="circuit"][data-rgb="on"][data-sweep="on"] .fx-bar .fx-move { animation: circuit-sweep 1.6s ease-in-out 1; }
 
 /* Logo and titles: bold italic, gradient fill, glow (like the banner's lettering). */
 [data-style="circuit"] .brand {

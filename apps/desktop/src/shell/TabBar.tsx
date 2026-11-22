@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 import type { TabGroup } from "../bindings/TabGroup";
 import { distinctNames } from "../lib/names";
 import { repoName, wslDistro } from "../lib/rpc";
+import { FxBar } from "./FxBar";
 
 type Props = {
   repos: string[];
@@ -47,6 +48,7 @@ export function TabBar({ repos, active, groups, onSelect, onClose, onToggleGroup
         onKeyDown={(e) => e.key === "Enter" && onSelect(r)}
         onAuxClick={(e) => e.button === 1 && onClose(r)}
       >
+        {r === active && <FxBar at="tab" />}
         <span className="tab-name">{label}</span>
         {distro && <span className="tab-tag" title={t("tabs.insideWsl", { distro })}>WSL</span>}
         <button

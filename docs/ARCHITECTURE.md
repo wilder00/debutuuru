@@ -30,6 +30,12 @@ Phase 1, verified end to end on Windows 11 + Ubuntu (WSL2):
   content-hashed name, and reached over one long-lived `wsl.exe` pipe.
 - Agent file watchers (`notify`: inotify / ReadDirectoryChangesW) push
   `git.changed` events, so the UI refreshes by itself, also for WSL repos.
+  Reads (inotify reports every file git opens) and the git folders
+  themselves (Windows reports `.git` when `index.lock` comes and goes) are
+  ignored, or each refresh's own `git status` would trigger the next one.
+  A refresh reads the history (`git log`, 2,000 commits) only when a
+  branch, tag or worktree HEAD moved; a hidden tab doesn't refresh, it
+  refreshes when shown again.
 - A killed WSL agent is detected (`agent.disconnected`), restarted on the next
   call, and watchers are re-armed automatically.
 - Single instance: `debutuuru <path>` hands the path to the running app,

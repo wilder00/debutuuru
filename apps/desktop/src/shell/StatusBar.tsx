@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import type { Hello } from "../bindings/Hello";
 import type { Snapshot } from "../bindings/Snapshot";
 import { installUpdate, useUpdateState } from "../lib/updater";
+import { FxBar } from "./FxBar";
 
 export function StatusBar({ snapshot, agent }: { snapshot: Snapshot | null; agent: Hello | null }) {
   const info = snapshot?.info;
@@ -11,6 +12,7 @@ export function StatusBar({ snapshot, agent }: { snapshot: Snapshot | null; agen
   const { t } = useTranslation();
   return (
     <footer className="statusbar">
+      <FxBar at="bottom" />
       {info && (
         <>
           <span>
