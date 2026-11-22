@@ -14,6 +14,7 @@ import { AppearancePanel } from "./settings/AppearancePanel";
 import { BackgroundLayer } from "./settings/BackgroundLayer";
 import { useSettings } from "./settings/SettingsProvider";
 import { ActivityBar } from "./shell/ActivityBar";
+import { CircuitTraces } from "./shell/CircuitTraces";
 import { useCommands } from "./shell/commands";
 import { OpenMenuButton, OpenPanel, type OpenActions } from "./shell/OpenMenu";
 import { Palette } from "./shell/Palette";
@@ -240,6 +241,7 @@ export function App() {
       <PromptDialog />
       {dragging && (
         <div className="drop-overlay">
+          <CircuitTraces />
           <div className="drop-card">
             <FolderInput size={28} />
             <span>{t("open.drop")}</span>
@@ -257,6 +259,7 @@ function Welcome({ actions }: { actions: OpenActions }) {
   const { t } = useTranslation();
   return (
     <div className="empty welcome">
+      <CircuitTraces />
       <div className="welcome-card panel">
         <FolderOpen size={28} />
         <h1>{t("app.welcomeTitle")}</h1>

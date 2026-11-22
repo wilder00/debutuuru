@@ -66,7 +66,7 @@ export function useCommands(c: Ctx): PaletteItem[] {
       }),
       g("settings", "style", {
         pick: () =>
-          (["standard", "gamer"] as const).map((s) => ({
+          (["standard", "gamer", "circuit"] as const).map((s) => ({
             id: `style.${s}`,
             label: t(`settings.style.${s}`),
             detail: appearance.style === s ? "✓" : undefined,

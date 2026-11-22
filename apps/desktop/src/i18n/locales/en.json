@@ -72,6 +72,7 @@
         "neon": "Neon",
         "cyberpunk": "Cyberpunk",
         "crimson": "Crimson",
+        "circuit": "Circuit",
         "toxic": "Toxic",
         "high-contrast": "High contrast"
       }
@@ -142,9 +143,10 @@
       "title": "Style",
       "standard": "Standard",
       "gamer": "Gamer",
-      "rgb": "Animated RGB",
-      "rgbHint": "The RGB bars cycle their colors. Off when the system asks to reduce animations.",
-      "hint": "Gamer adds neon glow, sharper corners and RGB bars to any theme; the Neon, Cyberpunk, Crimson and Toxic themes are made for it."
+      "rgb": "Animated",
+      "rgbHint": "The bars cycle their colors (Gamer) or a light sweeps across them (Circuit). Off when the system asks to reduce animations.",
+      "hint": "Gamer adds neon glow, sharper corners and RGB bars; Circuit an electric blue-to-green gradient, carbon texture, circuit traces and a bold italic title font. Both work with any theme; Neon, Cyberpunk, Crimson, Toxic and Circuit are made for them.",
+      "circuit": "Circuit"
     }
   },
   "git": {

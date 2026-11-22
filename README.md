@@ -39,7 +39,8 @@ runner, GitHub/GitLab integration, containers and more.
 - **Languages**: English, Spanish, Japanese and Korean. It follows your
   system language, or pick one in Settings.
 - **Yours**: dark themes generated from base + accent + contrast (WCAG-checked),
-  a Gamer style (neon glow, RGB bars) with neon themes,
+  Gamer (neon glow, RGB bars) and Circuit (electric blue-green gradient,
+  carbon texture, circuit traces) styles with themes made for them,
   Warp-style background images, fonts and density (Ctrl+,). See
   [docs/DESIGN.md](docs/DESIGN.md).
 

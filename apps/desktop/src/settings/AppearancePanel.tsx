@@ -74,13 +74,13 @@ export function AppearancePanel({ onClose }: { onClose: () => void }) {
 
         <Section title={t("settings.style.title")}>
           <div className="segmented" role="radiogroup" aria-label={t("settings.style.title")}>
-            {(["standard", "gamer"] as const).map((s) => (
+            {(["standard", "gamer", "circuit"] as const).map((s) => (
               <button key={s} role="radio" aria-checked={a.style === s} className={a.style === s ? "on" : ""} onClick={() => update({ style: s })}>
                 {t(`settings.style.${s}`)}
               </button>
             ))}
           </div>
-          {a.style === "gamer" && (
+          {a.style !== "standard" && (
             <label className="check toggle-row">
               <input type="checkbox" checked={a.rgb_animation} onChange={(e) => update({ rgb_animation: e.target.checked })} />
               <span>

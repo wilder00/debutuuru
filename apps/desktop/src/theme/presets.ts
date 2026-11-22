@@ -16,6 +16,8 @@ export const PRESETS: Preset[] = [
   { id: "neon", name: "Neon", inputs: { base: "#06080f", accent: "#00e5ff", contrast: 55 } },
   { id: "cyberpunk", name: "Cyberpunk", inputs: { base: "#0c0714", accent: "#ff4fd8", contrast: 70 } },
   { id: "crimson", name: "Crimson", inputs: { base: "#0c0606", accent: "#ff6b6b", contrast: 55 } },
+  // Navy and electric blue, made for the Circuit style.
+  { id: "circuit", name: "Circuit", inputs: { base: "#050d18", accent: "#14b4ff", contrast: 60 } },
   { id: "toxic", name: "Toxic", inputs: { base: "#060c07", accent: "#39ff14", contrast: 55 } },
   { id: "high-contrast", name: "High contrast", inputs: { base: "#0a0a0a", accent: "#ffd166", contrast: 100 } },
 ];

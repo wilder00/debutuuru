@@ -165,6 +165,9 @@ pub enum UiStyle {
     Standard,
     /// Neon glow, sharper corners and RGB accent bars.
     Gamer,
+    /// Electric two-color gradient (accent → green), carbon texture, circuit
+    /// traces and a bold italic display font for titles.
+    Circuit,
 }
 
 /// Linear-style theme generation: everything derives from these three.

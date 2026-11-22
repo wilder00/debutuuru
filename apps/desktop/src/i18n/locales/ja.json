@@ -72,6 +72,7 @@
         "neon": "Neon",
         "cyberpunk": "Cyberpunk",
         "crimson": "Crimson",
+        "circuit": "Circuit",
         "toxic": "Toxic",
         "high-contrast": "ハイコントラスト"
       }
@@ -142,9 +143,10 @@
       "title": "スタイル",
       "standard": "標準",
       "gamer": "ゲーマー",
-      "rgb": "RGB アニメーション",
-      "rgbHint": "RGB バーの色が循環します。システムでアニメーションを減らす設定の場合はオフになります。",
-      "hint": "ゲーマーは、どのテーマにもネオンの光、角張った角、RGB バーを加えます。Neon、Cyberpunk、Crimson、Toxic のテーマはこのスタイル向けです。"
+      "rgb": "アニメーション",
+      "rgbHint": "バーの色が循環します (ゲーマー)、または光がバーを走ります (サーキット)。システムでアニメーションを減らす設定の場合はオフになります。",
+      "hint": "ゲーマーはネオンの光、角張った角、RGB バーを加えます。サーキットは青から緑への電気的なグラデーション、カーボンの質感、回路のライン、タイトル用の太い斜体フォントを加えます。どちらもどのテーマでも使え、Neon、Cyberpunk、Crimson、Toxic、Circuit はそのためのテーマです。",
+      "circuit": "サーキット"
     }
   },
   "git": {

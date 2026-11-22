@@ -72,6 +72,7 @@
         "neon": "Neon",
         "cyberpunk": "Cyberpunk",
         "crimson": "Crimson",
+        "circuit": "Circuit",
         "toxic": "Toxic",
         "high-contrast": "고대비"
       }
@@ -142,9 +143,10 @@
       "title": "스타일",
       "standard": "기본",
       "gamer": "게이머",
-      "rgb": "RGB 애니메이션",
-      "rgbHint": "RGB 막대의 색이 순환합니다. 시스템에서 애니메이션 줄이기를 요청하면 꺼집니다.",
-      "hint": "게이머 스타일은 어떤 테마에든 네온 광채, 각진 모서리, RGB 막대를 더합니다. Neon, Cyberpunk, Crimson, Toxic 테마는 이 스타일에 맞춰 만들었습니다."
+      "rgb": "애니메이션",
+      "rgbHint": "막대의 색이 순환하거나(게이머) 빛이 막대를 훑고 지나갑니다(서킷). 시스템에서 애니메이션 줄이기를 요청하면 꺼집니다.",
+      "hint": "게이머 스타일은 네온 광채, 각진 모서리, RGB 막대를 더하고, 서킷 스타일은 파랑에서 초록으로 이어지는 전기 같은 그라데이션, 카본 질감, 회로 선, 제목용 굵은 기울임꼴 글꼴을 더합니다. 둘 다 어떤 테마와도 어울리며, Neon, Cyberpunk, Crimson, Toxic, Circuit 테마는 이를 위해 만들었습니다.",
+      "circuit": "서킷"
     }
   },
   "git": {
