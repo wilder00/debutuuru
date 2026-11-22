@@ -1,7 +1,7 @@
 // A commit's changes: its message and author, the files it changed (against
 // its first parent, like GitHub) with lines added/removed, and the diff of
-// the selected file.
-import { Copy, X } from "lucide-react";
+// the selected file. Opened from a tag, the tag's details come first.
+import { Copy, Tag, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { ChangedFile } from "../../bindings/ChangedFile";
@@ -11,10 +11,20 @@ import { git } from "./api";
 import { ExpandButton, type Expand } from "./ExpandButton";
 import { FileDiffPanel } from "./FileDiffPanel";
 import { statusName } from "./status";
+import { TagInfo, type TagActions } from "./TagInfo";
 
-type Props = { repo: string; hash: string; onClose: () => void; expand?: Expand };
+type Props = {
+  repo: string;
+  hash: string;
+  onClose: () => void;
+  expand?: Expand;
+  /** Shown when the panel was opened from a tag. */
+  tag?: TagActions;
+  /** "Tag this commit". */
+  onTag?: () => void;
+};
 
-export function CommitPanel({ repo, hash, onClose, expand }: Props) {
+export function CommitPanel({ repo, hash, onClose, expand, tag, onTag }: Props) {
   const { t } = useTranslation();
   const [details, setDetails] = useState<CommitDetails | { error: string } | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
@@ -45,9 +55,15 @@ export function CommitPanel({ repo, hash, onClose, expand }: Props) {
   return (
     <section className="commit-panel panel">
       <header className="commit-info">
+        {tag && <TagInfo {...tag} />}
         <div className="commit-title">
           <span className="subject">{details.subject}</span>
           <span className="spacer" />
+          {onTag && (
+            <button className="icon-btn" onClick={onTag} title={t("git.tags.tagCommit")}>
+              <Tag size={14} />
+            </button>
+          )}
           {expand && <ExpandButton expand={expand} />}
           <button className="icon-btn" onClick={onClose} title={t("common.dismiss")}>
             <X size={14} />

@@ -13,7 +13,7 @@ import { useDismiss } from "../../lib/useDismiss";
 import { onAgentEvent, wslDistro } from "../../lib/rpc";
 import { git, GIT_PROGRESS } from "./api";
 
-type Kind = "fetch" | "pull" | "push";
+type Kind = "fetch" | "pull" | "push" | "tag";
 type Running = { kind: Kind; opId: string; text: string; percent: number | null };
 type Result = { kind: Kind; outcome: OpOutcome };
 
@@ -53,7 +53,7 @@ function advice(t: TFunction, hint: FailureHint | null, ctx: { windowsRepo: bool
 /** The outcome's one-line summary in the UI language. Agents older than git
  *  module v5 send no `message`, and git's own errors have none: those keep
  *  the agent's (English) or git's text. */
-function summaryText(t: TFunction, o: OpOutcome): string {
+function summaryText(t: TFunction, o: OpOutcome, kind: Kind): string {
   const m = o.message;
   if (!m) return o.summary || (o.ok ? t("git.remote.done") : t("git.remote.failed"));
   switch (m.kind) {
@@ -63,6 +63,12 @@ function summaryText(t: TFunction, o: OpOutcome): string {
       return t("git.remote.outcome.pulled", { upstream: m.upstream });
     case "pushed":
       return t("git.remote.outcome.pushed", { branch: m.branch, target: m.target });
+    case "tag_pushed":
+      return t("git.remote.outcome.tag_pushed", { tag: m.tag, remote: m.remote });
+    case "tag_deleted_on_remote":
+      return t("git.remote.outcome.tag_deleted_on_remote", { tag: m.tag, remote: m.remote });
+    case "several_remotes":
+      return kind === "tag" ? t("git.remote.outcome.several_remotes_tag") : t("git.remote.outcome.several_remotes");
     default:
       return t(`git.remote.outcome.${m.kind}`);
   }
@@ -108,10 +114,11 @@ export function RemoteBar({ repo, snapshot, settings, onDone }: Props) {
   // Fetch / pull / push from the command palette (ignored while one runs).
   useBus("git-op", repo, (e) => {
     if (runningRef.current) return;
-    void run(e.op, e.op === "pull" ? { mode: e.mode } : {});
+    if (e.op === "tag") void run("tag", { tag: e.tag, delete: e.delete });
+    else void run(e.op, e.op === "pull" ? { mode: e.mode } : {});
   });
 
-  async function run(kind: Kind, extra: { mode?: PullMode; force_with_lease?: boolean } = {}) {
+  async function run(kind: Kind, extra: { mode?: PullMode; force_with_lease?: boolean; tag?: string; delete?: boolean } = {}) {
     setMenu(null);
     setConfirmForce(false);
     setResult(null);
@@ -125,7 +132,9 @@ export function RemoteBar({ repo, snapshot, settings, onDone }: Props) {
           ? await git.fetch(repo, { ...options, remote: null })
           : kind === "pull"
             ? await git.pull(repo, { ...options, mode: extra.mode ?? "default" })
-            : await git.push(repo, { ...options, force_with_lease: extra.force_with_lease ?? false });
+            : kind === "tag"
+              ? await git.pushTag(repo, { ...options, name: extra.tag!, delete: extra.delete ?? false })
+              : await git.push(repo, { ...options, force_with_lease: extra.force_with_lease ?? false });
       setResult({ kind, outcome });
     } catch (e) {
       setResult({ kind, outcome: { ok: false, summary: e instanceof Error ? e.message : String(e), hint: null, log: "", message: null } });
@@ -204,7 +213,7 @@ export function RemoteBar({ repo, snapshot, settings, onDone }: Props) {
         <div className={"op-result " + (result.outcome.ok ? "ok" : "bad")} role="status">
           {result.outcome.ok ? <Check size={14} /> : <CircleX size={14} />}
           <div className="op-result-body">
-            <span>{summaryText(t, result.outcome)}</span>
+            <span>{summaryText(t, result.outcome, result.kind)}</span>
             {help && <span className="op-help">{help}</span>}
             {details && result.outcome.log && <pre className="op-log mono">{result.outcome.log}</pre>}
           </div>

@@ -34,6 +34,11 @@ runner, GitHub/GitLab integration, containers and more.
   same viewer shows staged and unstaged changes. Unified, side by side or the
   whole file, with changed words highlighted, syntax colors, ignore
   whitespace and adjustable context.
+- **Tags**: a Tags section lists them newest first; click one to see whether
+  it's annotated or lightweight, signed, who tagged it, its message and its
+  commit's changes. Create one on any commit (annotated or lightweight, and
+  push it right away), push it, delete it locally or on the remote, or check
+  it out.
 - **Terminal**: Ctrl+` opens a terminal panel with tabs, or the whole window
   for just the terminal. Profiles for PowerShell, cmd, Git Bash and every WSL
   distro are found automatically, and you can add your own; tabs show the

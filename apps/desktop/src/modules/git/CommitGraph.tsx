@@ -39,10 +39,12 @@ type Props = {
   onSelect: (hash: string) => void;
   /** Double-click: browse the files of that commit. */
   onOpen?: (hash: string) => void;
+  /** Bump to scroll the selected commit into view (selected from elsewhere). */
+  reveal?: number;
 };
 
 /** Virtualized commit table: only visible rows are rendered. */
-export function CommitGraph({ log, selected, onSelect, onOpen }: Props) {
+export function CommitGraph({ log, selected, onSelect, onOpen, reveal }: Props) {
   // Also re-renders the relative dates when the UI language changes.
   const { t } = useTranslation();
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -53,6 +55,12 @@ export function CommitGraph({ log, selected, onSelect, onOpen }: Props) {
     estimateSize: () => rowH,
     overscan: 20,
   });
+  useEffect(() => {
+    if (!reveal || !selected) return;
+    const i = log.findIndex((c) => c.hash === selected);
+    if (i >= 0) virtualizer.scrollToIndex(i, { align: "center" });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reveal]);
   // Density changes the row height: re-measure.
   useEffect(() => virtualizer.measure(), [rowH, virtualizer]);
   const lanes = Math.max(1, ...log.map((e) => e.graph.width));

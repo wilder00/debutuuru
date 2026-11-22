@@ -188,7 +188,8 @@
       "checkoutHint": "Doble clic para hacer checkout",
       "noRemotes": "Sin remotos",
       "openHint": "Clic para abrir",
-      "bare": "bare"
+      "bare": "bare",
+      "tags": "Tags"
     },
     "changes": {
       "staged": "Preparados",
@@ -305,7 +306,10 @@
         "no_remote": "Este repositorio no tiene remoto. Añade uno con `git remote add origin <url>`.",
         "several_remotes": "Hay varios remotos y ningún upstream: elige uno con `git push -u <remoto> HEAD`.",
         "cancelled": "Cancelado",
-        "host_key_declined": "Conexión detenida: no se confió en la clave del servidor"
+        "host_key_declined": "Conexión detenida: no se confió en la clave del servidor",
+        "tag_pushed": "Tag {{tag}} subido → {{remote}}",
+        "tag_deleted_on_remote": "Tag {{tag}} borrado en {{remote}}",
+        "several_remotes_tag": "Hay varios remotos y ninguno es origin: sube el tag desde una terminal con `git push <remoto> <tag>`."
       },
       "advice": {
         "sshAuthWindows": "SSH desde Windows no pudo autenticarse. Si tus claves SSH están en WSL, activa «Usar las claves SSH de WSL en los repositorios de Windows» en Ajustes (Ctrl+,).",
@@ -336,6 +340,37 @@
       "files_other": "{{count}} archivos",
       "noFiles": "Este commit no cambia ningún archivo",
       "binary": "binario"
+    },
+    "tags": {
+      "create": "Crear tag",
+      "filter": "Filtrar tags",
+      "none": "Sin tags",
+      "annotated": "anotado",
+      "lightweight": "ligero",
+      "signed": "firmado",
+      "signedHint": "Lleva una firma (aquí no se verifica; `git tag -v` la comprueba)",
+      "copyName": "Copiar el nombre del tag",
+      "taggedBy": "Creado por {{name}}",
+      "checkout": "Checkout",
+      "checkoutHint": "Hacer checkout del commit del tag (HEAD separado: los nuevos commits no quedarán en ninguna rama)",
+      "push": "Push",
+      "pushHint": "Subir este tag al remoto",
+      "deleteRemote": "Borrar en el remoto",
+      "deleteRemoteHint": "Borrar este tag en el remoto (el tag local se queda)",
+      "delete": "Borrar",
+      "deleteHint": "Borrar el tag local (el remoto conserva su copia)",
+      "confirm": "Clic otra vez para confirmar",
+      "tagCommit": "Crear un tag en este commit",
+      "createTitle": "Crear tag",
+      "name": "Nombre",
+      "exists": "Ya existe un tag con este nombre",
+      "invalid": "Git no permite este nombre (espacios, .., ~ ^ : ? * [ \\ o un - al inicio)",
+      "annotatedOption": "Tag anotado",
+      "annotatedHint": "Guarda quién lo creó, cuándo y un mensaje; recomendado para versiones. Desactivado: un tag ligero, solo un nombre.",
+      "message": "Mensaje",
+      "messagePlaceholder": "Notas de la versión, o qué es esta versión",
+      "pushAfter": "Subirlo al remoto después de crearlo",
+      "createButton": "Crear tag"
     }
   },
   "time": {
@@ -412,7 +447,9 @@
       "toggleExpand": "Expandir o restaurar el diff",
       "toggleTerminal": "Mostrar u ocultar",
       "newTerminal": "Nueva terminal",
-      "maximizeTerminal": "Solo terminal (toda la ventana)"
+      "maximizeTerminal": "Solo terminal (toda la ventana)",
+      "createTag": "Crear tag…",
+      "showTag": "Ir a un tag…"
     }
   },
   "open": {

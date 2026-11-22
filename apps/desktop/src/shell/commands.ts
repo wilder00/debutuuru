@@ -123,7 +123,16 @@ export function useCommands(c: Ctx): PaletteItem[] {
         g("git", "pullMerge", { run: () => emit("git-op", { repo, op: "pull", mode: "merge" }) }),
         g("git", "pullFfOnly", { run: () => emit("git-op", { repo, op: "pull", mode: "ff_only" }) }),
         g("git", "push", { run: () => emit("git-op", { repo, op: "push" }) }),
+        g("git", "createTag", { run: () => emit("create-tag", { repo }) }),
       );
+      const tags = c.snapshot?.tags ?? [];
+      if (tags.length) {
+        items.push(
+          g("git", "showTag", {
+            pick: () => tags.map((x) => ({ id: `tag.${x.name}`, label: x.name, detail: x.annotated ? x.message.split("\n")[0] : x.commit_subject, run: () => emit("show-tag", { repo, name: x.name }) })),
+          }),
+        );
+      }
       if (local.length) {
         items.push(
           g("git", "checkout", {

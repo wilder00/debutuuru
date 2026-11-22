@@ -8,6 +8,7 @@ pub mod graph;
 pub mod location;
 pub mod repo;
 pub mod runner;
+pub mod tags;
 
 pub use error::{Error, Result};
 pub use location::Location;

@@ -188,7 +188,8 @@
       "checkoutHint": "Double-click to check out",
       "noRemotes": "No remotes",
       "openHint": "Click to open",
-      "bare": "bare"
+      "bare": "bare",
+      "tags": "Tags"
     },
     "changes": {
       "staged": "Staged",
@@ -303,7 +304,10 @@
         "no_remote": "This repository has no remote. Add one with `git remote add origin <url>`.",
         "several_remotes": "Several remotes and no upstream: choose one with `git push -u <remote> HEAD`.",
         "cancelled": "Cancelled",
-        "host_key_declined": "Connection stopped: the server's host key was not trusted"
+        "host_key_declined": "Connection stopped: the server's host key was not trusted",
+        "tag_pushed": "Pushed tag {{tag}} → {{remote}}",
+        "tag_deleted_on_remote": "Deleted tag {{tag}} on {{remote}}",
+        "several_remotes_tag": "Several remotes and none is origin: push the tag from a terminal with `git push <remote> <tag>`."
       },
       "advice": {
         "sshAuthWindows": "SSH from Windows couldn't authenticate. If your SSH keys live in WSL, turn on “Use WSL's SSH keys for Windows repositories” in Settings (Ctrl+,).",
@@ -333,6 +337,37 @@
       "files_other": "{{count}} files",
       "noFiles": "This commit changes no files",
       "binary": "binary"
+    },
+    "tags": {
+      "create": "Create tag",
+      "filter": "Filter tags",
+      "none": "No tags",
+      "annotated": "annotated",
+      "lightweight": "lightweight",
+      "signed": "signed",
+      "signedHint": "Carries a signature (not verified here; `git tag -v` checks it)",
+      "copyName": "Copy the tag name",
+      "taggedBy": "Tagged by {{name}}",
+      "checkout": "Check out",
+      "checkoutHint": "Check out the tagged commit (detached HEAD: new commits won't be on any branch)",
+      "push": "Push",
+      "pushHint": "Push this tag to the remote",
+      "deleteRemote": "Delete on remote",
+      "deleteRemoteHint": "Delete this tag on the remote (the local tag stays)",
+      "delete": "Delete",
+      "deleteHint": "Delete the local tag (the remote keeps its copy)",
+      "confirm": "Click again to confirm",
+      "tagCommit": "Tag this commit",
+      "createTitle": "Create tag",
+      "name": "Name",
+      "exists": "A tag with this name already exists",
+      "invalid": "Git doesn't allow this name (spaces, .., ~ ^ : ? * [ \\ or a leading -)",
+      "annotatedOption": "Annotated tag",
+      "annotatedHint": "Stores who tagged it, when and a message; recommended for releases. Off: a lightweight tag, just a name.",
+      "message": "Message",
+      "messagePlaceholder": "Release notes, or what this version is",
+      "pushAfter": "Push it to the remote after creating it",
+      "createButton": "Create tag"
     }
   },
   "time": {
@@ -409,7 +444,9 @@
       "toggleExpand": "Expand or restore the diff",
       "toggleTerminal": "Show or hide",
       "newTerminal": "New terminal",
-      "maximizeTerminal": "Terminal only (whole window)"
+      "maximizeTerminal": "Terminal only (whole window)",
+      "createTag": "Create tag…",
+      "showTag": "Go to tag…"
     }
   },
   "open": {

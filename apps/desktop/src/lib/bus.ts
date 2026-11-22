@@ -8,7 +8,15 @@ export type BusEvents = {
   /** Show `path` in Files (working tree). */
   "open-file": { repo: string; path: string };
   "show-view": { repo: string; view: "history" | "files" };
-  "git-op": { repo: string; op: "fetch" | "push" } | { repo: string; op: "pull"; mode: PullMode };
+  "git-op":
+    | { repo: string; op: "fetch" | "push" }
+    | { repo: string; op: "pull"; mode: PullMode }
+    /** Push a tag, or delete it on the remote. */
+    | { repo: string; op: "tag"; tag: string; delete: boolean };
+  /** Open the "create tag" dialog (on the selected commit, else HEAD). */
+  "create-tag": { repo: string };
+  /** Show a tag's details (and select its commit). */
+  "show-tag": { repo: string; name: string };
   checkout: { repo: string; branch: string };
   /** Expand the open diff / commit panel to the whole tab, or restore it. */
   "toggle-expand": { repo: string };

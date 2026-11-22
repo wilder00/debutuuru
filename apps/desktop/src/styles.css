@@ -177,6 +177,23 @@ ul { list-style: none; margin: 0; padding: 0; }
 .item .label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .item .aside { color: var(--text-faint); font: .82em var(--font-mono); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 45%; }
 .item.selected { background: var(--accent-soft); color: var(--text); }
+.group-row { display: flex; align-items: center; }
+.group-row .group-head { flex: 1; min-width: 0; width: auto; }
+.group-action { width: 22px; height: 22px; color: var(--text-faint); }
+.group-action:hover:not(:disabled) { color: var(--text); }
+.group-filter { padding: 2px 4px 4px 22px; }
+.group-filter input { width: 100%; height: 24px; font-size: .9em; }
+
+/* Tag details (above its commit in the commit panel) */
+.tag-info { margin: -2px 0 8px; padding: 0 0 8px; border-bottom: 1px dashed var(--border-subtle); }
+.tag-title { display: flex; align-items: center; gap: 8px; }
+.tag-icon { color: var(--accent); flex: none; }
+.tag-name { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tag-badge { display: inline-flex; align-items: center; gap: 3px; padding: 0 7px; border-radius: 99px; background: var(--bg-raised); color: var(--text-muted); font-size: .78em; white-space: nowrap; }
+.tag-badge.signed { background: var(--accent-soft); color: var(--text); }
+.tag-info .commit-meta .mono { display: inline-flex; align-items: center; gap: 4px; }
+.tag-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.tag-actions button { height: 26px; font-size: .9em; }
 
 /* Commit table */
 .commit-table { flex: 1; display: flex; flex-direction: column; min-height: 0; }

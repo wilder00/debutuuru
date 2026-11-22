@@ -253,6 +253,14 @@ means adding a module, not a new transport.
   (Han unification), and `:lang()` picks the Japanese or Korean fallback
   fonts. Agent results carry `OpOutcome.message` (git module v5) so the UI
   words them itself; git's own output stays in git's language.
+- Tags (git module v9): `Snapshot.tags` lists them with one `for-each-ref`
+  (kind, peeled commit, tagger, date, message without the signature, whether
+  it's signed; signatures aren't verified). `git.create_tag` and
+  `git.delete_tag` are local; `git.push_tag` (push, or `--delete` on the
+  remote) is a remote operation like push, so it gets progress, cancel and
+  askpass prompts, against `origin` or the only remote. Whether a tag is
+  already on the remote isn't shown: knowing it needs `git ls-remote`, a
+  network call that may ask for credentials.
 - Terminal (stage 1): the agent's `term` module (`term.spawn/write/resize/
   kill`, events `term.output`/`term.exit`) runs programs in a pseudo-terminal
   with portable-pty (ConPTY on Windows); output is decoded as UTF-8 across

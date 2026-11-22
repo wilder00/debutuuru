@@ -8,10 +8,11 @@ import { git, GIT_CHANGED } from "./api";
 import { ChangesPanel, type FileSelection } from "./ChangesPanel";
 import { CommitGraph } from "./CommitGraph";
 import { RemoteBar } from "./RemoteBar";
-import { useBus } from "../../lib/bus";
+import { emit, useBus } from "../../lib/bus";
 import { ErrorBoundary } from "../../lib/ErrorBoundary";
 import { useSettings } from "../../settings/SettingsProvider";
 import { Sidebar } from "./Sidebar";
+import { TagDialog } from "./TagDialog";
 
 // Code viewer (CodeMirror) is only downloaded when Files is first opened.
 const FilesView = lazy(() => import("./FilesView").then((m) => ({ default: m.FilesView })));
@@ -38,6 +39,11 @@ export function GitView({ repo, active, refreshKey, onError, onOpen, onLoaded }:
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
   const [log, setLog] = useState<LogEntry[]>([]);
   const [commit, setCommit] = useState<string | null>(null);
+  /** Tag whose details are shown (its commit is `commit`). */
+  const [tag, setTag] = useState<string | null>(null);
+  const [reveal, setReveal] = useState(0);
+  /** "Create tag" dialog, on this commit. */
+  const [tagOn, setTagOn] = useState<{ rev: string; label: string } | null>(null);
   const [file, setFile] = useState<FileSelection | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [view, setView] = useState<"history" | "files">("history");
@@ -163,6 +169,31 @@ export function GitView({ repo, active, refreshKey, onError, onOpen, onLoaded }:
   const expand = { expanded, toggle: () => setExpanded((x) => !x) };
   useBus("checkout", repo, (e) => void act(() => git.checkout(repo, { branch: e.branch })));
 
+  const commitLabel = (rev: string) => {
+    const c = log.find((e) => e.hash === rev);
+    return c ? `${rev.slice(0, 8)} · ${c.subject}` : rev;
+  };
+  const openTagDialog = (rev?: string | null) => {
+    const r = rev ?? log.find((e) => e.refs.some((x) => x.startsWith("HEAD")))?.hash ?? "HEAD";
+    setTagOn({ rev: r, label: commitLabel(r) });
+  };
+  useBus("create-tag", repo, () => openTagDialog(commit));
+  useBus("show-tag", repo, (e) => selectTag(e.name));
+  const selectTag = (name: string) => {
+    const g = snapshot?.tags.find((x) => x.name === name);
+    if (!g) return;
+    setFile(null);
+    setTag(name);
+    setCommit(g.target);
+    setView("history");
+    setReveal((n) => n + 1);
+  };
+  // The shown tag was deleted (here or elsewhere): back to its commit.
+  const shownTag = snapshot?.tags.find((x) => x.name === tag) ?? null;
+  useEffect(() => {
+    if (tag && snapshot && !shownTag) setTag(null);
+  }, [tag, snapshot, shownTag]);
+
   if (!snapshot) {
     return (
       <div className="empty" hidden={!active}>
@@ -177,6 +208,9 @@ export function GitView({ repo, active, refreshKey, onError, onOpen, onLoaded }:
         snapshot={snapshot}
         onCheckout={(branch) => act(() => git.checkout(repo, { branch }))}
         onOpenWorktree={(p) => onOpen(agentPathToRepo(repo, p))}
+        selectedTag={tag}
+        onSelectTag={selectTag}
+        onCreateTag={() => openTagDialog(commit)}
       />
       <div className="center">
         <RemoteBar repo={repo} snapshot={snapshot} settings={gitSettings} onDone={() => void reload().catch(onError)} />
@@ -200,8 +234,10 @@ export function GitView({ repo, active, refreshKey, onError, onOpen, onLoaded }:
           <CommitGraph
             log={log}
             selected={commit}
+            reveal={reveal}
             onSelect={(hash) => {
               setFile(null);
+              setTag(null);
               setCommit(hash);
             }}
             onOpen={(hash) => {
@@ -223,16 +259,53 @@ export function GitView({ repo, active, refreshKey, onError, onOpen, onLoaded }:
             onClose={() => setFile(null)}
           />
         )}
-        {view === "history" && !file && commit && <CommitPanel repo={repo} hash={commit} onClose={() => setCommit(null)} expand={expand} />}
+        {view === "history" && !file && commit && (
+          <CommitPanel
+            repo={repo}
+            hash={commit}
+            onClose={() => {
+              setCommit(null);
+              setTag(null);
+            }}
+            expand={expand}
+            onTag={() => openTagDialog(commit)}
+            tag={
+              shownTag
+                ? {
+                    tag: shownTag,
+                    hasRemote: snapshot.remotes.length > 0,
+                    onCheckout: () => void act(() => git.checkout(repo, { branch: `refs/tags/${shownTag.name}` })),
+                    onPush: (del) => emit("git-op", { repo, op: "tag", tag: shownTag.name, delete: del }),
+                    onDelete: () => void act(() => git.deleteTag(repo, shownTag.name)),
+                  }
+                : undefined
+            }
+          />
+        )}
         </Suspense>
         </ErrorBoundary>
       </div>
+      {tagOn && (
+        <TagDialog
+          target={tagOn}
+          existing={snapshot.tags.map((x) => x.name)}
+          hasRemote={snapshot.remotes.length > 0}
+          onCancel={() => setTagOn(null)}
+          onCreate={async ({ name, message, push }) => {
+            setTagOn(null);
+            if (await act(() => git.createTag(repo, { name, rev: tagOn.rev, message }))) {
+              if (push) emit("git-op", { repo, op: "tag", tag: name, delete: false });
+            }
+          }}
+        />
+      )}
       <ChangesPanel
         repo={repo}
         status={snapshot.status}
         selected={file}
         onSelect={(s) => {
           setCommit(null);
+          setTag(null);
           setFile(s);
           setView("history");
         }}

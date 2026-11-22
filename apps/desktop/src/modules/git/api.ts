@@ -22,6 +22,8 @@ import type { RevParams } from "../../bindings/RevParams";
 import type { EntryKind } from "../../bindings/EntryKind";
 import type { FileBytes } from "../../bindings/FileBytes";
 import type { StatPathsParams } from "../../bindings/StatPathsParams";
+import type { CreateTagParams } from "../../bindings/CreateTagParams";
+import type { PushTagParams } from "../../bindings/PushTagParams";
 
 export const git = {
   snapshot: (repo: string) => rpc<Snapshot>(repo, "git.snapshot"),
@@ -49,6 +51,11 @@ export const git = {
   fetch: (repo: string, p: Params<FetchParams>) => rpc<OpOutcome>(repo, "git.fetch", p),
   pull: (repo: string, p: Params<PullParams>) => rpc<OpOutcome>(repo, "git.pull", p),
   push: (repo: string, p: Params<PushParams>) => rpc<OpOutcome>(repo, "git.push", p),
+  /** `message` = annotated tag; null = lightweight. */
+  createTag: (repo: string, p: Params<CreateTagParams>) => rpc<null>(repo, "git.create_tag", p),
+  /** Local tag only; `pushTag` with `delete` removes it on the remote. */
+  deleteTag: (repo: string, name: string) => rpc<null>(repo, "git.delete_tag", { name }),
+  pushTag: (repo: string, p: Params<PushTagParams>) => rpc<OpOutcome>(repo, "git.push_tag", p),
   cancel: (repo: string, opId: string) => rpc<null>(repo, "git.cancel", { op_id: opId }),
   promptReply: (repo: string, id: string, answer: string | null) => rpc<null>(repo, "git.prompt_reply", { id, answer }),
 };

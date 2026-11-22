@@ -3,6 +3,7 @@ import type { Branch } from "./Branch";
 import type { Remote } from "./Remote";
 import type { RepoInfo } from "./RepoInfo";
 import type { Status } from "./Status";
+import type { Tag } from "./Tag";
 import type { Worktree } from "./Worktree";
 
 /**
@@ -16,4 +17,8 @@ remotes: Array<Remote>,
 /**
  * Tracking branch of HEAD, e.g. `origin/main`. Added in module v3.
  */
-upstream: string | null, };
+upstream: string | null, 
+/**
+ * Newest first. Added in module v9.
+ */
+tags: Array<Tag>, };

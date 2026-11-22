@@ -3,4 +3,4 @@
 /**
  * The outcomes the agent words itself; see [`OpOutcome::message`].
  */
-export type OutcomeMessage = { "kind": "fetched", remote: string | null, } | { "kind": "up_to_date" } | { "kind": "pulled", upstream: string, } | { "kind": "nothing_to_push" } | { "kind": "pushed", branch: string, target: string, } | { "kind": "no_upstream" } | { "kind": "no_remote" } | { "kind": "several_remotes" } | { "kind": "cancelled" } | { "kind": "host_key_declined" };
+export type OutcomeMessage = { "kind": "fetched", remote: string | null, } | { "kind": "up_to_date" } | { "kind": "pulled", upstream: string, } | { "kind": "nothing_to_push" } | { "kind": "pushed", branch: string, target: string, } | { "kind": "no_upstream" } | { "kind": "no_remote" } | { "kind": "several_remotes" } | { "kind": "cancelled" } | { "kind": "host_key_declined" } | { "kind": "tag_pushed", tag: string, remote: string, } | { "kind": "tag_deleted_on_remote", tag: string, remote: string, };

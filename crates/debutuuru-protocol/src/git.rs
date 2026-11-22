@@ -3,6 +3,7 @@
 
 use debutuuru_core::changes::DiffSource;
 use debutuuru_core::repo::{Branch, Remote, RepoInfo, Status, Worktree};
+use debutuuru_core::tags::Tag;
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
@@ -17,7 +18,9 @@ pub const MODULE: &str = "git";
 /// 7: `git.stat_paths` (follow imports and links) and `git.read_bytes`
 ///    (images in rendered Markdown).
 /// 8: `git.list_files` (quick open).
-pub const MODULE_VERSION: u32 = 8;
+/// 9: tags: `tags` in [`Snapshot`], `git.create_tag`, `git.delete_tag`,
+///    `git.push_tag`, and their [`OutcomeMessage`]s.
+pub const MODULE_VERSION: u32 = 9;
 
 /// [`RepoParams`] → [`Snapshot`]
 pub const SNAPSHOT: &str = "git.snapshot";
@@ -49,6 +52,10 @@ pub const STAT_PATHS: &str = "git.stat_paths";
 pub const READ_BYTES: &str = "git.read_bytes";
 /// [`TreeParams`] (only `rev` is used) → `Vec<String>`: every file, for quick open.
 pub const LIST_FILES: &str = "git.list_files";
+/// [`CreateTagParams`] → `null`
+pub const CREATE_TAG: &str = "git.create_tag";
+/// [`TagParams`] → `null`: deletes the local tag only.
+pub const DELETE_TAG: &str = "git.delete_tag";
 /// [`RepoParams`] → `null`. Starts emitting [`CHANGED`] for this repo (idempotent).
 pub const WATCH: &str = "git.watch";
 /// [`RepoParams`] → `null`
@@ -60,6 +67,8 @@ pub const FETCH: &str = "git.fetch";
 pub const PULL: &str = "git.pull";
 /// [`PushParams`] → [`OpOutcome`]
 pub const PUSH: &str = "git.push";
+/// [`PushTagParams`] → [`OpOutcome`]: pushes a tag, or deletes it on the remote.
+pub const PUSH_TAG: &str = "git.push_tag";
 /// [`CancelParams`] → `null`. Stops a running remote operation.
 pub const CANCEL: &str = "git.cancel";
 /// [`PromptReply`] → `null`. Answers a [`PROMPT`] event.
@@ -113,6 +122,38 @@ pub struct CommitParams {
 pub struct CheckoutParams {
     pub repo: String,
     pub branch: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct CreateTagParams {
+    pub repo: String,
+    pub name: String,
+    /// Commit to tag (any revision git understands).
+    pub rev: String,
+    /// Annotated tag with this message; `None` = lightweight.
+    #[serde(default)]
+    pub message: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct TagParams {
+    pub repo: String,
+    pub name: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct PushTagParams {
+    pub repo: String,
+    #[serde(flatten)]
+    #[ts(flatten)]
+    pub options: RemoteOptions,
+    pub name: String,
+    /// Delete the tag on the remote instead of pushing it.
+    #[serde(default)]
+    pub delete: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
@@ -358,6 +399,14 @@ pub enum OutcomeMessage {
     Cancelled,
     /// The user rejected the server's host key.
     HostKeyDeclined,
+    TagPushed {
+        tag: String,
+        remote: String,
+    },
+    TagDeletedOnRemote {
+        tag: String,
+        remote: String,
+    },
 }
 
 /// Everything the sidebar and changes panel need, in one round trip.
@@ -374,4 +423,7 @@ pub struct Snapshot {
     /// Tracking branch of HEAD, e.g. `origin/main`. Added in module v3.
     #[serde(default)]
     pub upstream: Option<String>,
+    /// Newest first. Added in module v9.
+    #[serde(default)]
+    pub tags: Vec<Tag>,
 }
