@@ -44,6 +44,9 @@ export const wslDistros = () => invoke<string[]>("wsl_distros");
 export const wslRunning = () => invoke<string[]>("wsl_running");
 export const wslCommandStatus = (distro: string) => call<WslCommandStatus>("wsl_command_status", { distro });
 export const wslInstallCommand = (distro: string) => call<WslCommandStatus>("wsl_install_command", { distro });
+/** Opens a tool window beside the main one (or brings it forward). Logging
+ *  runs only while the log window is open. */
+export const openToolWindow = (view: "logs" | "dictionary") => invoke<void>("open_tool_window", { view });
 export const wslAddToPath = (distro: string) => call<WslCommandStatus>("wsl_add_to_path", { distro });
 
 /** Emitted when a WSL agent process exits; payload `{ distro }`. */

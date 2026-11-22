@@ -30,6 +30,7 @@ import type { BranchDeletion } from "../../bindings/BranchDeletion";
 import type { DeleteResult } from "../../bindings/DeleteResult";
 import type { DeleteBranchesParams } from "../../bindings/DeleteBranchesParams";
 import type { DeleteRemoteBranchesParams } from "../../bindings/DeleteRemoteBranchesParams";
+import type { UpdateBranchParams } from "../../bindings/UpdateBranchParams";
 
 export const git = {
   /** `folder` is any folder: a repository, or one holding several. */
@@ -71,6 +72,8 @@ export const git = {
   /** Local branches, one by one; `force` = also unmerged ones. */
   deleteBranches: (repo: string, p: Params<DeleteBranchesParams>) => rpc<DeleteResult[]>(repo, "git.delete_branches", p),
   deleteRemoteBranches: (repo: string, p: Params<DeleteRemoteBranchesParams>) => rpc<OpOutcome>(repo, "git.delete_remote_branches", p),
+  /** Fast-forward a branch that isn't checked out from its upstream, or fetch one remote branch. */
+  updateBranch: (repo: string, p: Params<UpdateBranchParams>) => rpc<OpOutcome>(repo, "git.update_branch", p),
   cancel: (repo: string, opId: string) => rpc<null>(repo, "git.cancel", { op_id: opId }),
   promptReply: (repo: string, id: string, answer: string | null) => rpc<null>(repo, "git.prompt_reply", { id, answer }),
 };

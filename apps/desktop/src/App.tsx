@@ -6,7 +6,7 @@ import type { Hello } from "./bindings/Hello";
 import type { Snapshot } from "./bindings/Snapshot";
 import { emit } from "./lib/bus";
 import { isWindowsHost, locateFile, pathKind, pickFile, pickFolder, userDistros, wslHome } from "./lib/open";
-import { AgentError, agentHello, agentPathToRepo, initialPath, onOpenRepo, resolvePath, wslDistros } from "./lib/rpc";
+import { AgentError, agentHello, agentPathToRepo, initialPath, onOpenRepo, openToolWindow, resolvePath, wslDistros } from "./lib/rpc";
 import { git } from "./modules/git/api";
 import { GroupPicker, PICK_FROM } from "./shell/GroupPicker";
 import type { Session } from "./bindings/Session";
@@ -267,6 +267,10 @@ export function App() {
       } else if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase() === "o") {
         e.preventDefault();
         openActionsRef.current.openFolder();
+      } else if ((e.ctrlKey || e.metaKey) && e.shiftKey && !e.altKey && e.code === "KeyU") {
+        // Like VS Code's Output panel: the log window.
+        e.preventDefault();
+        void openToolWindow("logs");
       } else if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.code === "KeyB") {
         // Like VS Code: Ctrl+B the left panel, Ctrl+Alt+B the right one.
         e.preventDefault();

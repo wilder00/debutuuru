@@ -11,6 +11,7 @@ pub mod location;
 pub mod repo;
 pub mod runner;
 pub mod tags;
+pub mod trace;
 
 pub use error::{Error, Result};
 pub use location::Location;

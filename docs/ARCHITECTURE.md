@@ -253,6 +253,27 @@ means adding a module, not a new transport.
   (Han unification), and `:lang()` picks the Japanese or Korean fallback
   fonts. Agent results carry `OpOutcome.message` (git module v5) so the UI
   words them itself; git's own output stays in git's language.
+- Updating a branch without checking it out (git module v13):
+  `git.update_branch` runs `fetch <remote> <merge>:refs/heads/<branch>`
+  with the branch's own `branch.<name>.remote`/`.merge`, which git only
+  fast-forwards (a diverged branch is refused and reported as such) and
+  refuses for a branch checked out anywhere (the UI offers Pull for the
+  current one; one open in another worktree is reported). A remote branch
+  fetches alone (`+refs/heads/x:refs/remotes/<remote>/x`).
+- Tool windows: extras that aren't the core open in their own app window
+  (`open_tool_window`, labels `logs` and `dictionary`), never modal, closed
+  with the main window. The page reads `window.__DEBUTUURU_VIEW__` to render
+  the tool instead of the app.
+- Logs: `debutuuru_core::trace` records each git command (args, time, exit
+  code, stderr shortened to 8 KiB) only while a sink is set; otherwise it
+  costs one atomic load. The `set_logging` agent method (protocol-level,
+  additive) sets the sink, and the agent sends a `log.command` event per
+  command. The shell turns logging on in every agent (and WSL agents started
+  later) when the log window opens and off when it closes, adds a line per
+  UI request, and sends lines to that window only. Prompt answers never
+  appear: they go through askpass, never in arguments.
+- UI dictionary: reads the translations the app already ships
+  (`i18n.getResourceBundle`), UI language beside the one chosen to learn.
 - Deleting branches (git module v12): `git.branch_deletion_info` checks
   each branch first (checked out here or in a worktree, merged into HEAD,
   commits no other ref has via `rev-list <ref> --not --exclude=<ref> --all`,

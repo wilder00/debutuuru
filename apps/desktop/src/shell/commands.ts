@@ -9,6 +9,7 @@ import type { TabGroup } from "../bindings/TabGroup";
 import { distinctNames } from "../lib/names";
 import { LANGUAGES } from "../i18n";
 import { emit } from "../lib/bus";
+import { openToolWindow } from "../lib/rpc";
 import { checkForUpdate } from "../lib/updater";
 import { useSettings } from "../settings/SettingsProvider";
 import { CUSTOM, PRESETS } from "../theme/presets";
@@ -81,6 +82,8 @@ export function useCommands(c: Ctx): PaletteItem[] {
           })),
       }),
       g("settings", "checkUpdates", { run: () => void checkForUpdate() }),
+      g("view", "showLogs", { keys: "Ctrl+Shift+U", run: () => void openToolWindow("logs") }),
+      g("view", "dictionary", { run: () => void openToolWindow("dictionary") }),
       g("diff", "layout", {
         pick: () =>
           (["unified", "split", "file"] as const).map((l) => ({

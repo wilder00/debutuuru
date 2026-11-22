@@ -216,6 +216,8 @@ export function GitView({ repo, active, refreshKey, onError, onOpen, onLoaded }:
         onSelectTag={selectTag}
         onCreateTag={() => openTagDialog(commit)}
         onDeleteBranches={(names) => names.length && setDeleting(names)}
+        onUpdateBranch={(branch) => emit("git-op", { repo, op: "update", branch })}
+        onPull={() => emit("git-op", { repo, op: "pull", mode: "default" })}
       />
       <div className="center">
         <RemoteBar repo={repo} snapshot={snapshot} settings={gitSettings} onDone={() => void reload().catch(onError)} />

@@ -8,6 +8,7 @@
 //! running instance, and opening repos passed from terminals.
 
 mod agents;
+mod logs;
 mod settings;
 mod terminal;
 mod wsl;
@@ -48,9 +49,27 @@ async fn rpc(
     let agents = agents.inner().clone();
     let loc = Location::parse(&repo);
     let params = params.unwrap_or_else(|| Value::Object(Default::default()));
-    tauri::async_runtime::spawn_blocking(move || agents.call(&loc, &method, params))
+    let started = agents.logging().then(std::time::Instant::now);
+    let (method_name, log_agents) = (method.clone(), agents.clone());
+    let result = tauri::async_runtime::spawn_blocking(move || agents.call(&loc, &method, params))
         .await
-        .map_err(blocking_err)?
+        .map_err(blocking_err)?;
+    if let Some(started) = started {
+        log_agents.log_request(
+            &repo,
+            &method_name,
+            started.elapsed().as_millis() as u64,
+            result.as_ref().err().map(|e| e.message.clone()),
+        );
+    }
+    result
+}
+
+/// Opens a tool window (`logs`, `dictionary`) or brings it forward. Async:
+/// on Windows, creating a window from a synchronous command can deadlock.
+#[tauri::command]
+async fn open_tool_window(app: tauri::AppHandle, view: String) -> Result<(), String> {
+    logs::open(&app, &view).map_err(|e| e.to_string())
 }
 
 /// Handshake of the agent serving `repo` (local agent when `repo` is empty).
@@ -238,10 +257,25 @@ fn main() {
             });
             let linux_agent = wsl::find_agent_binary(app.path().resource_dir().ok());
             app.manage(Arc::new(Agents::new(app.handle().clone(), linux_agent)));
+            // Tool windows belong to the main one: they close with it, so the
+            // app doesn't keep running with only the logs or dictionary open.
+            if let Some(main) = app.get_webview_window("main") {
+                let handle = app.handle().clone();
+                main.on_window_event(move |e| {
+                    if matches!(e, tauri::WindowEvent::Destroyed) {
+                        for label in logs::TOOL_WINDOWS {
+                            if let Some(w) = handle.get_webview_window(label) {
+                                let _ = w.destroy();
+                            }
+                        }
+                    }
+                });
+            }
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
             rpc,
+            open_tool_window,
             agent_hello,
             resolve_path,
             initial_path,

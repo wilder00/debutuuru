@@ -57,7 +57,8 @@
     "language": {
       "title": "Language",
       "system": "System ({{language}})",
-      "hint": "Git's own messages (errors, the details of a fetch or push) keep the language of your git installation."
+      "hint": "Git's own messages (errors, the details of a fetch or push) keep the language of your git installation.",
+      "dictionary": "Open the UI dictionary, to learn words of another language"
     },
     "theme": {
       "title": "Theme",
@@ -203,7 +204,12 @@
         "copy_one": "Copy name",
         "copy_other": "Copy {{count}} names",
         "delete_one": "Delete branch…",
-        "delete_other": "Delete {{count}} branches…"
+        "delete_other": "Delete {{count}} branches…",
+        "pull": "Pull from {{upstream}}",
+        "update": "Update from {{upstream}}",
+        "updateHint": "Brings in the new commits of its remote branch without switching to it. It only moves forward: if the branch has commits the remote doesn't, nothing changes.",
+        "fetchOne": "Fetch {{branch}}",
+        "fetchOneHint": "Downloads only this branch from its remote. Your local branches don't change."
       }
     },
     "changes": {
@@ -336,7 +342,11 @@
         "tag_pushed": "Pushed tag {{tag}} → {{remote}}",
         "tag_deleted_on_remote": "Deleted tag {{tag}} on {{remote}}",
         "several_remotes_tag": "Several remotes and none is origin: push the tag from a terminal with `git push <remote> <tag>`.",
-        "remote_branches_deleted": "Deleted {{branches}} on {{remote}}"
+        "remote_branches_deleted": "Deleted {{branches}} on {{remote}}",
+        "branch_updated": "Updated {{branch}} from {{from}}",
+        "branch_up_to_date": "{{branch}} is already up to date",
+        "branch_diverged": "{{branch}} has commits that {{upstream}} doesn't, so it can't just move forward. Check it out and pull to combine them.",
+        "branch_in_worktree": "{{branch}} is checked out in {{worktree}}: pull it there."
       },
       "advice": {
         "sshAuthWindows": "SSH from Windows couldn't authenticate. If your SSH keys live in WSL, turn on “Use WSL's SSH keys for Windows repositories” in Settings (Ctrl+,).",
@@ -519,7 +529,9 @@
       "toggleSidebar": "Show/hide the left panel",
       "toggleChanges": "Show/hide the changes panel",
       "focusMode": "Focus: hide/show both side panels",
-      "deleteBranch": "Delete branch…"
+      "deleteBranch": "Delete branch…",
+      "showLogs": "Show logs",
+      "dictionary": "UI dictionary (learn words)"
     }
   },
   "open": {
@@ -562,5 +574,41 @@
     "noProfiles": "No shell found. Add a profile in Settings › Terminal.",
     "rename": "Rename terminal",
     "renameHint": "double-click to rename"
+  },
+  "logs": {
+    "title": "Logs",
+    "filter": "Filter (repository, command, output)",
+    "kind": "Show",
+    "kindAll": "Everything",
+    "kindGit": "Git commands",
+    "kindRequest": "App requests",
+    "request": "request",
+    "errorsOnly": "Errors only",
+    "count_one": "{{count}} line",
+    "count_other": "{{count}} lines",
+    "follow": "Follow new lines",
+    "pause": "Pause",
+    "resume": "Resume",
+    "copy": "Copy the lines shown",
+    "clear": "Clear",
+    "empty": "Every git command and app request appears here while this window is open, with its output (click a line). Nothing is recorded while it's closed.",
+    "paused": "Paused: new lines wait until you resume."
+  },
+  "dictionary": {
+    "title": "UI dictionary",
+    "search": "Search a word",
+    "learn": "Learn",
+    "section": "Section",
+    "allSections": "All sections",
+    "short": "Words and short phrases",
+    "shortHint": "Hides long sentences, which are harder to memorize",
+    "count_one": "{{count}} entry",
+    "count_other": "{{count}} entries",
+    "shuffle": "Shuffle",
+    "inOrder": "Back to order",
+    "practice": "Practice: hide the translations",
+    "showAll": "Show all translations",
+    "practiceHint": "Guess each translation, then click it to check.",
+    "none": "Nothing matches."
   }
 }

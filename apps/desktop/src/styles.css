@@ -381,6 +381,57 @@ ul { list-style: none; margin: 0; padding: 0; }
 .menu.context-menu { position: fixed; top: auto; z-index: 40; min-width: 210px; }
 .menu-sep { height: 1px; margin: 4px 6px; background: var(--border-subtle); }
 
+/* Tool windows (logs, dictionary): own window, title bar, toolbar, content. */
+.tool-window .titlebar { height: 38px; }
+.tool-toolbar {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 6px 10px;
+  border-bottom: 1px solid var(--border-subtle); background: var(--bg-panel);
+}
+.tool-toolbar .spacer { flex: 1; }
+.tool-filter { flex: 0 1 260px; min-width: 140px; }
+.toggle-row.inline { align-items: center; gap: 6px; white-space: nowrap; }
+.toggle-row.inline input { margin: 0; }
+.inline-field { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.tool-body { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.log-empty { margin: 24px auto; max-width: 520px; text-align: center; color: var(--text-muted); font-family: var(--font-ui); white-space: normal; }
+
+.log-list { flex: 1; overflow: auto; padding: 4px 0; font-size: .86em; user-select: text; }
+.log-row {
+  display: grid; grid-template-columns: auto auto auto minmax(60px, 140px) minmax(0, 1fr) auto; align-items: center; gap: 8px;
+  padding: 2px 10px; border-bottom: 1px solid color-mix(in srgb, var(--border-subtle) 50%, transparent); cursor: default;
+}
+.log-row:hover { background: var(--bg-hover); }
+.log-row.bad .log-cmd { color: var(--danger); }
+.log-time, .log-ms { color: var(--text-faint); }
+.log-ms { text-align: right; min-width: 56px; }
+.log-kind { padding: 0 6px; border-radius: 999px; font-size: .85em; background: var(--bg-raised); color: var(--text-muted); }
+.log-kind.git { background: var(--accent-soft); color: var(--accent); }
+.log-repo, .log-cmd { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.log-repo { color: var(--text-muted); }
+.log-exit { color: var(--danger); }
+.log-output {
+  grid-column: 1 / -1; margin: 2px 0 4px; padding: 6px 8px; border-radius: var(--radius);
+  background: var(--bg-raised); white-space: pre-wrap; word-break: break-word; max-height: 40vh; overflow: auto;
+}
+
+.dict-table { flex: 1; overflow: auto; padding: 0 0 12px; user-select: text; }
+.dict-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 5px 14px;
+  border-bottom: 1px solid color-mix(in srgb, var(--border-subtle) 50%, transparent);
+  content-visibility: auto; contain-intrinsic-size: auto 30px;
+}
+.dict-row:hover { background: var(--bg-hover); }
+.dict-row.head {
+  position: sticky; top: 0; z-index: 1; font-weight: 650; color: var(--text-muted);
+  background: var(--bg-solid); content-visibility: visible;
+}
+.dict-row .tag-badge { margin-left: 6px; }
+.dict-var { padding: 0 4px; margin: 0 1px; border-radius: 4px; font-family: var(--font-mono); font-size: .85em; background: var(--bg-raised); color: var(--text-muted); }
+.dict-to { font-size: 1.08em; }
+.dict-to.covered { cursor: pointer; border-radius: var(--radius); filter: blur(6px); transition: filter .15s; }
+.dict-to.covered:focus-visible { outline: 2px solid var(--accent-ring); }
+.dict-tip { margin: 6px 14px; }
+
 /* Delete branches: what happens to each one */
 .modal.wide { width: 640px; }
 .del-list { display: flex; flex-direction: column; gap: 10px; max-height: 52vh; overflow: auto; padding-right: 4px; }

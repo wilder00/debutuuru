@@ -57,7 +57,8 @@
     "language": {
       "title": "言語",
       "system": "システム ({{language}})",
-      "hint": "git 自体のメッセージ (エラーや、フェッチ・プッシュの詳細) は、お使いの git の言語のまま表示されます。"
+      "hint": "git 自体のメッセージ (エラーや、フェッチ・プッシュの詳細) は、お使いの git の言語のまま表示されます。",
+      "dictionary": "UI 辞書を開いて、ほかの言語の単語を覚える"
     },
     "theme": {
       "title": "テーマ",
@@ -201,7 +202,12 @@
       "menu": {
         "checkout": "チェックアウト",
         "copy_other": "名前をコピー ({{count}})",
-        "delete_other": "ブランチを削除 ({{count}})…"
+        "delete_other": "ブランチを削除 ({{count}})…",
+        "pull": "{{upstream}} からプル",
+        "update": "{{upstream}} から更新",
+        "updateHint": "切り替えずに、リモートブランチの新しいコミットを取り込みます。前に進めるだけなので、リモートにないコミットがある場合は何も変わりません。",
+        "fetchOne": "{{branch}} をフェッチ",
+        "fetchOneHint": "このブランチだけをリモートからダウンロードします。ローカルブランチは変わりません。"
       }
     },
     "changes": {
@@ -332,7 +338,11 @@
         "tag_pushed": "タグ {{tag}} をプッシュしました → {{remote}}",
         "tag_deleted_on_remote": "{{remote}} のタグ {{tag}} を削除しました",
         "several_remotes_tag": "リモートが複数あり、origin がありません。ターミナルで `git push <remote> <tag>` を実行してください。",
-        "remote_branches_deleted": "{{remote}} の {{branches}} を削除しました"
+        "remote_branches_deleted": "{{remote}} の {{branches}} を削除しました",
+        "branch_updated": "{{branch}} を {{from}} から更新しました",
+        "branch_up_to_date": "{{branch}} はすでに最新です",
+        "branch_diverged": "{{branch}} には {{upstream}} にないコミットがあるため、前に進めるだけでは更新できません。チェックアウトしてプルし、統合してください。",
+        "branch_in_worktree": "{{branch}} は {{worktree}} でチェックアウトされています。そこでプルしてください。"
       },
       "advice": {
         "sshAuthWindows": "Windows からの SSH で認証できませんでした。SSH キーが WSL にある場合は、設定 (Ctrl+,) で「Windows のリポジトリで WSL の SSH キーを使う」をオンにしてください。",
@@ -507,7 +517,9 @@
       "toggleSidebar": "左パネルの表示/非表示",
       "toggleChanges": "変更パネルの表示/非表示",
       "focusMode": "集中: 両側のパネルを隠す/表示",
-      "deleteBranch": "ブランチを削除…"
+      "deleteBranch": "ブランチを削除…",
+      "showLogs": "ログを表示",
+      "dictionary": "UI 辞書(単語を覚える)"
     }
   },
   "open": {
@@ -548,5 +560,39 @@
     "noProfiles": "シェルが見つかりません。設定 › ターミナルでプロファイルを追加してください。",
     "rename": "ターミナルの名前を変更",
     "renameHint": "ダブルクリックで名前を変更"
+  },
+  "logs": {
+    "title": "ログ",
+    "filter": "絞り込み(リポジトリ、コマンド、出力)",
+    "kind": "表示",
+    "kindAll": "すべて",
+    "kindGit": "Git コマンド",
+    "kindRequest": "アプリのリクエスト",
+    "request": "リクエスト",
+    "errorsOnly": "エラーのみ",
+    "count_other": "{{count}} 行",
+    "follow": "新しい行を追う",
+    "pause": "一時停止",
+    "resume": "再開",
+    "copy": "表示中の行をコピー",
+    "clear": "クリア",
+    "empty": "このウィンドウを開いている間、Git コマンドとアプリのリクエストがその出力とともにここに表示されます(行をクリック)。閉じている間は何も記録されません。",
+    "paused": "一時停止中:新しい行は再開まで待機します。"
+  },
+  "dictionary": {
+    "title": "UI 辞書",
+    "search": "単語を検索",
+    "learn": "学ぶ言語",
+    "section": "セクション",
+    "allSections": "すべてのセクション",
+    "short": "単語と短いフレーズ",
+    "shortHint": "覚えにくい長い文を隠します",
+    "count_other": "{{count}} 件",
+    "shuffle": "シャッフル",
+    "inOrder": "元の順に戻す",
+    "practice": "練習:訳を隠す",
+    "showAll": "すべての訳を表示",
+    "practiceHint": "訳を思い浮かべてから、クリックして確かめましょう。",
+    "none": "一致するものがありません。"
   }
 }

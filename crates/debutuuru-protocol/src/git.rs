@@ -24,7 +24,9 @@ pub const MODULE: &str = "git";
 /// 11: `DiffSource::Head` and `git.last_change` (a file's changes in Files).
 /// 12: deleting branches: `git.branch_deletion_info`, `git.delete_branches`,
 ///     `git.delete_remote_branches`.
-pub const MODULE_VERSION: u32 = 12;
+/// 13: `git.update_branch` (bring one branch up to date from its remote
+///     without checking it out).
+pub const MODULE_VERSION: u32 = 13;
 
 /// [`RepoParams`] → [`Snapshot`]
 pub const SNAPSHOT: &str = "git.snapshot";
@@ -87,6 +89,9 @@ pub const PUSH: &str = "git.push";
 /// [`DeleteRemoteBranchesParams`] → [`OpOutcome`]: `git push <remote> --delete …`.
 pub const DELETE_REMOTE_BRANCHES: &str = "git.delete_remote_branches";
 pub const PUSH_TAG: &str = "git.push_tag";
+/// [`UpdateBranchParams`] → [`OpOutcome`]: fast-forwards a local branch that
+/// isn't checked out from its upstream, or fetches one remote branch.
+pub const UPDATE_BRANCH: &str = "git.update_branch";
 /// [`CancelParams`] → `null`. Stops a running remote operation.
 pub const CANCEL: &str = "git.cancel";
 /// [`PromptReply`] → `null`. Answers a [`PROMPT`] event.
@@ -335,6 +340,17 @@ pub struct PushParams {
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[ts(export)]
+pub struct UpdateBranchParams {
+    pub repo: String,
+    #[serde(flatten)]
+    #[ts(flatten)]
+    pub options: RemoteOptions,
+    /// As listed: local `feature/x` or remote `origin/feature/x`.
+    pub branch: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct CancelParams {
     pub op_id: String,
 }
@@ -459,6 +475,26 @@ pub enum OutcomeMessage {
     RemoteBranchesDeleted {
         remote: String,
         branches: Vec<String>,
+    },
+    /// `branch` now matches `from` (a local branch's upstream, or the
+    /// remote's copy of a remote branch).
+    BranchUpdated {
+        branch: String,
+        from: String,
+    },
+    /// Nothing new on the remote for `branch`.
+    BranchUpToDate {
+        branch: String,
+    },
+    /// `branch` has commits its upstream doesn't: it can't just move forward.
+    BranchDiverged {
+        branch: String,
+        upstream: String,
+    },
+    /// Checked out in another worktree: update it there (pull).
+    BranchInWorktree {
+        branch: String,
+        worktree: String,
     },
 }
 

@@ -57,7 +57,8 @@
     "language": {
       "title": "Idioma",
       "system": "Sistema ({{language}})",
-      "hint": "Los mensajes propios de git (errores, el detalle de un fetch o un push) siguen en el idioma de tu instalación de git."
+      "hint": "Los mensajes propios de git (errores, el detalle de un fetch o un push) siguen en el idioma de tu instalación de git.",
+      "dictionary": "Abrir el diccionario de la interfaz, para aprender palabras de otro idioma"
     },
     "theme": {
       "title": "Tema",
@@ -205,7 +206,12 @@
         "copy_other": "Copiar {{count}} nombres",
         "delete_one": "Eliminar {{count}} rama…",
         "delete_many": "Eliminar {{count}} ramas…",
-        "delete_other": "Eliminar {{count}} ramas…"
+        "delete_other": "Eliminar {{count}} ramas…",
+        "pull": "Pull desde {{upstream}}",
+        "update": "Actualizar desde {{upstream}}",
+        "updateHint": "Trae los commits nuevos de su rama remota sin cambiarte a ella. Solo avanza: si la rama tiene commits que el remoto no tiene, no cambia nada.",
+        "fetchOne": "Fetch de {{branch}}",
+        "fetchOneHint": "Descarga solo esta rama de su remoto. Tus ramas locales no cambian."
       }
     },
     "changes": {
@@ -340,7 +346,11 @@
         "tag_pushed": "Tag {{tag}} subido → {{remote}}",
         "tag_deleted_on_remote": "Tag {{tag}} borrado en {{remote}}",
         "several_remotes_tag": "Hay varios remotos y ninguno es origin: sube el tag desde una terminal con `git push <remoto> <tag>`.",
-        "remote_branches_deleted": "Eliminadas {{branches}} en {{remote}}"
+        "remote_branches_deleted": "Eliminadas {{branches}} en {{remote}}",
+        "branch_updated": "{{branch}} actualizada desde {{from}}",
+        "branch_up_to_date": "{{branch}} ya está al día",
+        "branch_diverged": "{{branch}} tiene commits que {{upstream}} no tiene, así que no puede solo avanzar. Cámbiate a ella y haz pull para combinarlos.",
+        "branch_in_worktree": "{{branch}} está abierta en {{worktree}}: haz pull allí."
       },
       "advice": {
         "sshAuthWindows": "SSH desde Windows no pudo autenticarse. Si tus claves SSH están en WSL, activa «Usar las claves SSH de WSL en los repositorios de Windows» en Ajustes (Ctrl+,).",
@@ -531,7 +541,9 @@
       "toggleSidebar": "Mostrar/ocultar el panel izquierdo",
       "toggleChanges": "Mostrar/ocultar el panel de cambios",
       "focusMode": "Enfoque: ocultar/mostrar ambos paneles laterales",
-      "deleteBranch": "Eliminar rama…"
+      "deleteBranch": "Eliminar rama…",
+      "showLogs": "Mostrar logs",
+      "dictionary": "Diccionario de la interfaz (aprender palabras)"
     }
   },
   "open": {
@@ -576,5 +588,43 @@
     "noProfiles": "No se encontró ningún shell. Añade un perfil en Ajustes › Terminal.",
     "rename": "Renombrar terminal",
     "renameHint": "doble clic para renombrar"
+  },
+  "logs": {
+    "title": "Logs",
+    "filter": "Filtrar (repositorio, comando, salida)",
+    "kind": "Mostrar",
+    "kindAll": "Todo",
+    "kindGit": "Comandos de git",
+    "kindRequest": "Peticiones de la app",
+    "request": "petición",
+    "errorsOnly": "Solo errores",
+    "count_one": "{{count}} línea",
+    "count_many": "{{count}} líneas",
+    "count_other": "{{count}} líneas",
+    "follow": "Seguir las líneas nuevas",
+    "pause": "Pausar",
+    "resume": "Reanudar",
+    "copy": "Copiar las líneas mostradas",
+    "clear": "Limpiar",
+    "empty": "Aquí aparece cada comando de git y cada petición de la app mientras esta ventana está abierta, con su salida (haz clic en una línea). Cerrada, no se registra nada.",
+    "paused": "En pausa: las líneas nuevas esperan hasta que reanudes."
+  },
+  "dictionary": {
+    "title": "Diccionario de la interfaz",
+    "search": "Buscar una palabra",
+    "learn": "Aprender",
+    "section": "Sección",
+    "allSections": "Todas las secciones",
+    "short": "Palabras y frases cortas",
+    "shortHint": "Oculta las oraciones largas, que cuestan más memorizar",
+    "count_one": "{{count}} entrada",
+    "count_many": "{{count}} entradas",
+    "count_other": "{{count}} entradas",
+    "shuffle": "Mezclar",
+    "inOrder": "Volver al orden",
+    "practice": "Practicar: ocultar las traducciones",
+    "showAll": "Mostrar todas las traducciones",
+    "practiceHint": "Adivina cada traducción y luego haz clic para comprobarla.",
+    "none": "Nada coincide."
   }
 }

@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronRight, Cloud, Copy, FolderGit2, GitBranch, LogIn, Plus, Tag, Trash2 } from "lucide-react";
+import { ArrowDown, ChevronDown, ChevronRight, Cloud, CloudDownload, Copy, FolderGit2, GitBranch, LogIn, Plus, Tag, Trash2 } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -17,12 +17,17 @@ type Props = {
   onCreateTag: () => void;
   /** Local `x` and remote `origin/x` names, to confirm and delete. */
   onDeleteBranches: (names: string[]) => void;
+  /** Bring a branch up to date from its remote without checking it out
+   *  (local `x` from its upstream, or remote `origin/x`). */
+  onUpdateBranch: (name: string) => void;
+  /** Pull the checked-out branch. */
+  onPull: () => void;
 };
 
 /** With more tags than this, the section gets a filter box. */
 const FILTER_FROM = 8;
 
-export function Sidebar({ snapshot, onCheckout, onOpenWorktree, selectedTag, onSelectTag, onCreateTag, onDeleteBranches }: Props) {
+export function Sidebar({ snapshot, onCheckout, onOpenWorktree, selectedTag, onSelectTag, onCreateTag, onDeleteBranches, onUpdateBranch, onPull }: Props) {
   const { t } = useTranslation();
   const local = snapshot.branches.filter((b) => !b.is_remote);
   const remote = snapshot.branches.filter((b) => b.is_remote);
@@ -75,6 +80,7 @@ export function Sidebar({ snapshot, onCheckout, onOpenWorktree, selectedTag, onS
   };
   const selected = order.filter((n) => sel.has(n));
   const single = selected.length === 1 ? local.find((b) => b.name === selected[0]) : undefined;
+  const singleRemote = selected.length === 1 ? remote.find((b) => b.name === selected[0]) : undefined;
   const branchProps = (name: string) => ({
     onClick: (e: React.MouseEvent) => pick(name, e),
     onContextMenu: (e: React.MouseEvent) => openMenu(name, e),
@@ -125,6 +131,21 @@ export function Sidebar({ snapshot, onCheckout, onOpenWorktree, selectedTag, onS
           {single && !single.is_head && (
             <button role="menuitem" onClick={() => (setMenu(null), onCheckout(single.name))}>
               <LogIn size={14} /> {t("git.sidebar.menu.checkout")}
+            </button>
+          )}
+          {single?.is_head && single.upstream && (
+            <button role="menuitem" onClick={() => (setMenu(null), onPull())}>
+              <ArrowDown size={14} /> {t("git.sidebar.menu.pull", { upstream: single.upstream })}
+            </button>
+          )}
+          {single && !single.is_head && single.upstream && (
+            <button role="menuitem" title={t("git.sidebar.menu.updateHint")} onClick={() => (setMenu(null), onUpdateBranch(single.name))}>
+              <CloudDownload size={14} /> {t("git.sidebar.menu.update", { upstream: single.upstream })}
+            </button>
+          )}
+          {singleRemote && (
+            <button role="menuitem" title={t("git.sidebar.menu.fetchOneHint")} onClick={() => (setMenu(null), onUpdateBranch(singleRemote.name))}>
+              <CloudDownload size={14} /> {t("git.sidebar.menu.fetchOne", { branch: singleRemote.name })}
             </button>
           )}
           <button role="menuitem" onClick={() => (setMenu(null), void navigator.clipboard.writeText(selected.join("\n")))}>

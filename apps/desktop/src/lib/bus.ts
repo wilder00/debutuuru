@@ -11,6 +11,8 @@ export type BusEvents = {
   "git-op":
     | { repo: string; op: "fetch" | "push" }
     | { repo: string; op: "pull"; mode: PullMode }
+    /** Update one branch from its remote without checking it out. */
+    | { repo: string; op: "update"; branch: string }
     /** Push a tag, or delete it on the remote. */
     | { repo: string; op: "tag"; tag: string; delete: boolean };
   /** Open the "create tag" dialog (on the selected commit, else HEAD). */
