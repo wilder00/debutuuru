@@ -4,6 +4,14 @@ All notable changes are recorded here by release-plz from Conventional Commits.
 
 ## [Unreleased]
 
+## [0.3.0](https://github.com/wilder00/debutuuru/compare/v0.2.0...v0.3.0) - 2026-11-23
+
+### Added
+
+- Ctrl+click a name in Files to go to its definition
+- folder tab for loose files and file favorites
+- choose how the changes panel lists files: list, path or tree
+
 ## [0.2.0](https://github.com/wilder00/debutuuru/compare/v0.1.2...v0.2.0) - 2026-11-23
 
 ### Added
