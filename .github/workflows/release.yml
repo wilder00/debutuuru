@@ -5,6 +5,10 @@ name: Release
 # The Windows installers also put the `debutuuru` CLI on PATH.
 # Installers are signed for the in-app updater, which reads latest.json
 # from the newest release. Phase 3 still lacks Windows code signing.
+#
+# Releases are immutable once published (repo setting), so the release is
+# created as a draft, every build uploads to it, and it's published last.
+# A failed build leaves the draft unpublished.
 
 on:
   push:
@@ -14,7 +18,23 @@ permissions:
   contents: write
 
 jobs:
+  draft:
+    runs-on: ubuntu-latest
+    outputs:
+      id: ${{ steps.create.outputs.id }}
+    steps:
+      - id: create
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          id=$(gh api -X POST "repos/$GITHUB_REPOSITORY/releases" \
+            -f tag_name="$TAG" -f name="Debutuuru $TAG" \
+            -F draft=true -F generate_release_notes=true --jq .id)
+          echo "id=$id" >> "$GITHUB_OUTPUT"
+
   desktop:
+    needs: draft
     strategy:
       fail-fast: false
       matrix:
@@ -69,18 +89,45 @@ jobs:
           # Generic `windows-x86_64` entry: the per-user setup.exe (no admin).
           # Installed apps pick their own type (`-nsis` / `-msi`) first.
           updaterJsonPreferNsis: true
+          # The draft above: assets and latest.json go there. The tag keeps
+          # latest.json's download URLs pointing at this version's files.
+          releaseId: ${{ needs.draft.outputs.id }}
           tagName: ${{ github.ref_name }}
-          releaseName: "Debutuuru ${{ github.ref_name }}"
-          releaseDraft: false
+          releaseDraft: true
       # The CLI ships separately too (servers, WSL without the app, scripts).
       - name: Upload CLI
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_ID: ${{ needs.draft.outputs.id }}
         run: |
           if [ "$RUNNER_OS" = "Windows" ]; then
             f="debutuuru-${{ github.ref_name }}-x86_64-windows.exe"; cp target/release/debutuuru.exe "$f"
           else
             f="debutuuru-${{ github.ref_name }}-x86_64-linux"; cp target/release/debutuuru "$f"
           fi
-          gh release upload "${{ github.ref_name }}" "$f" --clobber
+          # By release id: a draft can't be found by its tag. A re-run replaces
+          # the file uploaded before.
+          old=$(gh api "repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID/assets" --jq ".[] | select(.name == \"$f\") | .id")
+          if [ -n "$old" ]; then gh api -X DELETE "repos/$GITHUB_REPOSITORY/releases/assets/$old"; fi
+          curl -sSf -X POST -H "Authorization: Bearer $GH_TOKEN" -H "Content-Type: application/octet-stream" \
+            --data-binary "@$f" "https://uploads.github.com/repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID/assets?name=$f" > /dev/null
+          echo "Uploaded $f"
+
+  # Everything uploaded: publish (from here on the release can't change) and
+  # mark it latest, which is where installed apps look for updates.
+  publish:
+    needs: [draft, desktop]
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_ID: ${{ needs.draft.outputs.id }}
+        run: |
+          # Each build merges its platforms into latest.json; two finishing at
+          # once could lose one's. Once published it can't be fixed, so check.
+          asset=$(gh api "repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID/assets" --jq '.[] | select(.name == "latest.json") | .id')
+          gh api "repos/$GITHUB_REPOSITORY/releases/assets/$asset" -H "Accept: application/octet-stream" > latest.json
+          jq -e '.platforms | has("windows-x86_64") and has("linux-x86_64")' latest.json > /dev/null \
+            || { echo "latest.json misses a platform: $(jq -c '.platforms | keys' latest.json). Re-run the failed build, then this job."; exit 1; }
+          gh api -X PATCH "repos/$GITHUB_REPOSITORY/releases/$RELEASE_ID" -F draft=false -f make_latest=true --jq .html_url
