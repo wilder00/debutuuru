@@ -306,6 +306,17 @@ means adding a module, not a new transport.
   the search, so WSL folders are searched inside WSL. Names shown for tabs,
   recents, the palette and worktrees add parent folders only when two would
   look the same (`lib/names.ts`).
+- Folder tab (`fs` module v1): a group's own folder is also a tab (the first
+  of the group; a tab key that is a group's `folder` is a folder, not a
+  repo), for the files next to the repositories, such as agents' notes. The
+  agent's `fs.*` methods browse it read-only with the same `TreeEntry`/
+  `FileContent` types as Files (`debutuuru_core::files::Folder`, which the
+  working tree reuses), paths never leave the folder, and repositories inside
+  come as `submodule`. `fs.watch` watches the folder itself plus every
+  subfolder that isn't a repository or `node_modules`-like (inotify needs a
+  watch per folder), picking up new subfolders after each change; the repos
+  have their own watchers. Favorites (`Session.bookmarks`, per tab path) work
+  the same in Files and in the Folder tab (`FileTree.tsx`).
 - Tags (git module v9): `Snapshot.tags` lists them with one `for-each-ref`
   (kind, peeled commit, tagger, date, message without the signature, whether
   it's signed; signatures aren't verified). `git.create_tag` and

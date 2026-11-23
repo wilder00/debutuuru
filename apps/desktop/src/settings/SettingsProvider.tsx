@@ -60,7 +60,7 @@ export const DEFAULT_SETTINGS: Settings = {
     rgb_animation: true,
     file_icons: "color",
   },
-  session: { open_repos: [], active: null, recent_repos: [], groups: [], recent_groups: [] },
+  session: { open_repos: [], active: null, recent_repos: [], groups: [], recent_groups: [], bookmarks: {} },
   git: { windows_ssh: "system", wsl_distro: null },
   updates: { check_on_start: true },
   language: null,

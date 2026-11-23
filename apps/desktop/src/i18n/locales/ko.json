@@ -31,7 +31,9 @@
     "close": "탭 닫기 (가운데 클릭)",
     "collapseGroup": "클릭하여 그룹 접기",
     "expandGroup": "클릭하여 그룹의 탭 표시",
-    "closeGroup": "그룹의 탭 닫기"
+    "closeGroup": "그룹의 탭 닫기",
+    "folder": "폴더",
+    "folderHint": "폴더 자체의 파일: 메모, 계획, 저장소에 속하지 않은 모든 것"
   },
   "activity": {
     "label": "모듈",
@@ -600,5 +602,20 @@
     "showAll": "모든 번역 보기",
     "practiceHint": "번역을 떠올린 다음 클릭해서 확인하세요.",
     "none": "일치하는 항목이 없습니다."
+  },
+  "folder": {
+    "label": "폴더 파일",
+    "empty": "이 폴더에는 자체 파일이 없습니다",
+    "repo": "저장소",
+    "isRepo": "<code>{{name}}</code>은(는) 저장소입니다",
+    "openRepo": "별도 탭에서 열기",
+    "select": "읽을 파일을 선택하세요"
+  },
+  "files": {
+    "bookmarks": {
+      "title": "즐겨찾기",
+      "add": "즐겨찾기에 추가",
+      "remove": "즐겨찾기에서 제거"
+    }
   }
 }

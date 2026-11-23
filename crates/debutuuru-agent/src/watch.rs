@@ -6,8 +6,9 @@
 use debutuuru_core::repo::RepoInfo;
 use notify::event::{AccessKind, AccessMode};
 use notify::{EventKind, RecursiveMode, Watcher};
+use std::collections::HashSet;
 use std::path::{Path, PathBuf};
-use std::sync::mpsc;
+use std::sync::{mpsc, Arc, Mutex};
 use std::time::{Duration, Instant};
 
 /// Quiet period before reporting, and the longest a burst can delay a report.
@@ -73,6 +74,90 @@ pub fn watch(info: &RepoInfo, on_change: impl Fn() + Send + 'static) -> notify::
     });
 
     Ok(RepoWatch { _watcher: watcher })
+}
+
+/// Watching stops when this is dropped.
+pub struct FolderWatch {
+    _watcher: Arc<Mutex<notify::RecommendedWatcher>>,
+}
+
+/// Watches a plain folder (a ticket folder): its own entries, and every
+/// folder inside that isn't a repository, recursively. Repositories are left
+/// out (their tabs watch them) and so are `node_modules`-like folders, so
+/// inotify (Linux, WSL) doesn't need a watch per folder of every project.
+/// Folders created later are picked up after the next change.
+pub fn watch_folder(
+    root: &Path,
+    on_change: impl Fn() + Send + 'static,
+) -> notify::Result<FolderWatch> {
+    let (tx, rx) = mpsc::channel::<()>();
+    let watcher = notify::recommended_watcher(move |res: notify::Result<notify::Event>| {
+        if let Ok(ev) = res {
+            // A repository's own folder changes whenever git writes in it.
+            if is_change(&ev.kind) && ev.paths.iter().any(|p| !p.join(".git").exists()) {
+                let _ = tx.send(());
+            }
+        }
+    })?;
+    let watcher = Arc::new(Mutex::new(watcher));
+    let root = root.to_path_buf();
+    watcher
+        .lock()
+        .unwrap_or_else(|e| e.into_inner())
+        .watch(&root, RecursiveMode::NonRecursive)?;
+    let mut inside = HashSet::new();
+    sync_subfolders(&watcher, &root, &mut inside);
+
+    let weak = Arc::downgrade(&watcher);
+    std::thread::spawn(move || {
+        while rx.recv().is_ok() {
+            let start = Instant::now();
+            loop {
+                match rx.recv_timeout(QUIET) {
+                    Ok(()) if start.elapsed() < MAX_DELAY => continue,
+                    Ok(()) | Err(mpsc::RecvTimeoutError::Timeout) => break,
+                    Err(mpsc::RecvTimeoutError::Disconnected) => return,
+                }
+            }
+            let Some(w) = weak.upgrade() else { return };
+            sync_subfolders(&w, &root, &mut inside);
+            drop(w);
+            on_change();
+        }
+    });
+    Ok(FolderWatch { _watcher: watcher })
+}
+
+/// Watches the root's subfolders that should be (recursively), and stops
+/// watching the ones that are gone or became repositories.
+fn sync_subfolders(
+    watcher: &Mutex<notify::RecommendedWatcher>,
+    root: &Path,
+    watched: &mut HashSet<PathBuf>,
+) {
+    let wanted: HashSet<PathBuf> = std::fs::read_dir(root)
+        .into_iter()
+        .flatten()
+        .flatten()
+        .filter(|e| e.file_type().is_ok_and(|t| t.is_dir()))
+        .map(|e| e.path())
+        .filter(|p| {
+            let name = p.file_name().and_then(|n| n.to_str()).unwrap_or("");
+            name != ".git"
+                && !debutuuru_core::discover::SKIP.contains(&name)
+                && !p.join(".git").exists()
+        })
+        .collect();
+    let mut w = watcher.lock().unwrap_or_else(|e| e.into_inner());
+    for gone in watched.difference(&wanted).cloned().collect::<Vec<_>>() {
+        let _ = w.unwatch(&gone);
+        watched.remove(&gone);
+    }
+    for new in wanted {
+        if !watched.contains(&new) && w.watch(&new, RecursiveMode::Recursive).is_ok() {
+            watched.insert(new);
+        }
+    }
 }
 
 /// Object-database writes and lock files are noise: the ref/index update

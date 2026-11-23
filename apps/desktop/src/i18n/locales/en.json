@@ -31,7 +31,9 @@
     "close": "Close tab (middle-click)",
     "collapseGroup": "Click to collapse the group",
     "expandGroup": "Click to show the group's tabs",
-    "closeGroup": "Close the group's tabs"
+    "closeGroup": "Close the group's tabs",
+    "folder": "Folder",
+    "folderHint": "The folder's own files: notes, plans and anything that isn't in a repository"
   },
   "activity": {
     "label": "Modules",
@@ -616,5 +618,20 @@
     "showAll": "Show all translations",
     "practiceHint": "Guess each translation, then click it to check.",
     "none": "Nothing matches."
+  },
+  "folder": {
+    "label": "Folder files",
+    "empty": "This folder has no files of its own",
+    "repo": "repository",
+    "isRepo": "<code>{{name}}</code> is a repository",
+    "openRepo": "Open in its own tab",
+    "select": "Select a file to read it"
+  },
+  "files": {
+    "bookmarks": {
+      "title": "Favorites",
+      "add": "Mark as favorite",
+      "remove": "Remove from favorites"
+    }
   }
 }

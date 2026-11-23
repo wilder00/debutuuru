@@ -6,6 +6,7 @@ import fuzzysort from "fuzzysort";
 import { ChevronRight, File, Loader2, TerminalSquare } from "lucide-react";
 import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
+import { fs } from "../modules/folder/api";
 import { git } from "../modules/git/api";
 
 export type PaletteItem = {
@@ -25,6 +26,8 @@ type Props = {
   initial: string;
   /** Active repository (files come from it), or null. */
   repo: string | null;
+  /** `repo` is a plain folder (a group's Folder tab), not a repository. */
+  folder?: boolean;
   commands: PaletteItem[];
   onOpenFile: (path: string) => void;
   onClose: () => void;
@@ -44,7 +47,7 @@ const fileEntry = (path: string): FileEntry => {
   return { path, name: path.slice(i + 1), dir: i < 0 ? "" : path.slice(0, i) };
 };
 
-export function Palette({ initial, repo, commands, onOpenFile, onClose }: Props) {
+export function Palette({ initial, repo, folder = false, commands, onOpenFile, onClose }: Props) {
   const { t } = useTranslation();
   const [query, setQuery] = useState(initial);
   const [files, setFiles] = useState<FileEntry[] | { error: string } | null>(null);
@@ -63,14 +66,13 @@ export function Palette({ initial, repo, commands, onOpenFile, onClose }: Props)
   useEffect(() => {
     if (!repo) return;
     let stale = false;
-    git
-      .listFiles(repo, {})
+    (folder ? fs.listFiles(repo) : git.listFiles(repo, {}))
       .then((paths) => !stale && setFiles(paths.map(fileEntry)))
       .catch((e) => !stale && setFiles({ error: e instanceof Error ? e.message : String(e) }));
     return () => {
       stale = true;
     };
-  }, [repo]);
+  }, [repo, folder]);
 
   type Row = { key: string; icon: ReactNode; label: ReactNode; detail?: ReactNode; keys?: string; more?: boolean; run: () => void };
 

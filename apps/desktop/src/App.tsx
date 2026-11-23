@@ -24,6 +24,7 @@ import { Palette } from "./shell/Palette";
 
 // xterm.js loads the first time the terminal opens.
 const TerminalPanel = lazy(() => import("./modules/term/TerminalPanel").then((m) => ({ default: m.TerminalPanel })));
+const FolderView = lazy(() => import("./modules/folder/FolderView").then((m) => ({ default: m.FolderView })));
 import { StatusBar } from "./shell/StatusBar";
 import { TabBar } from "./shell/TabBar";
 import { TitleBar } from "./shell/TitleBar";
@@ -56,6 +57,9 @@ export function App() {
   }, []);
   const repos = session.open_repos;
   const active = session.active;
+  /** Tabs that are a group's own folder, not a repository. */
+  const folderTabs = useMemo(() => new Set(session.groups.map((g) => g.folder)), [session.groups]);
+  const activeIsFolder = active !== null && folderTabs.has(active);
 
   // Look for a new version once, shortly after start (release builds only;
   // a dev build would always look outdated). Never installs by itself.
@@ -70,12 +74,13 @@ export function App() {
   sessionRef.current = session;
 
   /** Opens the repositories found in `folder` as one group of tabs, kept
-   *  together; a repo belongs to one group at most. */
+   *  together; a repo belongs to one group at most. The group's first tab is
+   *  the folder itself (its notes and other loose files). */
   const openGroup = useCallback(
     (folder: string, members: string[]) => {
       const s = sessionRef.current;
       const existing = s.groups.find((g) => g.folder === folder);
-      const repos = [...new Set([...(existing?.repos ?? []), ...members])];
+      const repos = [...new Set([folder, ...(existing?.repos ?? []), ...members])];
       const inGroup = (r: string) => repos.includes(r);
       // Where the group goes: where its first open tab is, else at the end.
       const first = s.open_repos.findIndex(inGroup);
@@ -329,7 +334,7 @@ export function App() {
     <>
       <BackgroundLayer />
       <div className="app">
-        <TitleBar repo={active} info={snapshot?.info ?? null} onOpen={open} onRefresh={() => setRefreshKey((k) => k + 1)} openMenu={<OpenMenuButton actions={openActions} />} />
+        <TitleBar repo={active} info={snapshot?.info ?? null} onOpen={open} onRefresh={() => setRefreshKey((k) => k + 1)} openMenu={<OpenMenuButton actions={openActions} />} panels={!activeIsFolder} />
         <div className="body">
           <ActivityBar onAppearance={() => setAppearanceOpen(true)} onTerminal={toggleTerminal} terminalOpen={termOpen} />
           <div className={"workspace" + (termOpen && termMax ? " terminal-only" : "")}>
@@ -351,9 +356,15 @@ export function App() {
                 </button>
               </div>
             )}
-            {repos.map((r) => (
-              <GitView key={r} repo={r} active={r === active} refreshKey={refreshKey} onError={onError} onOpen={open} onLoaded={onLoaded} />
-            ))}
+            {repos.map((r) =>
+              folderTabs.has(r) ? (
+                <Suspense key={r} fallback={null}>
+                  <FolderView folder={r} active={r === active} refreshKey={refreshKey} onOpen={(p) => void open(p).catch(onError)} />
+                </Suspense>
+              ) : (
+                <GitView key={r} repo={r} active={r === active} refreshKey={refreshKey} onError={onError} onOpen={open} onLoaded={onLoaded} />
+              ),
+            )}
             {repos.length === 0 && <Welcome actions={openActions} />}
             {termMounted && (
               <Suspense fallback={null}>
@@ -396,7 +407,7 @@ export function App() {
         </div>
       )}
       {palette !== null && (
-        <Palette key={palette} initial={palette} repo={active} commands={commands} onOpenFile={openFile} onClose={closePalette} />
+        <Palette key={palette} initial={palette} repo={active} folder={activeIsFolder} commands={commands} onOpenFile={openFile} onClose={closePalette} />
       )}
     </>
   );

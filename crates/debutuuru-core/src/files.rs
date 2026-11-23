@@ -182,15 +182,7 @@ impl Repo {
                 }
                 out.stdout
             }
-            None => {
-                let full = self.inside_root(&path)?;
-                let meta = std::fs::metadata(&full).map_err(io_err)?;
-                if !meta.is_file() {
-                    return Err(Error::InvalidPath(format!("{path} is not a file")));
-                }
-                too_big(meta.len())?;
-                std::fs::read(&full).map_err(io_err)?
-            }
+            None => return self.disk().read_bytes(&path),
         };
         Ok(FileBytes {
             path,
@@ -199,20 +191,13 @@ impl Repo {
         })
     }
 
+    /// The working tree as a plain folder.
+    fn disk(&self) -> Folder {
+        Folder::new(&self.info.root)
+    }
+
     fn kind_on_disk(&self, rel: &str) -> Option<EntryKind> {
-        let full = self.inside_root(rel).ok()?;
-        let meta = std::fs::symlink_metadata(&full).ok()?;
-        Some(if meta.file_type().is_symlink() {
-            EntryKind::Symlink
-        } else if meta.is_dir() {
-            if full.join(".git").exists() {
-                EntryKind::Submodule
-            } else {
-                EntryKind::Dir
-            }
-        } else {
-            EntryKind::File
-        })
+        self.disk().kind_of(rel)
     }
 
     /// Children of `dir` (`""` = root) at `rev`, or in the working tree when
@@ -223,14 +208,7 @@ impl Repo {
             Some(rev) => self.tree_at(check_rev(rev)?, &dir)?,
             None => self.tree_on_disk(&dir, show_ignored)?,
         };
-        entries.sort_by(|a, b| {
-            let dir_first =
-                |e: &TreeEntry| !matches!(e.kind, EntryKind::Dir | EntryKind::Submodule);
-            dir_first(a)
-                .cmp(&dir_first(b))
-                .then_with(|| a.name.to_lowercase().cmp(&b.name.to_lowercase()))
-                .then_with(|| a.name.cmp(&b.name))
-        });
+        sort_entries(&mut entries);
         Ok(entries)
     }
 
@@ -272,38 +250,7 @@ impl Repo {
     }
 
     fn tree_on_disk(&self, dir: &str, show_ignored: bool) -> Result<Vec<TreeEntry>> {
-        let base = self.inside_root(dir)?;
-        let mut entries = Vec::new();
-        for item in std::fs::read_dir(&base).map_err(io_err)? {
-            let item = item.map_err(io_err)?;
-            let name = item.file_name().to_string_lossy().into_owned();
-            if name == ".git" {
-                continue;
-            }
-            let ft = item.file_type().map_err(io_err)?;
-            let kind = if ft.is_symlink() {
-                EntryKind::Symlink
-            } else if ft.is_dir() {
-                if item.path().join(".git").exists() {
-                    EntryKind::Submodule
-                } else {
-                    EntryKind::Dir
-                }
-            } else {
-                EntryKind::File
-            };
-            let path = if dir.is_empty() {
-                name.clone()
-            } else {
-                format!("{dir}/{name}")
-            };
-            entries.push(TreeEntry {
-                name,
-                path,
-                kind,
-                ignored: false,
-            });
-        }
+        let mut entries = self.disk().list(dir)?;
         let ignored = self.ignored(entries.iter().map(|e| e.path.as_str()))?;
         entries.retain_mut(|e| {
             e.ignored = ignored.iter().any(|p| p == &e.path);
@@ -357,6 +304,158 @@ impl Repo {
     }
 
     pub(crate) fn read_on_disk(&self, path: &str) -> Result<FileContent> {
+        self.disk().read(path)
+    }
+}
+
+/// A plain folder, browsed like a working tree: the loose files of a folder
+/// of repositories (notes and plans next to a ticket's worktrees). Nothing
+/// is ignored, and no path may leave `root`.
+pub struct Folder {
+    root: PathBuf,
+}
+
+impl Folder {
+    pub fn new(root: impl Into<PathBuf>) -> Self {
+        Self { root: root.into() }
+    }
+
+    /// Children of `dir` (`""` = root): folders first, then files, by name.
+    /// Folders that are repositories come as [`EntryKind::Submodule`].
+    pub fn tree(&self, dir: &str) -> Result<Vec<TreeEntry>> {
+        let mut entries = self.list(&clean_rel(dir)?)?;
+        sort_entries(&mut entries);
+        Ok(entries)
+    }
+
+    /// Content of `path` (text, truncated past [`MAX_FILE_BYTES`]).
+    pub fn read_file(&self, path: &str) -> Result<FileContent> {
+        let path = clean_rel(path)?;
+        if path.is_empty() {
+            return Err(Error::InvalidPath("a file path is required".into()));
+        }
+        self.read(&path)
+    }
+
+    /// The bytes of `path` (base64), up to [`MAX_BYTES`].
+    pub fn read_bytes(&self, path: &str) -> Result<FileBytes> {
+        use base64::Engine;
+        let path = clean_rel(path)?;
+        let full = self.inside_root(&path)?;
+        let meta = std::fs::metadata(&full).map_err(io_err)?;
+        if !meta.is_file() {
+            return Err(Error::InvalidPath(format!("{path} is not a file")));
+        }
+        too_big(meta.len())?;
+        let bytes = std::fs::read(&full).map_err(io_err)?;
+        Ok(FileBytes {
+            path,
+            size: bytes.len() as u64,
+            base64: base64::engine::general_purpose::STANDARD.encode(&bytes),
+        })
+    }
+
+    /// Every file, for quick open: sorted, at most [`MAX_LIST_FILES`],
+    /// without what's inside repositories (they have their own tabs) or
+    /// `node_modules`-like folders. Symlinked folders aren't followed.
+    pub fn list_files(&self) -> Result<Vec<String>> {
+        let mut out = Vec::new();
+        let mut stack = vec![String::new()];
+        while let Some(dir) = stack.pop() {
+            // A folder that can't be read is skipped, not fatal.
+            let Ok(entries) = self.list(&dir) else {
+                continue;
+            };
+            for e in entries {
+                match e.kind {
+                    EntryKind::Dir if !crate::discover::SKIP.contains(&e.name.as_str()) => {
+                        stack.push(e.path)
+                    }
+                    EntryKind::File | EntryKind::Symlink => out.push(e.path),
+                    _ => {}
+                }
+            }
+            if out.len() >= MAX_LIST_FILES {
+                break;
+            }
+        }
+        out.sort();
+        out.truncate(MAX_LIST_FILES);
+        Ok(out)
+    }
+
+    /// What each of `paths` is, or `None` if it doesn't exist or isn't a
+    /// valid path inside the folder.
+    pub fn stat_paths(&self, paths: &[String]) -> Result<Vec<Option<EntryKind>>> {
+        if paths.len() > MAX_STAT_PATHS {
+            return Err(Error::InvalidPath(format!(
+                "at most {MAX_STAT_PATHS} paths per call"
+            )));
+        }
+        Ok(paths
+            .iter()
+            .map(|p| {
+                let p = clean_rel(p).ok().filter(|p| !p.is_empty())?;
+                self.kind_of(&p)
+            })
+            .collect())
+    }
+
+    fn kind_of(&self, rel: &str) -> Option<EntryKind> {
+        let full = self.inside_root(rel).ok()?;
+        let meta = std::fs::symlink_metadata(&full).ok()?;
+        Some(if meta.file_type().is_symlink() {
+            EntryKind::Symlink
+        } else if meta.is_dir() {
+            if full.join(".git").exists() {
+                EntryKind::Submodule
+            } else {
+                EntryKind::Dir
+            }
+        } else {
+            EntryKind::File
+        })
+    }
+
+    /// Children of `dir` (already clean), unsorted, without `.git`.
+    fn list(&self, dir: &str) -> Result<Vec<TreeEntry>> {
+        let base = self.inside_root(dir)?;
+        let mut entries = Vec::new();
+        for item in std::fs::read_dir(&base).map_err(io_err)? {
+            let item = item.map_err(io_err)?;
+            let name = item.file_name().to_string_lossy().into_owned();
+            if name == ".git" {
+                continue;
+            }
+            let ft = item.file_type().map_err(io_err)?;
+            let kind = if ft.is_symlink() {
+                EntryKind::Symlink
+            } else if ft.is_dir() {
+                if item.path().join(".git").exists() {
+                    EntryKind::Submodule
+                } else {
+                    EntryKind::Dir
+                }
+            } else {
+                EntryKind::File
+            };
+            let path = if dir.is_empty() {
+                name.clone()
+            } else {
+                format!("{dir}/{name}")
+            };
+            entries.push(TreeEntry {
+                name,
+                path,
+                kind,
+                ignored: false,
+            });
+        }
+        Ok(entries)
+    }
+
+    /// Reads `path` (already clean); symlinks are reported, never followed.
+    fn read(&self, path: &str) -> Result<FileContent> {
         let full = self.inside_root(path)?;
         let meta = std::fs::symlink_metadata(&full).map_err(io_err)?;
         if meta.file_type().is_symlink() {
@@ -381,10 +480,10 @@ impl Repo {
         Ok(content(path, meta.len(), bytes, None))
     }
 
-    /// `rel` under the working tree root, refusing anything that resolves
-    /// outside it (e.g. through a symlinked folder).
+    /// `rel` under the root, refusing anything that resolves outside it
+    /// (e.g. through a symlinked folder).
     fn inside_root(&self, rel: &str) -> Result<PathBuf> {
-        let root = Path::new(&self.info.root);
+        let root = self.root.as_path();
         if rel.is_empty() {
             return Ok(root.to_path_buf());
         }
@@ -394,12 +493,20 @@ impl Repo {
         let parent = full.parent().unwrap_or(root);
         let real_parent = parent.canonicalize().map_err(io_err)?;
         if !real_parent.starts_with(&real_root) {
-            return Err(Error::InvalidPath(format!(
-                "{rel} is outside the repository"
-            )));
+            return Err(Error::InvalidPath(format!("{rel} is outside the folder")));
         }
         Ok(full)
     }
+}
+
+fn sort_entries(entries: &mut [TreeEntry]) {
+    entries.sort_by(|a, b| {
+        let dir_first = |e: &TreeEntry| !matches!(e.kind, EntryKind::Dir | EntryKind::Submodule);
+        dir_first(a)
+            .cmp(&dir_first(b))
+            .then_with(|| a.name.to_lowercase().cmp(&b.name.to_lowercase()))
+            .then_with(|| a.name.cmp(&b.name))
+    });
 }
 
 fn kind_of_mode(mode: &str) -> EntryKind {

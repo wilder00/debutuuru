@@ -14,8 +14,8 @@ pub const MAX_DEPTH: usize = 2;
 /// Stop after this many repositories.
 pub const MAX_REPOS: usize = 64;
 
-/// Folders never worth looking into.
-const SKIP: &[&str] = &["node_modules", "target", "vendor", "dist", "build"];
+/// Folders never worth looking into (or watching).
+pub const SKIP: &[&str] = &["node_modules", "target", "vendor", "dist", "build"];
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]
 #[ts(export)]

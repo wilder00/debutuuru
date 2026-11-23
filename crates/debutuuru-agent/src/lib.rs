@@ -12,6 +12,7 @@
 pub mod askpass;
 pub mod client;
 pub mod events;
+pub mod fs;
 pub mod git;
 pub mod remote;
 #[cfg(unix)]
@@ -57,6 +58,7 @@ impl Agent {
         Self::new(
             vec![
                 Box::new(git::GitModule::new(events.clone())),
+                Box::new(fs::FsModule::new(events.clone())),
                 Box::new(term::TermModule::new(events.clone())),
             ],
             events,
