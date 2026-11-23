@@ -11,7 +11,7 @@ members = [
 
 [workspace.package]
 # Single version for the whole product. Bumped by release-plz (see release-plz.toml).
-version = "0.1.2"
+version = "0.2.0"
 edition = "2021"
 rust-version = "1.90"
 license = "MIT"
