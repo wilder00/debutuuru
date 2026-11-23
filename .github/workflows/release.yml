@@ -13,9 +13,20 @@ name: Release
 on:
   push:
     tags: ["v*"]
+  # By hand (Actions › Release › Run workflow) for an existing tag whose
+  # release failed: builds that tag's code with this workflow from main
+  # (a re-run of the tag's own run would use the workflow as it was then).
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to release, e.g. v0.3.0"
+        required: true
 
 permissions:
   contents: write
+
+env:
+  TAG: ${{ inputs.tag || github.ref_name }}
 
 jobs:
   draft:
@@ -26,7 +37,6 @@ jobs:
       - id: create
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ github.ref_name }}
         run: |
           id=$(gh api -X POST "repos/$GITHUB_REPOSITORY/releases" \
             -f tag_name="$TAG" -f name="Debutuuru $TAG" \
@@ -42,6 +52,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.TAG }}
       - name: Linux deps for Tauri
         if: runner.os == 'Linux'
         run: |
@@ -92,7 +104,7 @@ jobs:
           # The draft above: assets and latest.json go there. The tag keeps
           # latest.json's download URLs pointing at this version's files.
           releaseId: ${{ needs.draft.outputs.id }}
-          tagName: ${{ github.ref_name }}
+          tagName: ${{ env.TAG }}
           releaseDraft: true
       # The CLI ships separately too (servers, WSL without the app, scripts).
       - name: Upload CLI
@@ -102,9 +114,9 @@ jobs:
           RELEASE_ID: ${{ needs.draft.outputs.id }}
         run: |
           if [ "$RUNNER_OS" = "Windows" ]; then
-            f="debutuuru-${{ github.ref_name }}-x86_64-windows.exe"; cp target/release/debutuuru.exe "$f"
+            f="debutuuru-${{ env.TAG }}-x86_64-windows.exe"; cp target/release/debutuuru.exe "$f"
           else
-            f="debutuuru-${{ github.ref_name }}-x86_64-linux"; cp target/release/debutuuru "$f"
+            f="debutuuru-${{ env.TAG }}-x86_64-linux"; cp target/release/debutuuru "$f"
           fi
           # By release id: a draft can't be found by its tag. A re-run replaces
           # the file uploaded before.

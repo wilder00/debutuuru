@@ -54,7 +54,9 @@ sees each Conventional Commit for the changelog.
    (repo setting "Enable release immutability"), so it creates the release as
    a draft, every build uploads to it, and a last job checks that
    `latest.json` lists both platforms and publishes it. A failed build leaves
-   the draft unpublished: re-run the failed jobs. It builds Windows (MSI/NSIS) and Linux
+   the draft unpublished: re-run the failed jobs. If a tag's release failed
+   with an older `release.yml`, run **Actions › Release › Run workflow** with
+   that tag: it builds the tag's code with the current workflow. It builds Windows (MSI/NSIS) and Linux
    (deb/AppImage/rpm) installers plus standalone `debutuuru` CLI binaries and
    attaches them to the GitHub Release, together with a `.sig` per installer
    and `latest.json` for the in-app updater.
