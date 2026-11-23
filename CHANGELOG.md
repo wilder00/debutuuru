@@ -4,6 +4,34 @@ All notable changes are recorded here by release-plz from Conventional Commits.
 
 ## [Unreleased]
 
+## [0.3.0](https://github.com/wilder00/debutuuru/compare/v0.2.0...v0.3.0) - 2026-11-23
+
+### Added
+
+- Ctrl+click a name in Files to go to its definition
+- folder tab for loose files and file favorites
+- choose how the changes panel lists files: list, path or tree
+
+## [0.2.0](https://github.com/wilder00/debutuuru/compare/v0.1.2...v0.2.0) - 2026-11-23
+
+### Added
+
+- update a branch without switching to it, a log window and a UI dictionary
+- select branches and delete them, knowing what it means first
+- hide the side panels, and see a file's changes in Files
+- open a folder of repositories as a group of tabs
+- files and folders in Files show their own icons
+
+### Fixed
+
+- the app stops refreshing itself in a loop, and Markdown code blocks stop flickering
+- terminals start in the open repository's folder with every profile
+- an expanded staged or unstaged diff keeps the changed files beside it
+
+### Other
+
+- the app stays light while idle and refreshes less
+
 ## [0.1.2](https://github.com/wilder00/debutuuru/compare/v0.1.1...v0.1.2) - 2026-11-22
 
 ### Added
