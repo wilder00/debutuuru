@@ -195,10 +195,12 @@ export function nameAt(rules: Rules, line: string, lineFrom: number, lineNo: num
   while (a > 0 && rules.word.test(line[a - 1])) a--;
   while (b < line.length && rules.word.test(line[b])) b++;
   const name = line.slice(a, b);
-  if (!name || /^[0-9]/.test(name) || /^-?[0-9.]+[a-z%]*$/i.test(name) || rules.keywords.has(name)) return null;
+  if (!name || /^[0-9]/.test(name) || /^-?[0-9.]+[a-z%]*$/i.test(name)) return null;
   const before = line.slice(0, a).trimEnd();
-  if (rules.accept && !rules.accept(name, before)) return null;
   const member = /(\.|::|->)$/.test(before) && !/\.\.$/.test(before);
+  // After a dot a keyword is just a name: `event.type`, `options.default`.
+  if (!member && rules.keywords.has(name)) return null;
+  if (rules.accept && !rules.accept(name, before)) return null;
   const receiver = member ? before.replace(/(\.|::|->)$/, "").match(/[\w$]+$/)?.[0] : undefined;
   return { name, from: lineFrom + a, to: lineFrom + b, line: lineNo, member, receiver };
 }
