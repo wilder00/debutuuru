@@ -31,17 +31,23 @@ new features.
 | tag `vX.Y.Z` | Release (installers) | Created by merging the release PR. |
 
 The workflow triggers enforce this (`ci.yml`: push to `main` + pull requests;
-`release-plz.yml`: push to `main`; `release.yml`: `v*` tags). Merge
+`release-plz.yml`: push to `main`; `release.yml`: `v*` tags; `ship.yml`:
+only run by hand). Merge
 `develop` → `main` with a **merge commit** (not squash), so release-plz still
 sees each Conventional Commit for the changelog.
 
 ## Flow
 
-1. Commit on `develop`; when ready, open a PR `develop` → `main` and merge it.
+1. Commit on `develop`; when ready, run **Actions › Ship › Run workflow**
+   (`ship.yml`). It opens the PR `develop` → `main` (or reuses the open one)
+   with auto-merge on, so it merges with a merge commit once CI passes.
+   Opening the PR by hand and pressing "Enable auto-merge" does the same.
 2. `release-plz` opens/updates a **Release PR** that bumps the version and
-   writes `CHANGELOG.md`. Nothing is published to crates.io (`git_only`): the
-   previous version comes from the `vX.Y.Z` git tags, and with no tag yet the
-   current version is the initial release.
+   writes `CHANGELOG.md`, and turns on its auto-merge. Nothing is published
+   to crates.io (`git_only`): the previous version comes from the `vX.Y.Z` git
+   tags, and with no tag yet the current version is the initial release.
+   Every merge of `develop` therefore becomes a release; to group several,
+   turn off auto-merge on the Release PR and merge it later by hand.
 3. Merging that PR creates the tag `vX.Y.Z` (`release_always = false`: pushes
    to `main` alone never tag).
 4. The tag triggers `release.yml`, which builds Windows (MSI/NSIS) and Linux
@@ -52,9 +58,11 @@ sees each Conventional Commit for the changelog.
    `releases/latest/download/latest.json` (on start, or Settings › Updates),
    verify the signature with the public key built into them, and install the
    same bundle type they were installed with.
-6. Bring the release back into `develop`, so the next `develop` → `main` PR
-   starts from the bumped version and `CHANGELOG.md` instead of conflicting
-   with them:
+6. The release is merged back into `develop` (`release-plz.yml`, after
+   tagging), so the next `develop` → `main` PR starts from the bumped version
+   and `CHANGELOG.md` instead of conflicting with them. Pull it before
+   committing again (`git pull` on `develop`). If that merge conflicts, the
+   step fails; do it by hand:
 
    ```bash
    git switch develop && git pull
@@ -66,7 +74,13 @@ sees each Conventional Commit for the changelog.
 
 - Create a fine-grained token (contents + pull requests: write) and store it as
   the repository secret `RELEASE_PLZ_TOKEN`. A token is needed because tags
-  pushed with the default `GITHUB_TOKEN` don't trigger other workflows.
+  pushed and PRs opened with the default `GITHUB_TOKEN` don't trigger other
+  workflows (the PR's CI would never run).
+- Auto-merge: Settings › General › "Allow auto-merge" (and merge commits).
+  A ruleset on `main`: require a pull request (0 approvals, merge method
+  Merge only) and the status checks `test (ubuntu-latest)` and
+  `test (windows-latest)`, without "require branches to be up to date".
+  Without required checks auto-merge would not wait for CI.
 - Updater signing key: `pnpm --dir apps/desktop exec tauri signer generate -w ~/.tauri/debutuuru.key`
   (run by the maintainer, never by CI). Store the private key's content as
   `TAURI_SIGNING_PRIVATE_KEY` and its password as
