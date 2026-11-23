@@ -235,7 +235,15 @@
       "commit": "Commit",
       "commitFiles_one": "Commit de {{count}} archivo",
       "commitFiles_many": "Commit de {{count}} archivos",
-      "commitFiles_other": "Commit de {{count}} archivos"
+      "commitFiles_other": "Commit de {{count}} archivos",
+      "stageFolder": "Preparar carpeta",
+      "unstageFolder": "Quitar carpeta de preparados",
+      "view": {
+        "label": "Vista de archivos",
+        "list": "Lista: nombre primero, carpeta después",
+        "path": "Ruta: ruta completa de cada archivo",
+        "tree": "Árbol: agrupados por carpeta"
+      }
     },
     "graph": {
       "label": "Historial de commits",

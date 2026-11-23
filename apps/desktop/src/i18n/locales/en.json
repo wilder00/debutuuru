@@ -232,7 +232,15 @@
       "messagePlaceholder": "Commit message",
       "commit": "Commit",
       "commitFiles_one": "Commit {{count}} file",
-      "commitFiles_other": "Commit {{count}} files"
+      "commitFiles_other": "Commit {{count}} files",
+      "stageFolder": "Stage folder",
+      "unstageFolder": "Unstage folder",
+      "view": {
+        "label": "File view",
+        "list": "List: name first, folder after it",
+        "path": "Path: full path of each file",
+        "tree": "Tree: grouped by folder"
+      }
     },
     "graph": {
       "label": "Commit history",

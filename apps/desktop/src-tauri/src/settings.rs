@@ -95,6 +95,22 @@ pub struct LayoutSettings {
     pub sidebar: bool,
     /// Staged and unstaged changes with the commit box, on the right.
     pub changes: bool,
+    /// How that panel lists the changed files (added without a schema bump).
+    pub changes_view: ChangesView,
+}
+
+/// How the changes panel lists files.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export)]
+pub enum ChangesView {
+    /// File name first, its folder after it, faint.
+    #[default]
+    List,
+    /// The whole path, sorted by path.
+    Path,
+    /// Folders that open and close, as in a file tree.
+    Tree,
 }
 
 impl Default for LayoutSettings {
@@ -102,6 +118,7 @@ impl Default for LayoutSettings {
         Self {
             sidebar: true,
             changes: true,
+            changes_view: ChangesView::List,
         }
     }
 }

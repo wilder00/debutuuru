@@ -66,7 +66,7 @@ export const DEFAULT_SETTINGS: Settings = {
   language: null,
   diff: { layout: "unified", word_highlight: true, ignore_whitespace: false, context_lines: 3, syntax_highlight: true, wrap_lines: false },
   terminal: { default_profile: null, profiles: [], panel_height: 280 },
-  layout: { sidebar: true, changes: true },
+  layout: { sidebar: true, changes: true, changes_view: "list" },
 };
 
 /** Font names come from the user; keep only characters valid in a family name. */

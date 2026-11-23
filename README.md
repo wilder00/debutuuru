@@ -51,6 +51,8 @@ runner, GitHub/GitLab integration, containers and more.
   same viewer shows staged and unstaged changes. Unified, side by side or the
   whole file, with changed words highlighted, syntax colors, ignore
   whitespace and adjustable context.
+- **Changes panel**: staged and unstaged files as a list, as full paths or as
+  a folder tree, where a whole folder can be staged or unstaged at once.
 - **Branches**: select several (Ctrl+click, Shift+click) and right-click to
   delete them. Before anything happens it tells you, per branch, whether
   work would be lost (commits that exist only there, with the command to
