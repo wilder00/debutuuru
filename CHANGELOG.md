@@ -4,6 +4,12 @@ All notable changes are recorded here by release-plz from Conventional Commits.
 
 ## [Unreleased]
 
+## [0.3.1](https://github.com/wilder00/debutuuru/compare/v0.3.0...v0.3.1) - 2026-11-23
+
+### Fixed
+
+- Ctrl+click works on fields named like keywords, such as event.type
+
 ## [0.3.0](https://github.com/wilder00/debutuuru/compare/v0.2.0...v0.3.0) - 2026-11-23
 
 ### Added
