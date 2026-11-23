@@ -3,4 +3,4 @@
 /**
  * Which two versions of a file to compare.
  */
-export type DiffSource = { "kind": "unstaged" } | { "kind": "staged" } | { "kind": "untracked" } | { "kind": "commit", rev: string, };
+export type DiffSource = { "kind": "unstaged" } | { "kind": "staged" } | { "kind": "untracked" } | { "kind": "commit", rev: string, } | { "kind": "head" };

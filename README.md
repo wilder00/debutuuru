@@ -17,9 +17,20 @@ runner, GitHub/GitLab integration, containers and more.
   Windows installer puts the command on your PATH (open a new terminal after
   installing).
 - **Worktree-aware**: open a main repo or any linked worktree.
-- **Files**: browse the file tree and read any file (syntax highlighting,
+- **Folders of repositories**: open a folder that holds several repos or
+  worktrees (say, one folder per ticket with a worktree of each project) and
+  they open together as a group of tabs with the folder's name; collapse or
+  close the group in one click, and reopen it from Recent. Same-named repos
+  show their parent folder (`ssr-site · NED-2550`).
+- **Files**: browse the file tree, with an icon for each kind of file and
+  folder (Material Icon Theme, in its colors or the theme's), and read any file (syntax highlighting,
   search), as it is now with changes marked, or at any commit (double-click it
-  in History). Ignored files are hidden unless you ask for them.
+  in History). Ignored files are hidden unless you ask for them. **Changes**
+  shows the open file's diff and says what it compares: your uncommitted
+  edits against HEAD, or, when there are none, the last commit that changed
+  the file against the one before.
+- **Focus**: hide the left panel (Ctrl+B), the changes panel (Ctrl+Alt+B) or
+  both, from the title bar or the palette.
 - **Open anything**: Open folder or file (Ctrl+O) with the system dialog,
   Browse in WSL on Windows, drag and drop folders or files onto the window,
   and a list of recent repositories.
@@ -34,6 +45,14 @@ runner, GitHub/GitLab integration, containers and more.
   same viewer shows staged and unstaged changes. Unified, side by side or the
   whole file, with changed words highlighted, syntax colors, ignore
   whitespace and adjustable context.
+- **Branches**: select several (Ctrl+click, Shift+click) and right-click to
+  delete them. Before anything happens it tells you, per branch, whether
+  work would be lost (commits that exist only there, with the command to
+  bring the branch back), what isn't pushed, what can't be deleted (checked
+  out here or in another worktree), and whether the copy on the remote goes
+  too, which affects everyone. Right-click a branch to bring it up to date
+  from its remote without switching to it (it only moves forward), or to
+  fetch just one remote branch.
 - **Tags**: a Tags section lists them newest first; click one to see whether
   it's annotated or lightweight, signed, who tagged it, its message and its
   commit's changes. Create one on any commit (annotated or lightweight, and
@@ -43,10 +62,15 @@ runner, GitHub/GitLab integration, containers and more.
   for just the terminal. Profiles for PowerShell, cmd, Git Bash and every WSL
   distro are found automatically, and you can add your own; tabs show the
   shell's icon and can be renamed (double-click). Colors follow the theme.
+- **Logs**: Ctrl+Shift+U (or "Show logs" in Ctrl+Shift+P) opens a separate
+  window with every git command and app request as it runs, with its output.
+  Nothing is recorded while that window is closed.
 - **Updates**: the app tells you when a new version is out and installs it
   with one click (signed, verified before installing).
 - **Languages**: English, Spanish, Japanese and Korean. It follows your
-  system language, or pick one in Settings.
+  system language, or pick one in Settings. The UI dictionary (Settings ›
+  Language, or the command palette) lists every text of the app beside
+  another language, with a practice mode, to learn words as you work.
 - **Yours**: dark themes generated from base + accent + contrast (WCAG-checked),
   Gamer (neon glow, RGB bars) and Circuit (electric blue-green gradient,
   carbon texture, circuit traces) styles with themes made for them,

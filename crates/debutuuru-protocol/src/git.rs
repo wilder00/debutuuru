@@ -20,7 +20,13 @@ pub const MODULE: &str = "git";
 /// 8: `git.list_files` (quick open).
 /// 9: tags: `tags` in [`Snapshot`], `git.create_tag`, `git.delete_tag`,
 ///    `git.push_tag`, and their [`OutcomeMessage`]s.
-pub const MODULE_VERSION: u32 = 9;
+/// 10: `git.find_repos` (open a folder of repositories).
+/// 11: `DiffSource::Head` and `git.last_change` (a file's changes in Files).
+/// 12: deleting branches: `git.branch_deletion_info`, `git.delete_branches`,
+///     `git.delete_remote_branches`.
+/// 13: `git.update_branch` (bring one branch up to date from its remote
+///     without checking it out).
+pub const MODULE_VERSION: u32 = 13;
 
 /// [`RepoParams`] → [`Snapshot`]
 pub const SNAPSHOT: &str = "git.snapshot";
@@ -46,12 +52,24 @@ pub const COMMIT_DETAILS: &str = "git.commit_details";
 /// [`FileVersionsParams`] → [`debutuuru_core::changes::FileVersions`]: both
 /// sides of a file, so the UI draws any diff view itself.
 pub const FILE_VERSIONS: &str = "git.file_versions";
+/// [`ReadFileParams`] → `Option<`[`debutuuru_core::changes::LastChange`]`>`: the
+/// last commit that changed the file, at `rev` (default HEAD) or before.
+pub const LAST_CHANGE: &str = "git.last_change";
 /// [`StatPathsParams`] → `Vec<Option<EntryKind>>`, one per path: what exists.
 pub const STAT_PATHS: &str = "git.stat_paths";
 /// [`ReadFileParams`] → [`debutuuru_core::files::FileBytes`] (base64, ≤ 10 MiB).
 pub const READ_BYTES: &str = "git.read_bytes";
 /// [`TreeParams`] (only `rev` is used) → `Vec<String>`: every file, for quick open.
 pub const LIST_FILES: &str = "git.list_files";
+/// [`RepoParams`] (`repo` = any folder) → [`debutuuru_core::discover::FoundRepos`]:
+/// whether it is a repository, or which repositories are inside it.
+pub const FIND_REPOS: &str = "git.find_repos";
+/// [`BranchesParams`] → `Vec<`[`debutuuru_core::branches::BranchDeletion`]`>`:
+/// what deleting each branch would mean, before deleting anything.
+pub const BRANCH_DELETION_INFO: &str = "git.branch_deletion_info";
+/// [`DeleteBranchesParams`] → `Vec<`[`debutuuru_core::branches::DeleteResult`]`>`
+/// (local branches; one refusal doesn't stop the others).
+pub const DELETE_BRANCHES: &str = "git.delete_branches";
 /// [`CreateTagParams`] → `null`
 pub const CREATE_TAG: &str = "git.create_tag";
 /// [`TagParams`] → `null`: deletes the local tag only.
@@ -68,7 +86,12 @@ pub const PULL: &str = "git.pull";
 /// [`PushParams`] → [`OpOutcome`]
 pub const PUSH: &str = "git.push";
 /// [`PushTagParams`] → [`OpOutcome`]: pushes a tag, or deletes it on the remote.
+/// [`DeleteRemoteBranchesParams`] → [`OpOutcome`]: `git push <remote> --delete …`.
+pub const DELETE_REMOTE_BRANCHES: &str = "git.delete_remote_branches";
 pub const PUSH_TAG: &str = "git.push_tag";
+/// [`UpdateBranchParams`] → [`OpOutcome`]: fast-forwards a local branch that
+/// isn't checked out from its upstream, or fetches one remote branch.
+pub const UPDATE_BRANCH: &str = "git.update_branch";
 /// [`CancelParams`] → `null`. Stops a running remote operation.
 pub const CANCEL: &str = "git.cancel";
 /// [`PromptReply`] → `null`. Answers a [`PROMPT`] event.
@@ -134,6 +157,37 @@ pub struct CreateTagParams {
     /// Annotated tag with this message; `None` = lightweight.
     #[serde(default)]
     pub message: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct BranchesParams {
+    pub repo: String,
+    /// As listed: `feature/x`, or `origin/feature/x` for remote branches.
+    pub branches: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct DeleteBranchesParams {
+    pub repo: String,
+    /// Local branch names.
+    pub branches: Vec<String>,
+    /// `git branch -D`: also branches that aren't merged.
+    #[serde(default)]
+    pub force: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct DeleteRemoteBranchesParams {
+    pub repo: String,
+    #[serde(flatten)]
+    #[ts(flatten)]
+    pub options: RemoteOptions,
+    pub remote: String,
+    /// Names on the remote (`feature/x`, not `origin/feature/x`).
+    pub branches: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
@@ -286,6 +340,17 @@ pub struct PushParams {
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[ts(export)]
+pub struct UpdateBranchParams {
+    pub repo: String,
+    #[serde(flatten)]
+    #[ts(flatten)]
+    pub options: RemoteOptions,
+    /// As listed: local `feature/x` or remote `origin/feature/x`.
+    pub branch: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
 pub struct CancelParams {
     pub op_id: String,
 }
@@ -406,6 +471,30 @@ pub enum OutcomeMessage {
     TagDeletedOnRemote {
         tag: String,
         remote: String,
+    },
+    RemoteBranchesDeleted {
+        remote: String,
+        branches: Vec<String>,
+    },
+    /// `branch` now matches `from` (a local branch's upstream, or the
+    /// remote's copy of a remote branch).
+    BranchUpdated {
+        branch: String,
+        from: String,
+    },
+    /// Nothing new on the remote for `branch`.
+    BranchUpToDate {
+        branch: String,
+    },
+    /// `branch` has commits its upstream doesn't: it can't just move forward.
+    BranchDiverged {
+        branch: String,
+        upstream: String,
+    },
+    /// Checked out in another worktree: update it there (pull).
+    BranchInWorktree {
+        branch: String,
+        worktree: String,
     },
 }
 

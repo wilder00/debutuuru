@@ -2,7 +2,8 @@
 // tree (with live changes marked) or for any commit. Ctrl+click on an import
 // opens the imported file; Markdown is shown rendered by default.
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, ChevronRight, File, FileSymlink, Folder, FolderGit2, FolderOpen, Loader2 } from "lucide-react";
+import { ArrowLeft, ChevronRight, FileDiff, FileSymlink, FolderGit2, Loader2 } from "lucide-react";
+import { FileIcon } from "./fileIcons";
 import { Trans, useTranslation } from "react-i18next";
 import type { FileContent } from "../../bindings/FileContent";
 import type { Snapshot } from "../../bindings/Snapshot";
@@ -10,6 +11,7 @@ import type { TreeEntry } from "../../bindings/TreeEntry";
 import { formatBytes } from "../../lib/format";
 import { git } from "./api";
 import { CodeViewer } from "./CodeViewer";
+import { FileChanges } from "./FileChanges";
 import { candidates, langOf, type Link } from "./links";
 import { statusName } from "./status";
 
@@ -43,6 +45,8 @@ export function FilesView({ repo, snapshot, rev, revOptions, onRev, openRequest 
   /** Files opened before following links, for Back. */
   const [history, setHistory] = useState<string[]>([]);
   const [notice, setNotice] = useState<string | null>(null);
+  /** "Changes" instead of the content; stays on while moving between files. */
+  const [showChanges, setShowChanges] = useState(false);
   const treeRef = useRef<HTMLDivElement>(null);
 
   const load = useCallback(
@@ -304,7 +308,17 @@ export function FilesView({ repo, snapshot, rev, revOptions, onRev, openRequest 
             </span>
           </div>
         ) : selectedIsFile && selected ? (
-          <FilePane repo={repo} path={selected} content={content} rev={rev} onFollow={follow} onBack={history.length ? back : undefined} />
+          <FilePane
+            repo={repo}
+            path={selected}
+            content={content}
+            rev={rev}
+            snapshot={snapshot}
+            showChanges={showChanges}
+            onShowChanges={setShowChanges}
+            onFollow={follow}
+            onBack={history.length ? back : undefined}
+          />
         ) : (
           <div className="empty">{t("git.filesView.selectFile")}</div>
         )}
@@ -314,11 +328,9 @@ export function FilesView({ repo, snapshot, rev, revOptions, onRev, openRequest 
 }
 
 function EntryIcon({ entry, open }: { entry: TreeEntry; open: boolean }) {
-  const size = 14;
-  if (entry.kind === "dir") return open ? <FolderOpen size={size} className="ficon dir" /> : <Folder size={size} className="ficon dir" />;
-  if (entry.kind === "submodule") return <FolderGit2 size={size} className="ficon dir" />;
-  if (entry.kind === "symlink") return <FileSymlink size={size} className="ficon" />;
-  return <File size={size} className="ficon" />;
+  if (entry.kind === "submodule") return <FolderGit2 size={14} className="ficon dir" />;
+  if (entry.kind === "symlink") return <FileSymlink size={14} className="ficon" />;
+  return <FileIcon name={entry.name} folder={entry.kind === "dir"} open={open} />;
 }
 
 type PaneProps = {
@@ -326,11 +338,14 @@ type PaneProps = {
   path: string;
   content: FileContent | { error: string } | null;
   rev: string | null;
+  snapshot: Snapshot;
+  showChanges: boolean;
+  onShowChanges: (on: boolean) => void;
   onFollow: (link: Link) => void;
   onBack?: () => void;
 };
 
-function FilePane({ repo, path, content, rev, onFollow, onBack }: PaneProps) {
+function FilePane({ repo, path, content, rev, snapshot, showChanges, onShowChanges, onFollow, onBack }: PaneProps) {
   const { t } = useTranslation();
   const markdown = langOf(path) === "markdown";
   const [rendered, setRendered] = useState(true);
@@ -345,7 +360,7 @@ function FilePane({ repo, path, content, rev, onFollow, onBack }: PaneProps) {
           </button>
         )}
         <span className="path mono">{path}</span>
-        {markdown && (
+        {markdown && !showChanges && (
           <div className="segmented" role="radiogroup" aria-label={t("git.filesView.markdownMode")}>
             <button role="radio" aria-checked={rendered} className={rendered ? "on" : ""} onClick={() => setRendered(true)}>
               {t("git.filesView.rendered")}
@@ -355,10 +370,21 @@ function FilePane({ repo, path, content, rev, onFollow, onBack }: PaneProps) {
             </button>
           </div>
         )}
-        {c && <span className="hint">{formatBytes(c.size)}</span>}
+        {c && !showChanges && <span className="hint">{formatBytes(c.size)}</span>}
         {rev && <span className="hint mono">@ {rev.slice(0, 8)}</span>}
+        <span className="spacer" />
+        <button
+          className={"changes-toggle" + (showChanges ? " on" : "")}
+          aria-pressed={showChanges}
+          title={t("git.filesView.changes.toggleHint")}
+          onClick={() => onShowChanges(!showChanges)}
+        >
+          <FileDiff size={14} /> {t("git.filesView.changes.toggle")}
+        </button>
       </div>
-      {err ? (
+      {showChanges ? (
+        <FileChanges repo={repo} path={path} rev={rev} snapshot={snapshot} />
+      ) : err ? (
         <div className="empty danger">{err}</div>
       ) : !c ? (
         <div className="empty">{t("common.loading")}</div>

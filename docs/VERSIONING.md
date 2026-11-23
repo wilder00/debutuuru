@@ -8,10 +8,18 @@ library and the desktop app share one version, defined once in
 
 | Prefix | Effect (while < 1.0) | Effect (>= 1.0) |
 | --- | --- | --- |
-| `fix:` | patch | patch |
-| `feat:` | patch | minor |
+| `fix:` | patch (0.2.0 → 0.2.1) | patch |
+| `feat:` | minor (0.2.1 → 0.3.0) | minor |
 | `feat!:` / `BREAKING CHANGE:` | minor | major |
 | `docs:`, `chore:`, `refactor:`, `test:`, `ci:` | no release | no release |
+
+`feat:` bumps the minor version in 0.x too (`features_always_increment_minor`
+in `release-plz.toml`). release-plz's default follows Cargo's 0.x rule, where
+features only bump the patch because 0.x → 0.(x+1) is how crates signal a
+breaking change to the crates that depend on them. Debutuuru publishes no
+crates, and for an app a release with new features should read as one.
+Releases up to 0.1.2 followed the default, so they bumped the patch even with
+new features.
 
 ## Branches
 

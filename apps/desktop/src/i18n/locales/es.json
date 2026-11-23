@@ -19,12 +19,19 @@
     "pathLabel": "Ruta del repositorio",
     "linkedWorktree": "Worktree enlazado",
     "currentBranch": "Rama actual",
-    "refresh": "Actualizar (F5)"
+    "refresh": "Actualizar (F5)",
+    "hideSidebar": "Ocultar el panel izquierdo",
+    "showSidebar": "Mostrar el panel izquierdo",
+    "hideChanges": "Ocultar el panel de cambios",
+    "showChanges": "Mostrar el panel de cambios"
   },
   "tabs": {
     "label": "Repositorios abiertos",
     "insideWsl": "Dentro de WSL ({{distro}})",
-    "close": "Cerrar pestaña (clic central)"
+    "close": "Cerrar pestaña (clic central)",
+    "collapseGroup": "Clic para contraer el grupo",
+    "expandGroup": "Clic para mostrar las pestañas del grupo",
+    "closeGroup": "Cerrar las pestañas del grupo"
   },
   "activity": {
     "label": "Módulos",
@@ -50,7 +57,8 @@
     "language": {
       "title": "Idioma",
       "system": "Sistema ({{language}})",
-      "hint": "Los mensajes propios de git (errores, el detalle de un fetch o un push) siguen en el idioma de tu instalación de git."
+      "hint": "Los mensajes propios de git (errores, el detalle de un fetch o un push) siguen en el idioma de tu instalación de git.",
+      "dictionary": "Abrir el diccionario de la interfaz, para aprender palabras de otro idioma"
     },
     "theme": {
       "title": "Tema",
@@ -164,6 +172,12 @@
       "icon": "Icono",
       "iconAuto": "Automático ({{name}})",
       "iconGeneric": "Terminal"
+    },
+    "fileIcons": {
+      "title": "Iconos de archivos",
+      "color": "Sus propios colores",
+      "theme": "Color del tema",
+      "hint": "Iconos de Material Icon Theme (MIT), como en VS Code. “Color del tema” mantiene sus formas con el color del tema."
     }
   },
   "git": {
@@ -189,7 +203,22 @@
       "noRemotes": "Sin remotos",
       "openHint": "Clic para abrir",
       "bare": "bare",
-      "tags": "Tags"
+      "tags": "Tags",
+      "selectHint": "Clic para seleccionar · Ctrl+clic agrega · Shift+clic un rango · clic derecho para acciones",
+      "menu": {
+        "checkout": "Checkout",
+        "copy_one": "Copiar {{count}} nombre",
+        "copy_many": "Copiar {{count}} nombres",
+        "copy_other": "Copiar {{count}} nombres",
+        "delete_one": "Eliminar {{count}} rama…",
+        "delete_many": "Eliminar {{count}} ramas…",
+        "delete_other": "Eliminar {{count}} ramas…",
+        "pull": "Pull desde {{upstream}}",
+        "update": "Actualizar desde {{upstream}}",
+        "updateHint": "Trae los commits nuevos de su rama remota sin cambiarte a ella. Solo avanza: si la rama tiene commits que el remoto no tiene, no cambia nada.",
+        "fetchOne": "Fetch de {{branch}}",
+        "fetchOneHint": "Descarga solo esta rama de su remoto. Tus ramas locales no cambian."
+      }
     },
     "changes": {
       "staged": "Preparados",
@@ -246,7 +275,8 @@
       "contextLines_many": "{{count}} líneas",
       "contextLines_other": "{{count}} líneas",
       "expand": "Expandir a toda la ventana (Esc para restaurar)",
-      "restore": "Restaurar la vista normal (Esc)"
+      "restore": "Restaurar la vista normal (Esc)",
+      "headToWorkingTree": "HEAD → copia de trabajo"
     },
     "filesView": {
       "revision": "Qué versión de los archivos mostrar",
@@ -267,7 +297,19 @@
       "back": "Atrás (Alt+←)",
       "markdownMode": "Vista de Markdown",
       "rendered": "Renderizado",
-      "source": "Código"
+      "source": "Código",
+      "changes": {
+        "toggle": "Cambios",
+        "toggleHint": "Mostrar los cambios de este archivo en lugar de su contenido",
+        "uncommitted": "Cambios sin commit en este archivo (en stage y sin stage, juntos):",
+        "untracked": "Archivo nuevo, aún sin commit: todo su contenido es nuevo.",
+        "yourCopy": "tu copia",
+        "noHistory": "Ningún commit tiene este archivo todavía.",
+        "lastCommit": "Sin cambios pendientes. Se muestra el último commit que cambió este archivo:",
+        "thisCommit": "Cambios que hizo este commit en el archivo:",
+        "before": "Este archivo no cambió en {{rev}}. Se muestra el último commit anterior que lo cambió:",
+        "parent": "commit anterior"
+      }
     },
     "remote": {
       "starting": "Iniciando…",
@@ -309,7 +351,12 @@
         "host_key_declined": "Conexión detenida: no se confió en la clave del servidor",
         "tag_pushed": "Tag {{tag}} subido → {{remote}}",
         "tag_deleted_on_remote": "Tag {{tag}} borrado en {{remote}}",
-        "several_remotes_tag": "Hay varios remotos y ninguno es origin: sube el tag desde una terminal con `git push <remoto> <tag>`."
+        "several_remotes_tag": "Hay varios remotos y ninguno es origin: sube el tag desde una terminal con `git push <remoto> <tag>`.",
+        "remote_branches_deleted": "Eliminadas {{branches}} en {{remote}}",
+        "branch_updated": "{{branch}} actualizada desde {{from}}",
+        "branch_up_to_date": "{{branch}} ya está al día",
+        "branch_diverged": "{{branch}} tiene commits que {{upstream}} no tiene, así que no puede solo avanzar. Cámbiate a ella y haz pull para combinarlos.",
+        "branch_in_worktree": "{{branch}} está abierta en {{worktree}}: haz pull allí."
       },
       "advice": {
         "sshAuthWindows": "SSH desde Windows no pudo autenticarse. Si tus claves SSH están en WSL, activa «Usar las claves SSH de WSL en los repositorios de Windows» en Ajustes (Ctrl+,).",
@@ -371,6 +418,52 @@
       "messagePlaceholder": "Notas de la versión, o qué es esta versión",
       "pushAfter": "Subirlo al remoto después de crearlo",
       "createButton": "Crear tag"
+    },
+    "branches": {
+      "delete": {
+        "title_one": "Eliminar {{count}} rama",
+        "title_many": "Eliminar {{count}} ramas",
+        "title_other": "Eliminar {{count}} ramas",
+        "checking": "Revisando qué significa cada eliminación…",
+        "close": "Cerrar",
+        "failed": "Falló la eliminación",
+        "deleted": "eliminada",
+        "notDeleted": "no eliminada",
+        "force_one": "Eliminar de todas formas {{count}} rama con commits que solo existen en ella (git branch -D)",
+        "force_many": "Eliminar de todas formas las {{count}} ramas con commits que solo existen en ellas (git branch -D)",
+        "force_other": "Eliminar de todas formas las {{count}} ramas con commits que solo existen en ellas (git branch -D)",
+        "forceHint": "Esos commits dejan de verse en el historial. git los guarda un tiempo (unos 90 días, en el reflog), y el comando que aparece junto a cada rama la recupera.",
+        "alsoRemote_one": "Eliminar también en el remoto su rama ({{count}})",
+        "alsoRemote_many": "Eliminar también sus {{count}} ramas en el remoto",
+        "alsoRemote_other": "Eliminar también sus {{count}} ramas en el remoto",
+        "alsoRemoteHint": "Afecta a todos los que usan el remoto: ya no podrán traerla, y un pull request abierto desde ella puede cerrarse. Sus copias locales se quedan.",
+        "nothing": "Con estas opciones no se puede eliminar nada.",
+        "summary": "Se eliminará — locales: {{local}} · en el remoto: {{remote}}",
+        "confirm_one": "Eliminar {{count}}",
+        "confirm_many": "Eliminar {{count}}",
+        "confirm_other": "Eliminar {{count}}",
+        "isHead": "Es la rama actual: git no puede eliminarla. Cambia primero a otra rama.",
+        "inWorktree": "Está abierta en el worktree {{path}}: git no puede eliminarla mientras esté ahí.",
+        "remoteEveryone": "Elimina {{branch}} en {{remote}} para todos los que tienen acceso. Las ramas locales que la siguen se quedan.",
+        "remoteUnique_one": "{{count}} commit existe solo en esta rama remota: después de eliminarla nadie podrá traerlo.",
+        "remoteUnique_many": "{{count}} commits existen solo en esta rama remota: después de eliminarla nadie podrá traerlos.",
+        "remoteUnique_other": "{{count}} commits existen solo en esta rama remota: después de eliminarla nadie podrá traerlos.",
+        "remoteSafe": "Sus commits también están en otras ramas: no se pierde trabajo.",
+        "mergedInto": "Fusionada en {{head}}: no se pierde trabajo.",
+        "nothingLost": "Todos sus commits también están en otras ramas o tags: no se pierde trabajo.",
+        "unique_one": "{{count}} commit existe solo en esta rama (no está fusionado en ninguna).",
+        "unique_many": "{{count}} commits existen solo en esta rama (no están fusionados en ninguna).",
+        "unique_other": "{{count}} commits existen solo en esta rama (no están fusionados en ninguna).",
+        "restore": "Para recuperarla después de eliminarla:",
+        "skippedUnlessForce": "Se omite, salvo que marques \"eliminar de todas formas\" abajo.",
+        "notPushed_one": "{{count}} commit sin subir a {{upstream}}.",
+        "notPushed_many": "{{count}} commits sin subir a {{upstream}}.",
+        "notPushed_other": "{{count}} commits sin subir a {{upstream}}.",
+        "upstreamToo": "{{upstream}} también se eliminará en el remoto.",
+        "upstreamStays": "{{upstream}} se queda en el remoto.",
+        "skipped": "se omite",
+        "copyCommand": "Copiar el comando"
+      }
     }
   },
   "time": {
@@ -449,7 +542,14 @@
       "newTerminal": "Nueva terminal",
       "maximizeTerminal": "Solo terminal (toda la ventana)",
       "createTag": "Crear tag…",
-      "showTag": "Ir a un tag…"
+      "showTag": "Ir a un tag…",
+      "closeGroup": "Cerrar el grupo de esta pestaña",
+      "toggleSidebar": "Mostrar/ocultar el panel izquierdo",
+      "toggleChanges": "Mostrar/ocultar el panel de cambios",
+      "focusMode": "Enfoque: ocultar/mostrar ambos paneles laterales",
+      "deleteBranch": "Eliminar rama…",
+      "showLogs": "Mostrar logs",
+      "dictionary": "Diccionario de la interfaz (aprender palabras)"
     }
   },
   "open": {
@@ -459,7 +559,18 @@
     "browseWsl": "Explorar en WSL ({{distro}})…",
     "recent": "Recientes",
     "forget": "Quitar de recientes",
-    "drop": "Suelta una carpeta para abrirla como repositorio, o un archivo para abrirlo en su repositorio"
+    "drop": "Suelta una carpeta para abrirla como repositorio, o un archivo para abrirlo en su repositorio",
+    "noRepos": "No hay repositorios Git en {{folder}} (se buscó hasta dos niveles de carpetas)",
+    "groupHint": "Abre los repositorios que contiene como un grupo de pestañas",
+    "group": "grupo",
+    "pickTitle_one": "{{count}} repositorio en esta carpeta",
+    "pickTitle_many": "{{count}} repositorios en esta carpeta",
+    "pickTitle_other": "{{count}} repositorios en esta carpeta",
+    "pickAll": "Todos",
+    "pickNone": "Ninguno",
+    "pickOpen_one": "Abrir {{count}}",
+    "pickOpen_many": "Abrir {{count}}",
+    "pickOpen_other": "Abrir {{count}}"
   },
   "window": {
     "minimize": "Minimizar",
@@ -483,5 +594,43 @@
     "noProfiles": "No se encontró ningún shell. Añade un perfil en Ajustes › Terminal.",
     "rename": "Renombrar terminal",
     "renameHint": "doble clic para renombrar"
+  },
+  "logs": {
+    "title": "Logs",
+    "filter": "Filtrar (repositorio, comando, salida)",
+    "kind": "Mostrar",
+    "kindAll": "Todo",
+    "kindGit": "Comandos de git",
+    "kindRequest": "Peticiones de la app",
+    "request": "petición",
+    "errorsOnly": "Solo errores",
+    "count_one": "{{count}} línea",
+    "count_many": "{{count}} líneas",
+    "count_other": "{{count}} líneas",
+    "follow": "Seguir las líneas nuevas",
+    "pause": "Pausar",
+    "resume": "Reanudar",
+    "copy": "Copiar las líneas mostradas",
+    "clear": "Limpiar",
+    "empty": "Aquí aparece cada comando de git y cada petición de la app mientras esta ventana está abierta, con su salida (haz clic en una línea). Cerrada, no se registra nada.",
+    "paused": "En pausa: las líneas nuevas esperan hasta que reanudes."
+  },
+  "dictionary": {
+    "title": "Diccionario de la interfaz",
+    "search": "Buscar una palabra",
+    "learn": "Aprender",
+    "section": "Sección",
+    "allSections": "Todas las secciones",
+    "short": "Palabras y frases cortas",
+    "shortHint": "Oculta las oraciones largas, que cuestan más memorizar",
+    "count_one": "{{count}} entrada",
+    "count_many": "{{count}} entradas",
+    "count_other": "{{count}} entradas",
+    "shuffle": "Mezclar",
+    "inOrder": "Volver al orden",
+    "practice": "Practicar: ocultar las traducciones",
+    "showAll": "Mostrar todas las traducciones",
+    "practiceHint": "Adivina cada traducción y luego haz clic para comprobarla.",
+    "none": "Nada coincide."
   }
 }

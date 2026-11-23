@@ -13,7 +13,7 @@ import { useDismiss } from "../../lib/useDismiss";
 import { onAgentEvent, wslDistro } from "../../lib/rpc";
 import { git, GIT_PROGRESS } from "./api";
 
-type Kind = "fetch" | "pull" | "push" | "tag";
+type Kind = "fetch" | "pull" | "push" | "tag" | "update";
 type Running = { kind: Kind; opId: string; text: string; percent: number | null };
 type Result = { kind: Kind; outcome: OpOutcome };
 
@@ -65,6 +65,16 @@ function summaryText(t: TFunction, o: OpOutcome, kind: Kind): string {
       return t("git.remote.outcome.pushed", { branch: m.branch, target: m.target });
     case "tag_pushed":
       return t("git.remote.outcome.tag_pushed", { tag: m.tag, remote: m.remote });
+    case "remote_branches_deleted":
+      return t("git.remote.outcome.remote_branches_deleted", { branches: m.branches.join(", "), remote: m.remote });
+    case "branch_updated":
+      return t("git.remote.outcome.branch_updated", { branch: m.branch, from: m.from });
+    case "branch_up_to_date":
+      return t("git.remote.outcome.branch_up_to_date", { branch: m.branch });
+    case "branch_diverged":
+      return t("git.remote.outcome.branch_diverged", { branch: m.branch, upstream: m.upstream });
+    case "branch_in_worktree":
+      return t("git.remote.outcome.branch_in_worktree", { branch: m.branch, worktree: m.worktree });
     case "tag_deleted_on_remote":
       return t("git.remote.outcome.tag_deleted_on_remote", { tag: m.tag, remote: m.remote });
     case "several_remotes":
@@ -115,10 +125,11 @@ export function RemoteBar({ repo, snapshot, settings, onDone }: Props) {
   useBus("git-op", repo, (e) => {
     if (runningRef.current) return;
     if (e.op === "tag") void run("tag", { tag: e.tag, delete: e.delete });
+    else if (e.op === "update") void run("update", { branch: e.branch });
     else void run(e.op, e.op === "pull" ? { mode: e.mode } : {});
   });
 
-  async function run(kind: Kind, extra: { mode?: PullMode; force_with_lease?: boolean; tag?: string; delete?: boolean } = {}) {
+  async function run(kind: Kind, extra: { mode?: PullMode; force_with_lease?: boolean; tag?: string; delete?: boolean; branch?: string } = {}) {
     setMenu(null);
     setConfirmForce(false);
     setResult(null);
@@ -132,7 +143,9 @@ export function RemoteBar({ repo, snapshot, settings, onDone }: Props) {
           ? await git.fetch(repo, { ...options, remote: null })
           : kind === "pull"
             ? await git.pull(repo, { ...options, mode: extra.mode ?? "default" })
-            : kind === "tag"
+            : kind === "update"
+              ? await git.updateBranch(repo, { ...options, branch: extra.branch! })
+              : kind === "tag"
               ? await git.pushTag(repo, { ...options, name: extra.tag!, delete: extra.delete ?? false })
               : await git.push(repo, { ...options, force_with_lease: extra.force_with_lease ?? false });
       setResult({ kind, outcome });
@@ -149,7 +162,8 @@ export function RemoteBar({ repo, snapshot, settings, onDone }: Props) {
   const busy = running !== null;
   const tip = noRemote ? t("git.remote.noRemote") : undefined;
   const ctx = { windowsRepo: !wslDistro(repo) && isWindowsHost, usingWslSsh: sshCommandFor(repo, settings) !== null };
-  const help = result && !result.outcome.ok ? advice(t, result.outcome.hint, ctx) : null;
+  // An update that diverged already says what to do (the generic advice is about Pull).
+  const help = result && !result.outcome.ok && !(result.kind === "update" && result.outcome.hint === "diverged") ? advice(t, result.outcome.hint, ctx) : null;
 
   return (
     <div className="remote-area">

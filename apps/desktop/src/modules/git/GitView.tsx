@@ -13,6 +13,7 @@ import { ErrorBoundary } from "../../lib/ErrorBoundary";
 import { useSettings } from "../../settings/SettingsProvider";
 import { Sidebar } from "./Sidebar";
 import { TagDialog } from "./TagDialog";
+import { DeleteBranchesDialog } from "./DeleteBranchesDialog";
 
 // Code viewer (CodeMirror) is only downloaded when Files is first opened.
 const FilesView = lazy(() => import("./FilesView").then((m) => ({ default: m.FilesView })));
@@ -21,6 +22,11 @@ const FileDiffPanel = lazy(() => import("./FileDiffPanel").then((m) => ({ defaul
 const CommitPanel = lazy(() => import("./CommitPanel").then((m) => ({ default: m.CommitPanel })));
 
 const LOG_LIMIT = 2000; // paginated loading comes with a later phase
+
+/** What the history depends on: every branch, tag and worktree HEAD. When
+ *  it's the same, a refresh (a saved file, staging) skips `git log`. */
+const refsKey = (s: Snapshot) =>
+  [...s.worktrees.map((w) => `w ${w.path} ${w.head}`), ...s.branches.map((b) => `b ${b.name} ${b.sha}`), ...s.tags.map((t) => `t ${t.name} ${t.target}`)].join("\n");
 
 type Props = {
   repo: string;
@@ -35,7 +41,7 @@ type Props = {
 
 export function GitView({ repo, active, refreshKey, onError, onOpen, onLoaded }: Props) {
   const { t } = useTranslation();
-  const { git: gitSettings } = useSettings();
+  const { git: gitSettings, layout } = useSettings();
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
   const [log, setLog] = useState<LogEntry[]>([]);
   const [commit, setCommit] = useState<string | null>(null);
@@ -44,6 +50,8 @@ export function GitView({ repo, active, refreshKey, onError, onOpen, onLoaded }:
   const [reveal, setReveal] = useState(0);
   /** "Create tag" dialog, on this commit. */
   const [tagOn, setTagOn] = useState<{ rev: string; label: string } | null>(null);
+  /** Branches waiting for the delete confirmation. */
+  const [deleting, setDeleting] = useState<string[] | null>(null);
   const [file, setFile] = useState<FileSelection | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [view, setView] = useState<"history" | "files">("history");
@@ -56,35 +64,48 @@ export function GitView({ repo, active, refreshKey, onError, onOpen, onLoaded }:
     if (view === "files") setFilesOpened(true);
   }, [view]);
   const loading = useRef(false);
-  const pending = useRef(false);
+  /** A reload asked for while one runs; "full" also reloads the history. */
+  const pending = useRef<"quick" | "full" | null>(null);
+  const loadedRefs = useRef<string | null>(null);
 
-  // Coalesces bursts: at most one reload in flight plus one queued.
-  const reload = useCallback(async (): Promise<Snapshot | null> => {
-    if (loading.current) {
-      pending.current = true;
-      return null;
-    }
-    loading.current = true;
-    try {
-      const [s, l] = await Promise.all([git.snapshot(repo), git.log(repo, { limit: LOG_LIMIT })]);
-      setSnapshot(s);
-      setLog(l);
-      setLoadError(null);
-      onLoaded(repo, s);
-      return s;
-    } finally {
-      loading.current = false;
-      if (pending.current) {
-        pending.current = false;
-        void reload().catch(onError);
+  // Coalesces bursts: at most one reload in flight plus one queued. The
+  // history (2,000 commits) is only read again when refs moved, or on a
+  // full reload (first load, F5).
+  const reload = useCallback(
+    async (full = false): Promise<Snapshot | null> => {
+      if (loading.current) {
+        if (full || !pending.current) pending.current = full ? "full" : "quick";
+        return null;
       }
-    }
-  }, [repo, onLoaded, onError]);
+      loading.current = true;
+      try {
+        const [s, l] = full
+          ? await Promise.all([git.snapshot(repo), git.log(repo, { limit: LOG_LIMIT })])
+          : await git.snapshot(repo).then(async (s) => [s, refsKey(s) === loadedRefs.current ? null : await git.log(repo, { limit: LOG_LIMIT })] as const);
+        setSnapshot(s);
+        if (l) {
+          setLog(l);
+          loadedRefs.current = refsKey(s);
+        }
+        setLoadError(null);
+        onLoaded(repo, s);
+        return s;
+      } finally {
+        loading.current = false;
+        const next = pending.current;
+        if (next) {
+          pending.current = null;
+          void reload(next === "full").catch(onError);
+        }
+      }
+    },
+    [repo, onLoaded, onError],
+  );
 
   // Initial load + start the agent's file watcher (idempotent, so it also
   // re-arms watching after a WSL agent restart).
   useEffect(() => {
-    reload()
+    reload(true)
       .then(() => git.watch(repo))
       .catch((e) => {
         setLoadError(e instanceof Error ? e.message : String(e));
@@ -94,12 +115,25 @@ export function GitView({ repo, active, refreshKey, onError, onOpen, onLoaded }:
 
   useEffect(() => () => void git.unwatch(repo).catch(() => {}), [repo]);
 
+  // A hidden tab doesn't refresh on every change (nobody sees it): it only
+  // remembers it's out of date and refreshes when shown again.
+  const activeRef = useRef(active);
+  activeRef.current = active;
+  const stale = useRef(false);
+  useEffect(() => {
+    if (active && stale.current) {
+      stale.current = false;
+      void reload().catch(onError);
+    }
+  }, [active, reload, onError]);
+
   // Auto-refresh on changes reported by the agent (files, index, refs). If
   // this repo's WSL agent died, reconnect (any call does) and re-arm watching.
   useEffect(() => {
     const un = onAgentEvent((e) => {
       if (e.topic === GIT_CHANGED && (e.payload as ChangedEvent).repo === repo) {
-        void reload().catch(onError);
+        if (activeRef.current) void reload().catch(onError);
+        else stale.current = true;
       } else if (e.topic === AGENT_DISCONNECTED && (e.payload as { distro?: string }).distro === wslDistro(repo)) {
         window.setTimeout(() => {
           reload()
@@ -179,6 +213,7 @@ export function GitView({ repo, active, refreshKey, onError, onOpen, onLoaded }:
   };
   useBus("create-tag", repo, () => openTagDialog(commit));
   useBus("show-tag", repo, (e) => selectTag(e.name));
+  useBus("delete-branches", repo, (e) => setDeleting(e.names));
   const selectTag = (name: string) => {
     const g = snapshot?.tags.find((x) => x.name === name);
     if (!g) return;
@@ -203,7 +238,7 @@ export function GitView({ repo, active, refreshKey, onError, onOpen, onLoaded }:
   }
 
   return (
-    <div className={"git-view" + (panelOpen ? " with-diff" : "") + (expanded ? " expanded" : "")} hidden={!active}>
+    <div className={"git-view" + (panelOpen ? " with-diff" : "") + (expanded ? " expanded" : "") + (expanded && file && layout.changes ? " keep-changes" : "") + (layout.sidebar ? "" : " no-sidebar") + (layout.changes ? "" : " no-changes")} hidden={!active}>
       <Sidebar
         snapshot={snapshot}
         onCheckout={(branch) => act(() => git.checkout(repo, { branch }))}
@@ -211,6 +246,9 @@ export function GitView({ repo, active, refreshKey, onError, onOpen, onLoaded }:
         selectedTag={tag}
         onSelectTag={selectTag}
         onCreateTag={() => openTagDialog(commit)}
+        onDeleteBranches={(names) => names.length && setDeleting(names)}
+        onUpdateBranch={(branch) => emit("git-op", { repo, op: "update", branch })}
+        onPull={() => emit("git-op", { repo, op: "pull", mode: "default" })}
       />
       <div className="center">
         <RemoteBar repo={repo} snapshot={snapshot} settings={gitSettings} onDone={() => void reload().catch(onError)} />
@@ -285,6 +323,15 @@ export function GitView({ repo, active, refreshKey, onError, onOpen, onLoaded }:
         </Suspense>
         </ErrorBoundary>
       </div>
+      {deleting && (
+        <DeleteBranchesDialog
+          repo={repo}
+          snapshot={snapshot}
+          names={deleting}
+          onClose={() => setDeleting(null)}
+          onDone={() => void reload().catch(onError)}
+        />
+      )}
       {tagOn && (
         <TagDialog
           target={tagOn}

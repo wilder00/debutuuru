@@ -38,6 +38,8 @@ pub struct Settings {
     pub diff: DiffSettings,
     /// Integrated terminal. Added without a schema bump.
     pub terminal: TerminalSettings,
+    /// Side panels shown. Added without a schema bump.
+    pub layout: LayoutSettings,
 }
 
 /// The terminal panel: the user's own profiles (detected ones aren't stored),
@@ -81,6 +83,27 @@ pub struct TerminalProfile {
     /// Icon shown on its tabs (`ubuntu`, `powershell`, `git`…); `None` =
     /// guessed from the program or distro.
     pub icon: Option<String>,
+}
+
+/// Which side panels of a repository tab are shown (hide them to focus on
+/// the history, a diff or a file).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(default)]
+#[ts(export)]
+pub struct LayoutSettings {
+    /// Branches, remotes, tags and worktrees, on the left.
+    pub sidebar: bool,
+    /// Staged and unstaged changes with the commit box, on the right.
+    pub changes: bool,
+}
+
+impl Default for LayoutSettings {
+    fn default() -> Self {
+        Self {
+            sidebar: true,
+            changes: true,
+        }
+    }
 }
 
 /// Diff viewer preferences, shared by commits, staged and unstaged changes.
@@ -176,6 +199,25 @@ pub struct Session {
     /// Repositories opened before, most recent first (same form as
     /// `open_repos`). Added without a schema bump.
     pub recent_repos: Vec<String>,
+    /// Tabs opened together from a folder of repositories (a ticket's
+    /// worktrees). Added without a schema bump.
+    pub groups: Vec<TabGroup>,
+    /// Folders opened as groups, most recent first. Added without a schema
+    /// bump.
+    pub recent_groups: Vec<String>,
+}
+
+/// Repositories opened from one folder, shown together in the tab bar.
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, TS)]
+#[serde(default)]
+#[ts(export)]
+pub struct TabGroup {
+    /// The folder (same form as `open_repos`).
+    pub folder: String,
+    /// Its open tabs, a subset of `open_repos`.
+    pub repos: Vec<String>,
+    /// Only the group's name shows in the tab bar.
+    pub collapsed: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
@@ -200,6 +242,19 @@ pub struct Appearance {
     /// Gamer style: the RGB bars cycle their colors (off under the system's
     /// "reduce motion"). Added without a schema bump.
     pub rgb_animation: bool,
+    /// File icons in the Files tree. Added without a schema bump.
+    pub file_icons: FileIcons,
+}
+
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export)]
+pub enum FileIcons {
+    /// Each icon's own colors, like in VS Code.
+    #[default]
+    Color,
+    /// The icons' shapes in the theme's colors.
+    Theme,
 }
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize, TS)]
@@ -263,6 +318,7 @@ impl Default for Settings {
             updates: UpdateSettings::default(),
             language: None,
             diff: DiffSettings::default(),
+            layout: LayoutSettings::default(),
             terminal: TerminalSettings::default(),
         }
     }
@@ -281,6 +337,7 @@ impl Default for Appearance {
             density: Density::Compact,
             style: UiStyle::Standard,
             rgb_animation: true,
+            file_icons: FileIcons::Color,
         }
     }
 }
@@ -340,6 +397,18 @@ impl Settings {
         s.recent_repos.retain(|r| !r.trim().is_empty());
         s.recent_repos.dedup();
         s.recent_repos.truncate(RECENT_REPOS);
+        // A group lists only open tabs, each tab is in one group at most,
+        // and a group without tabs is gone.
+        let mut grouped = std::collections::HashSet::new();
+        for g in &mut s.groups {
+            g.repos
+                .retain(|r| s.open_repos.contains(r) && grouped.insert(r.clone()));
+        }
+        s.groups
+            .retain(|g| !g.folder.trim().is_empty() && !g.repos.is_empty());
+        s.recent_groups.retain(|r| !r.trim().is_empty());
+        s.recent_groups.dedup();
+        s.recent_groups.truncate(RECENT_REPOS);
         if s.active.as_ref().is_some_and(|a| !s.open_repos.contains(a)) {
             s.active = s.open_repos.first().cloned();
         }
@@ -660,6 +729,30 @@ mod tests {
         assert_eq!(t.panel_height, 120);
         assert_eq!(t.profiles.len(), 1);
         assert_eq!(t.profiles[0].args, ["-l"]);
+    }
+
+    #[test]
+    fn tab_groups_keep_only_open_tabs() {
+        let d = tmp("groups");
+        let store = Store::new(&d, &d);
+        std::fs::write(
+            &store.file,
+            r#"{"schema_version": 1, "session": {"open_repos": ["C:\\t\\a", "C:\\t\\b"], "groups": [
+                {"folder": "C:\\t", "repos": ["C:\\t\\a", "C:\\t\\gone"]},
+                {"folder": "C:\\u", "repos": ["C:\\t\\a"]},
+                {"folder": "C:\\v", "repos": ["C:\\t\\b"], "collapsed": true}
+            ], "recent_groups": ["C:\\t", "", "C:\\t"]}}"#,
+        )
+        .unwrap();
+        let s = store.load().settings.session;
+        // `gone` isn't open, and `a` stays in its first group only.
+        assert_eq!(s.groups.len(), 2);
+        assert_eq!(s.groups[0].repos, [r"C:\t\a"]);
+        assert_eq!(
+            (s.groups[1].folder.as_str(), s.groups[1].collapsed),
+            (r"C:\v", true)
+        );
+        assert_eq!(s.recent_groups, [r"C:\t"]);
     }
 
     #[test]

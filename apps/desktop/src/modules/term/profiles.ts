@@ -14,16 +14,31 @@ export const detectedProfiles = () => (detected ??= invoke<TerminalProfile[]>("t
 /** `\\wsl.localhost\Ubuntu\home\me\app` → `/home/me/app`. */
 const linuxPath = (repo: string) => repo.replace(/^\\\\wsl(?:\$|\.localhost)\\[^\\]+/i, "").replace(/\\/g, "/") || "/";
 
-/** What to run for `profile`, starting in `repo` when it fits the profile. */
+/** cmd.exe can't start in a `\\wsl.localhost\…` folder (it falls back to
+ *  C:\Windows with a warning), but its `pushd` can go there; PowerShell and
+ *  Git Bash start there directly. */
+const isCmd = (program: string) => /(^|[\\/])cmd(\.exe)?$/i.test(program);
+
+/** What to run for `profile`, starting in `repo`'s folder whenever the shell
+ *  can reach it: a WSL shell in a repo of its own distro (Linux path) or of
+ *  Windows (`wsl --cd` takes Windows paths: `C:\…` → `/mnt/c/…`); a Windows
+ *  shell in a Windows repo, or in a WSL repo through `\\wsl.localhost\…`.
+ *  A profile's own folder wins; otherwise it falls back to home. */
 export function spawnParams(profile: TerminalProfile, repo: string | null, cols: number, rows: number): SpawnParams {
   const distro = repo ? wslDistro(repo) : null;
   const args = [...profile.args];
   let cwd = profile.cwd ?? undefined;
   if (profile.wsl_distro) {
-    // A WSL shell starts in the repo when it's in the same distro.
-    if (!args.includes("--cd")) args.push("--cd", repo && distro?.toLowerCase() === profile.wsl_distro.toLowerCase() ? linuxPath(repo) : (cwd ?? "~"));
+    if (!args.includes("--cd")) {
+      const here = !repo ? null : !distro ? repo : distro.toLowerCase() === profile.wsl_distro.toLowerCase() ? linuxPath(repo) : null;
+      args.push("--cd", cwd ?? here ?? "~");
+    }
     cwd = undefined;
-  } else if (!cwd && repo && !distro) {
+  } else if (!cwd && repo && distro && isCmd(profile.program)) {
+    // `pushd` maps the WSL folder to a free drive letter for this session.
+    // Separate arguments: the command line quotes the path only if needed.
+    if (!args.some((a) => /^\/[ck]$/i.test(a))) args.push("/K", "pushd", repo);
+  } else if (!cwd && repo) {
     cwd = repo;
   }
   return { program: profile.program, args, cwd, env: profile.env, cols, rows };

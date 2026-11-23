@@ -20,8 +20,8 @@ pub mod term;
 pub mod watch;
 
 use debutuuru_protocol::{
-    decode, encode, ErrorCode, Hello, Message, ModuleInfo, Response, RpcError, HELLO,
-    PROTOCOL_VERSION,
+    decode, encode, ErrorCode, Hello, Message, ModuleInfo, Response, RpcError, SetLoggingParams,
+    HELLO, LOG_COMMAND, PROTOCOL_VERSION, SET_LOGGING,
 };
 pub use events::{EventSink, Events};
 use serde::{de::DeserializeOwned, Serialize};
@@ -68,6 +68,15 @@ impl Agent {
         self.events.set_sink(sink);
     }
 
+    /// Starts or stops sending a [`LOG_COMMAND`] event per git command.
+    pub fn set_logging(&self, enabled: bool) {
+        let sink: Option<debutuuru_core::trace::Sink> = enabled.then(|| {
+            let events = self.events.clone();
+            Arc::new(move |c| events.emit(LOG_COMMAND, c)) as debutuuru_core::trace::Sink
+        });
+        debutuuru_core::trace::set_sink(sink);
+    }
+
     pub fn hello(&self) -> Hello {
         Hello {
             protocol_version: PROTOCOL_VERSION,
@@ -82,6 +91,12 @@ impl Agent {
     pub fn dispatch(&self, method: &str, params: Value) -> Result<Value, RpcError> {
         if method == HELLO {
             return to_value(self.hello());
+        }
+        if method == SET_LOGGING {
+            return handle_with(params, |p: SetLoggingParams| {
+                self.set_logging(p.enabled);
+                Ok::<_, String>(())
+            });
         }
         for m in &self.modules {
             if let Some(result) = m.handle(method, params.clone()) {
@@ -242,6 +257,92 @@ mod tests {
         fn flush(&mut self) -> std::io::Result<()> {
             Ok(())
         }
+    }
+
+    #[test]
+    fn logging_reports_git_commands_only_while_on() {
+        let dir = std::env::temp_dir().join(format!("debutuuru-log-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        assert!(std::process::Command::new("git")
+            .current_dir(&dir)
+            .args(["init", "-q"])
+            .status()
+            .unwrap()
+            .success());
+        let a = Agent::with_default_modules();
+        let (tx, rx) = std::sync::mpsc::channel();
+        a.set_event_sink(Arc::new(move |ev| {
+            if ev.topic == LOG_COMMAND {
+                let _ = tx.send(ev.payload);
+            }
+        }));
+        let repo = dir.to_string_lossy().to_string();
+        a.dispatch(SET_LOGGING, json!({ "enabled": true })).unwrap();
+        a.dispatch("git.snapshot", json!({ "repo": repo })).unwrap();
+        let first = rx
+            .recv_timeout(std::time::Duration::from_secs(5))
+            .expect("a logged command");
+        assert!(first["args"].as_array().is_some_and(|a| !a.is_empty()));
+        a.dispatch(SET_LOGGING, json!({ "enabled": false }))
+            .unwrap();
+        while rx.try_recv().is_ok() {}
+        a.dispatch("git.snapshot", json!({ "repo": repo })).unwrap();
+        // Other tests may log in this process while it was on; after turning
+        // it off nothing more arrives from this agent.
+        assert!(rx.try_recv().is_err());
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    /// Refreshing runs `git status`, which creates and deletes
+    /// `.git/index.lock`; on Windows that also reports `.git` itself as
+    /// modified. That must not count as a change, or the app refreshes forever.
+    #[test]
+    fn git_status_alone_is_not_a_change() {
+        let dir = std::env::temp_dir().join(format!("debutuuru-watch-loop-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        let git = |args: &[&str]| {
+            assert!(std::process::Command::new("git")
+                .current_dir(&dir)
+                .args(args)
+                .status()
+                .unwrap()
+                .success())
+        };
+        git(&["init", "-q"]);
+        std::fs::write(dir.join("a.txt"), "x").unwrap();
+        git(&["add", "a.txt"]);
+        // Right after `add` the index is "racily clean" and the next status
+        // rewrites it (a real change). Settle it before watching.
+        std::thread::sleep(std::time::Duration::from_millis(1100));
+        git(&["update-index", "--really-refresh", "-q"]);
+        git(&["status", "--porcelain"]);
+
+        let a = Agent::with_default_modules();
+        let (tx, rx) = std::sync::mpsc::channel();
+        a.set_event_sink(Arc::new(move |ev| {
+            if ev.topic == "git.changed" {
+                let _ = tx.send(());
+            }
+        }));
+        let repo = dir.to_string_lossy().to_string();
+        a.dispatch("git.watch", json!({ "repo": repo })).unwrap();
+        // Let the setup's own events pass.
+        while rx
+            .recv_timeout(std::time::Duration::from_millis(800))
+            .is_ok()
+        {}
+        for _ in 0..3 {
+            git(&["status", "--porcelain"]);
+        }
+        assert!(
+            rx.recv_timeout(std::time::Duration::from_millis(1500))
+                .is_err(),
+            "git status was reported as a change"
+        );
+        a.dispatch("git.unwatch", json!({ "repo": repo })).unwrap();
+        let _ = std::fs::remove_dir_all(&dir);
     }
 
     #[test]

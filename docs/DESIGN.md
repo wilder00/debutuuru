@@ -19,6 +19,12 @@ their own, Warp-style (theme, accent, background image).
 The UI only uses semantic tokens (CSS variables). Themes produce them, and
 components never use raw colors.
 
+One exception, chosen on purpose: file icons in the Files tree come from
+Material Icon Theme (MIT, as in VS Code) and keep their own colors by
+default, because the color is how you recognize a file type at a glance.
+Settings › File icons › Theme color draws the same shapes with
+`--text-muted` (files) and `--accent` (folders) instead.
+
 | Token | Scale step | Use |
 | --- | --- | --- |
 | `--bg-app` | 1 | window background |
@@ -102,6 +108,13 @@ applies. It's set on `<html data-style>` and lives in `styles.css`.
   the gradient bars (Circuit), beyond the 120 ms rule above.
   It's opt-in through the style, has its own switch, and the global
   `prefers-reduced-motion` rule turns it off.
+- **Motion budget**: a running animation makes the webview draw ~60 frames a
+  second, about a third of a CPU core however small it is; an animated
+  background repaints too and cost a whole core. So decorative motion only
+  animates `transform`/`opacity` (`FxBar.tsx`), pauses while the window
+  isn't focused or is minimized (`data-active`), and Circuit's sweep runs
+  once every 7 s instead of nonstop (`data-sweep`), with nothing running in
+  between. Measure idle CPU before adding any decorative motion.
 
 Later: import Warp `.yaml` themes, share themes as files, light mode (the
 generator supports it; it needs its own lightness curve).

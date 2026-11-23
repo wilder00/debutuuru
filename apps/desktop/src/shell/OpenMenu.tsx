@@ -1,10 +1,12 @@
 // "Open…" actions: a folder or a file with the system dialog, "Browse in
 // WSL…" (Windows: the dialog started in a distro's home), and recent
-// repositories. Shown as the title bar's menu and on the welcome screen.
-import { Clock, File, FolderOpen, Monitor, X } from "lucide-react";
+// repositories and folders of repositories (groups). Shown as the title
+// bar's menu and on the welcome screen.
+import { Clock, File, FolderOpen, Layers, Monitor, X } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { repoName, wslDistro } from "../lib/rpc";
+import { distinctNames } from "../lib/names";
+import { wslDistro } from "../lib/rpc";
 import { useDismiss } from "../lib/useDismiss";
 
 export type OpenActions = {
@@ -16,7 +18,22 @@ export type OpenActions = {
   /** WSL distros offered for browsing (Windows only; empty elsewhere). */
   distros: string[];
   recents: string[];
+  /** Folders opened as groups of tabs, most recent first. */
+  recentGroups: string[];
 };
+
+type Recent = { path: string; label: string; group: boolean };
+
+/** Recent groups first, then repositories, each named so same-named
+ *  folders differ (`ssr-site · NED-2550`). */
+function recentItems(a: OpenActions, groups: number, repos: number): Recent[] {
+  const g = a.recentGroups.slice(0, groups);
+  const r = a.recents.slice(0, repos);
+  const names = distinctNames([...g, ...r]);
+  return [...g.map((path) => ({ path, label: names.get(path)!, group: true })), ...r.map((path) => ({ path, label: names.get(path)!, group: false }))];
+}
+
+const where = (p: string) => (wslDistro(p) ? `WSL · ${wslDistro(p)}` : p);
 
 /** Folder icon button in the title bar with all the open actions. */
 export function OpenMenuButton({ actions }: { actions: OpenActions }) {
@@ -45,11 +62,11 @@ export function OpenMenuButton({ actions }: { actions: OpenActions }) {
               <Monitor size={14} /> {t("open.browseWsl", { distro: d })}
             </button>
           ))}
-          {actions.recents.length > 0 && <div className="menu-label">{t("open.recent")}</div>}
-          {actions.recents.slice(0, 8).map((r) => (
-            <button key={r} role="menuitem" title={r} onClick={run(() => actions.openRecent(r))}>
-              <Clock size={14} /> {repoName(r)}
-              <span className="menu-aside">{wslDistro(r) ? `WSL · ${wslDistro(r)}` : r}</span>
+          {actions.recents.length + actions.recentGroups.length > 0 && <div className="menu-label">{t("open.recent")}</div>}
+          {recentItems(actions, 4, 8).map((r) => (
+            <button key={r.path} role="menuitem" title={r.group ? `${r.path}\n${t("open.groupHint")}` : r.path} onClick={run(() => actions.openRecent(r.path))}>
+              {r.group ? <Layers size={14} /> : <Clock size={14} />} {r.label}
+              <span className="menu-aside">{where(r.path)}</span>
             </button>
           ))}
         </div>
@@ -76,15 +93,15 @@ export function OpenPanel({ actions }: { actions: OpenActions }) {
           </button>
         ))}
       </div>
-      {actions.recents.length > 0 && (
+      {actions.recents.length + actions.recentGroups.length > 0 && (
         <div className="recent-list">
           <div className="menu-label">{t("open.recent")}</div>
           <ul>
-            {actions.recents.slice(0, 10).map((r) => (
-              <li key={r} className="item recent-item" title={r} onClick={() => actions.openRecent(r)}>
-                <Clock size={13} />
-                <span className="label">{repoName(r)}</span>
-                <span className="aside">{wslDistro(r) ? `WSL · ${wslDistro(r)}` : r}</span>
+            {recentItems(actions, 5, 10).map(({ path: r, label, group }) => (
+              <li key={r} className="item recent-item" title={group ? `${r}\n${t("open.groupHint")}` : r} onClick={() => actions.openRecent(r)}>
+                {group ? <Layers size={13} /> : <Clock size={13} />}
+                <span className="label">{label}</span>
+                <span className="aside">{where(r)}</span>
                 <button
                   className="icon-btn hover-only"
                   title={t("open.forget")}

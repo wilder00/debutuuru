@@ -11,12 +11,16 @@ export type BusEvents = {
   "git-op":
     | { repo: string; op: "fetch" | "push" }
     | { repo: string; op: "pull"; mode: PullMode }
+    /** Update one branch from its remote without checking it out. */
+    | { repo: string; op: "update"; branch: string }
     /** Push a tag, or delete it on the remote. */
     | { repo: string; op: "tag"; tag: string; delete: boolean };
   /** Open the "create tag" dialog (on the selected commit, else HEAD). */
   "create-tag": { repo: string };
   /** Show a tag's details (and select its commit). */
   "show-tag": { repo: string; name: string };
+  /** Ask to delete branches (local `x`, remote `origin/x`). */
+  "delete-branches": { repo: string; names: string[] };
   checkout: { repo: string; branch: string };
   /** Expand the open diff / commit panel to the whole tab, or restore it. */
   "toggle-expand": { repo: string };

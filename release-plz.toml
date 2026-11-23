@@ -17,6 +17,11 @@ git_tag_enable = false     # only the CLI package creates the product tag (below
 # `changelog_include` pulls their whole history into each new release.
 git_tag_name = "v{{ version }}"
 semver_check = false
+# `feat:` bumps the minor version in 0.x too (0.1.2 → 0.2.0). release-plz's
+# default follows Cargo's 0.x rule (features → patch, because 0.x → 0.(x+1)
+# means a breaking change to crates that depend on it); we publish no crates,
+# and for an app new features should read as a minor release.
+features_always_increment_minor = true
 
 # The product is versioned as one unit; the `debutuuru` package carries the tag
 # and the changelog for the whole workspace.

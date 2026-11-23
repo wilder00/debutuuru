@@ -6,7 +6,10 @@ import type { Hello } from "./bindings/Hello";
 import type { Snapshot } from "./bindings/Snapshot";
 import { emit } from "./lib/bus";
 import { isWindowsHost, locateFile, pathKind, pickFile, pickFolder, userDistros, wslHome } from "./lib/open";
-import { AgentError, agentHello, initialPath, onOpenRepo, resolvePath, wslDistros } from "./lib/rpc";
+import { AgentError, agentHello, agentPathToRepo, initialPath, onOpenRepo, openToolWindow, resolvePath, wslDistros } from "./lib/rpc";
+import { git } from "./modules/git/api";
+import { GroupPicker, PICK_FROM } from "./shell/GroupPicker";
+import type { Session } from "./bindings/Session";
 import { checkForUpdate } from "./lib/updater";
 import { GitView } from "./modules/git/GitView";
 import { PromptDialog } from "./modules/git/PromptDialog";
@@ -27,7 +30,9 @@ import { TitleBar } from "./shell/TitleBar";
 
 export function App() {
   const { t } = useTranslation();
-  const { ready, session, updateSession, notice, dismissNotice, updates } = useSettings();
+  const { ready, session, updateSession, notice, dismissNotice, updates, layout, updateLayout } = useSettings();
+  const layoutRef = useRef(layout);
+  layoutRef.current = layout;
   const [snapshots, setSnapshots] = useState<Record<string, Snapshot>>({});
   const [error, setError] = useState<string | null>(null);
   const [agent, setAgent] = useState<Hello | null>(null);
@@ -64,13 +69,60 @@ export function App() {
   const sessionRef = useRef(session);
   sessionRef.current = session;
 
+  /** Opens the repositories found in `folder` as one group of tabs, kept
+   *  together; a repo belongs to one group at most. */
+  const openGroup = useCallback(
+    (folder: string, members: string[]) => {
+      const s = sessionRef.current;
+      const existing = s.groups.find((g) => g.folder === folder);
+      const repos = [...new Set([...(existing?.repos ?? []), ...members])];
+      const inGroup = (r: string) => repos.includes(r);
+      // Where the group goes: where its first open tab is, else at the end.
+      const first = s.open_repos.findIndex(inGroup);
+      const rest = s.open_repos.filter((r) => !inGroup(r));
+      const at = first < 0 ? rest.length : s.open_repos.slice(0, first).filter((r) => !inGroup(r)).length;
+      const groups = s.groups
+        .filter((g) => g.folder !== folder)
+        .map((g) => ({ ...g, repos: g.repos.filter((r) => !inGroup(r)) }))
+        .filter((g) => g.repos.length > 0);
+      setError(null);
+      updateSession({
+        ...s,
+        open_repos: [...rest.slice(0, at), ...repos, ...rest.slice(at)],
+        active: s.active && inGroup(s.active) ? s.active : members[0],
+        groups: [...groups, { folder, repos, collapsed: false }],
+        recent_groups: [folder, ...s.recent_groups.filter((r) => r !== folder)].slice(0, 20),
+      });
+    },
+    [updateSession],
+  );
+  /** Folder with many repositories, waiting for the user to pick. */
+  const [picking, setPicking] = useState<{ folder: string; repos: string[] } | null>(null);
+
   /** Opens (or focuses) a repo tab. Paths are canonicalized first so the same
-   *  repo typed two ways doesn't get two tabs. */
+   *  repo typed two ways doesn't get two tabs. A folder that isn't a
+   *  repository opens the repositories inside it as a group. */
   const open = useCallback(
     async (path: string) => {
       const p = path.trim();
       if (!p) return;
       const key = await resolvePath(p);
+      let found = null;
+      try {
+        found = await git.findRepos(key);
+      } catch {
+        // Agents older than git module v10: open it as a repository.
+      }
+      if (found && !found.inside_repo) {
+        if (found.repos.length === 0) {
+          setError(t("open.noRepos", { folder: key }));
+          return;
+        }
+        const members = await Promise.all(found.repos.map((r) => resolvePath(agentPathToRepo(key, r))));
+        if (members.length > PICK_FROM) setPicking({ folder: key, repos: members });
+        else openGroup(key, members);
+        return;
+      }
       const s = sessionRef.current;
       setError(null);
       updateSession({
@@ -80,7 +132,7 @@ export function App() {
         recent_repos: [key, ...s.recent_repos.filter((r) => r !== key)].slice(0, 20),
       });
     },
-    [updateSession],
+    [updateSession, openGroup, t],
   );
 
   /** A folder opens as a tab; a file opens its repository and shows the
@@ -117,12 +169,16 @@ export function App() {
         void wslHome(distro)
           .then((home) => pickFolder(home))
           .then(openPicked, (e) => setError(e instanceof Error ? e.message : String(e))),
-      openRecent: (r) => void open(r),
-      forgetRecent: (r) => updateSession({ ...sessionRef.current, recent_repos: sessionRef.current.recent_repos.filter((x) => x !== r) }),
+      openRecent: (r) => void open(r).catch((e) => setError(e instanceof Error ? e.message : String(e))),
+      forgetRecent: (r) => {
+        const s = sessionRef.current;
+        updateSession({ ...s, recent_repos: s.recent_repos.filter((x) => x !== r), recent_groups: s.recent_groups.filter((x) => x !== r) });
+      },
       distros,
       recents: session.recent_repos,
+      recentGroups: session.recent_groups,
     }),
-    [openPicked, open, distros, session.recent_repos, updateSession],
+    [openPicked, open, distros, session.recent_repos, session.recent_groups, updateSession],
   );
 
   const openActionsRef = useRef(openActions);
@@ -145,14 +201,28 @@ export function App() {
     return () => void un.then((f) => f());
   }, [openAny]);
 
-  const close = useCallback(
-    (repo: string) => {
+  /** Closes tabs; their groups lose them, and empty groups go away. */
+  const closeMany = useCallback(
+    (gone: string[]) => {
       const s = sessionRef.current;
-      const i = s.open_repos.indexOf(repo);
-      const open_repos = s.open_repos.filter((r) => r !== repo);
-      const nextActive = s.active === repo ? (open_repos[Math.min(i, open_repos.length - 1)] ?? null) : s.active;
-      updateSession({ ...s, open_repos, active: nextActive });
-      setSnapshots(({ [repo]: _, ...rest }) => rest);
+      const i = s.open_repos.findIndex((r) => gone.includes(r));
+      const open_repos = s.open_repos.filter((r) => !gone.includes(r));
+      const nextActive = s.active && gone.includes(s.active) ? (open_repos[Math.min(i, open_repos.length - 1)] ?? null) : s.active;
+      const groups = s.groups.map((g) => ({ ...g, repos: g.repos.filter((r) => !gone.includes(r)) })).filter((g) => g.repos.length > 0);
+      updateSession({ ...s, open_repos, active: nextActive, groups });
+      setSnapshots((prev) => Object.fromEntries(Object.entries(prev).filter(([r]) => !gone.includes(r))));
+    },
+    [updateSession],
+  );
+  const close = useCallback((repo: string) => closeMany([repo]), [closeMany]);
+  const closeGroup = useCallback(
+    (folder: string) => closeMany(sessionRef.current.groups.find((g) => g.folder === folder)?.repos ?? []),
+    [closeMany],
+  );
+  const toggleGroup = useCallback(
+    (folder: string) => {
+      const s: Session = sessionRef.current;
+      updateSession({ ...s, groups: s.groups.map((g) => (g.folder === folder ? { ...g, collapsed: !g.collapsed } : g)) });
     },
     [updateSession],
   );
@@ -161,10 +231,11 @@ export function App() {
   // command line, and listen for paths from later `debutuuru .` calls.
   useEffect(() => {
     if (!ready) return;
+    const report = (e: unknown) => setError(e instanceof Error ? e.message : String(e));
     initialPath()
       .then((p) => (p ? open(p) : undefined))
-      .catch(() => {});
-    const un = onOpenRepo((p) => void open(p));
+      .catch(report);
+    const un = onOpenRepo((p) => void open(p).catch(report));
     return () => void un.then((f) => f());
   }, [ready, open]);
 
@@ -196,6 +267,15 @@ export function App() {
       } else if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase() === "o") {
         e.preventDefault();
         openActionsRef.current.openFolder();
+      } else if ((e.ctrlKey || e.metaKey) && e.shiftKey && !e.altKey && e.code === "KeyU") {
+        // Like VS Code's Output panel: the log window.
+        e.preventDefault();
+        void openToolWindow("logs");
+      } else if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.code === "KeyB") {
+        // Like VS Code: Ctrl+B the left panel, Ctrl+Alt+B the right one.
+        e.preventDefault();
+        const l = layoutRef.current;
+        updateLayout(e.altKey ? { changes: !l.changes } : { sidebar: !l.sidebar });
       } else if (e.key === "F5") {
         e.preventDefault();
         setRefreshKey((k) => k + 1);
@@ -210,7 +290,7 @@ export function App() {
     // Capture phase: works while the code viewer or an input has focus.
     window.addEventListener("keydown", onKey, true);
     return () => window.removeEventListener("keydown", onKey, true);
-  }, [close, toggleTerminal]);
+  }, [close, toggleTerminal, updateLayout]);
 
   const onError = useCallback((e: unknown) => setError(e instanceof AgentError ? e.message : String(e)), []);
   const onLoaded = useCallback((repo: string, s: Snapshot) => {
@@ -234,6 +314,8 @@ export function App() {
     openSettings: () => setAppearanceOpen(true),
     refresh: () => setRefreshKey((k) => k + 1),
     closeTab: close,
+    groups: session.groups,
+    closeGroup,
     selectTab: (r) => updateSession({ ...sessionRef.current, active: r }),
     focusRepoInput: () => {
       const input = document.querySelector<HTMLInputElement>(".repo-picker input");
@@ -251,7 +333,15 @@ export function App() {
         <div className="body">
           <ActivityBar onAppearance={() => setAppearanceOpen(true)} onTerminal={toggleTerminal} terminalOpen={termOpen} />
           <div className={"workspace" + (termOpen && termMax ? " terminal-only" : "")}>
-            <TabBar repos={repos} active={active} onSelect={(r) => updateSession({ ...sessionRef.current, active: r })} onClose={close} />
+            <TabBar
+              repos={repos}
+              active={active}
+              groups={session.groups}
+              onSelect={(r) => updateSession({ ...sessionRef.current, active: r })}
+              onClose={close}
+              onToggleGroup={toggleGroup}
+              onCloseGroup={closeGroup}
+            />
             {banner && (
               <div className={"banner " + (error ? "danger" : "warn")} role="alert">
                 <AlertTriangle size={14} />
@@ -285,6 +375,17 @@ export function App() {
       </div>
       {appearanceOpen && <AppearancePanel onClose={() => setAppearanceOpen(false)} />}
       <PromptDialog />
+      {picking && (
+        <GroupPicker
+          folder={picking.folder}
+          repos={picking.repos}
+          onCancel={() => setPicking(null)}
+          onOpen={(chosen) => {
+            setPicking(null);
+            openGroup(picking.folder, chosen);
+          }}
+        />
+      )}
       {dragging && (
         <div className="drop-overlay">
           <CircuitTraces />

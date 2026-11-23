@@ -22,6 +22,20 @@ pub const PROTOCOL_VERSION: u32 = 1;
 /// First call on every connection. Returns [`Hello`].
 pub const HELLO: &str = "hello";
 
+/// [`SetLoggingParams`] → `null`. While on, the agent sends a [`LOG_COMMAND`]
+/// event for every git command it runs (the app's log window is open).
+/// Additive: older agents answer `method_not_found`.
+pub const SET_LOGGING: &str = "set_logging";
+/// Event with a [`CommandLog`] payload.
+pub const LOG_COMMAND: &str = "log.command";
+pub use debutuuru_core::trace::CommandLog;
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct SetLoggingParams {
+    pub enabled: bool,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum Message {

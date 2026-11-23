@@ -173,3 +173,69 @@ fn commit_files_and_versions() {
         .is_err());
     assert!(repo.commit_details("--output=x").is_err());
 }
+
+#[test]
+fn head_to_working_tree_and_last_change() {
+    let s =
+        Scratch(std::env::temp_dir().join(format!("debutuuru-last-change-{}", std::process::id())));
+    let _ = std::fs::remove_dir_all(&s.0);
+    std::fs::create_dir_all(&s.0).unwrap();
+    let dir = &s.0;
+    git(dir, &["init", "-q", "-b", "main"]);
+    let repo = Repo::open(Location::local(dir.to_string_lossy())).unwrap();
+    // No commits yet: nothing to show.
+    std::fs::write(dir.join("a.txt"), "one\n").unwrap();
+    assert_eq!(repo.last_change(None, "a.txt").unwrap(), None);
+
+    git(dir, &["add", "."]);
+    git(dir, &["commit", "-q", "-m", "add a"]);
+    let first = git(dir, &["rev-parse", "HEAD"]);
+    std::fs::write(dir.join("b.txt"), "other\n").unwrap();
+    git(dir, &["add", "."]);
+    git(dir, &["commit", "-q", "-m", "add b"]);
+    std::fs::write(
+        dir.join("old.md"),
+        "a long enough text\nto be seen as a rename\nby git log --follow\n",
+    )
+    .unwrap();
+    git(dir, &["add", "."]);
+    git(dir, &["commit", "-q", "-m", "add old"]);
+    git(dir, &["mv", "old.md", "new.md"]);
+    git(dir, &["commit", "-q", "-m", "rename"]);
+    let rename = git(dir, &["rev-parse", "HEAD"]);
+
+    // a.txt last changed in the first commit, even from later revisions.
+    let a = repo.last_change(None, "a.txt").unwrap().unwrap();
+    assert_eq!(
+        (a.hash.as_str(), a.subject.as_str(), a.author.as_str()),
+        (first.as_str(), "add a", "t")
+    );
+    assert_eq!(a.orig_path, None);
+    assert_eq!(
+        repo.last_change(Some(&rename), "a.txt")
+            .unwrap()
+            .unwrap()
+            .hash,
+        first
+    );
+    // The rename commit, with the old name.
+    let n = repo.last_change(None, "new.md").unwrap().unwrap();
+    assert_eq!(
+        (n.hash.as_str(), n.orig_path.as_deref()),
+        (rename.as_str(), Some("old.md"))
+    );
+    assert_eq!(repo.last_change(None, "missing.txt").unwrap(), None);
+
+    // HEAD → working tree takes staged and unstaged edits together.
+    std::fs::write(dir.join("a.txt"), "one\ntwo\n").unwrap();
+    git(dir, &["add", "a.txt"]);
+    std::fs::write(dir.join("a.txt"), "one\ntwo\nthree\n").unwrap();
+    let v = repo
+        .file_versions(&DiffSource::Head, "a.txt", None)
+        .unwrap();
+    assert_eq!(text(&v.old), Some("one\n"));
+    assert_eq!(
+        text(&v.new).map(|t| t.replace("\r\n", "\n")),
+        Some("one\ntwo\nthree\n".into())
+    );
+}

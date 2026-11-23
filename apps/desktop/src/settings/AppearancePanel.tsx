@@ -1,5 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
-import { Check, ImagePlus, Trash2, X } from "lucide-react";
+import { BookA, Check, ImagePlus, Trash2, X } from "lucide-react";
+import { openToolWindow } from "../lib/rpc";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import type { ImportedBackground } from "../bindings/ImportedBackground";
@@ -158,6 +159,17 @@ export function AppearancePanel({ onClose }: { onClose: () => void }) {
           </div>
         </Section>
 
+        <Section title={t("settings.fileIcons.title")}>
+          <div className="segmented" role="radiogroup">
+            {(["color", "theme"] as const).map((v) => (
+              <button key={v} role="radio" aria-checked={a.file_icons === v} className={a.file_icons === v ? "on" : ""} onClick={() => update({ file_icons: v })}>
+                {t(`settings.fileIcons.${v}`)}
+              </button>
+            ))}
+          </div>
+          <p className="hint">{t("settings.fileIcons.hint")}</p>
+        </Section>
+
         <GitSshSection />
         <TerminalSection Section={Section} />
         <WslCommandSection Section={Section} />
@@ -190,6 +202,9 @@ function LanguageSection() {
         </label>
       </div>
       <p className="hint">{t("settings.language.hint")}</p>
+      <button className="link-btn" onClick={() => void openToolWindow("dictionary")}>
+        <BookA size={13} /> {t("settings.language.dictionary")}
+      </button>
     </Section>
   );
 }

@@ -177,6 +177,141 @@ impl GitModule {
         Ok(out)
     }
 
+    /// `git push <remote> --delete <branches…>`, like any remote operation.
+    fn delete_remote_branches(&self, p: DeleteRemoteBranchesParams) -> Result<OpOutcome, String> {
+        if p.branches.is_empty() {
+            return Err("no branches to delete".into());
+        }
+        debutuuru_core::branches::check_branch(&p.remote).map_err(|e| e.to_string())?;
+        for b in &p.branches {
+            debutuuru_core::branches::check_branch(b).map_err(|e| e.to_string())?;
+        }
+        let mut args = vec![
+            "push".to_string(),
+            "--progress".into(),
+            p.remote.clone(),
+            "--delete".into(),
+        ];
+        args.extend(p.branches.iter().map(|b| format!("refs/heads/{b}")));
+        let mut out = self.remote_op(&p.repo, &p.options, args)?;
+        if out.ok {
+            out.summary = format!("Deleted {} on {}", p.branches.join(", "), p.remote);
+            out.message = Some(OutcomeMessage::RemoteBranchesDeleted {
+                remote: p.remote,
+                branches: p.branches,
+            });
+        }
+        Ok(out)
+    }
+
+    /// A local branch that isn't checked out: `git fetch <remote>
+    /// <merge>:refs/heads/<branch>`, which only fast-forwards (and also
+    /// refreshes `origin/<branch>`). A remote branch: fetch just that one.
+    fn update_branch(&self, p: UpdateBranchParams) -> Result<OpOutcome, String> {
+        use debutuuru_core::branches::check_branch;
+        check_branch(&p.branch).map_err(|e| e.to_string())?;
+        let repo = self.repo(&p.repo).map_err(|e| e.to_string())?;
+        let branches = repo.branches().map_err(|e| e.to_string())?;
+        let b = branches
+            .iter()
+            .find(|b| b.name == p.branch)
+            .ok_or_else(|| format!("no branch named {}", p.branch))?;
+        let name = b.name.clone();
+        let (remote, src, dst, from) = if b.is_remote {
+            let remotes = repo.remotes().map_err(|e| e.to_string())?;
+            let mut names: Vec<&str> = remotes.iter().map(|r| r.name.as_str()).collect();
+            names.sort_by_key(|n| std::cmp::Reverse(n.len()));
+            let (remote, rest) = names
+                .iter()
+                .find_map(|r| {
+                    name.strip_prefix(&format!("{r}/"))
+                        .map(|rest| (r.to_string(), rest))
+                })
+                .ok_or_else(|| format!("{name} doesn't belong to a known remote"))?;
+            // `+` like the default refspec: a force-pushed branch is still
+            // the remote's truth.
+            let src = format!("+refs/heads/{rest}");
+            (remote.clone(), src, format!("refs/remotes/{name}"), remote)
+        } else {
+            if b.is_head {
+                return Err("This is the checked-out branch: use Pull".into());
+            }
+            if let Some(w) = repo
+                .worktrees()
+                .map_err(|e| e.to_string())?
+                .into_iter()
+                .find(|w| w.branch.as_deref() == Some(name.as_str()))
+            {
+                return Ok(OpOutcome {
+                    ok: false,
+                    summary: format!("{name} is checked out in {}: pull it there", w.path),
+                    hint: None,
+                    log: String::new(),
+                    message: Some(OutcomeMessage::BranchInWorktree {
+                        branch: name,
+                        worktree: w.path,
+                    }),
+                });
+            }
+            let config = |key: &str| {
+                repo.runner()
+                    .git(&["config", "--get", &format!("branch.{name}.{key}")])
+                    .ok()
+                    .map(|s| s.trim().to_string())
+                    .filter(|s| !s.is_empty())
+            };
+            match (config("remote"), config("merge")) {
+                (Some(remote), Some(merge)) if remote != "." => {
+                    let from = b
+                        .upstream
+                        .clone()
+                        .unwrap_or_else(|| format!("{remote}/{merge}"));
+                    (remote, merge, format!("refs/heads/{name}"), from)
+                }
+                _ => {
+                    return Ok(OpOutcome {
+                        ok: false,
+                        summary: format!("{name} has no upstream on a remote to update from."),
+                        hint: Some(FailureHint::NoRemote),
+                        log: String::new(),
+                        message: Some(OutcomeMessage::NoUpstream),
+                    })
+                }
+            }
+        };
+        let tip = |r: &str| repo.runner().git(&["rev-parse", "-q", "--verify", r]).ok();
+        let before = tip(&dst);
+        let args = vec![
+            "fetch".to_string(),
+            "--progress".into(),
+            remote,
+            format!("{src}:{dst}"),
+        ];
+        let mut out = self.remote_op(&p.repo, &p.options, args)?;
+        if out.ok {
+            let changed = tip(&dst) != before;
+            out.summary = if changed {
+                format!("Updated {name} from {from}")
+            } else {
+                format!("{name} is up to date")
+            };
+            out.message = Some(if changed {
+                OutcomeMessage::BranchUpdated { branch: name, from }
+            } else {
+                OutcomeMessage::BranchUpToDate { branch: name }
+            });
+        } else if out.log.contains("non-fast-forward") {
+            out.summary =
+                format!("{name} has commits {from} doesn't: check it out and pull to combine them");
+            out.hint = Some(FailureHint::Diverged);
+            out.message = Some(OutcomeMessage::BranchDiverged {
+                branch: name,
+                upstream: from,
+            });
+        }
+        Ok(out)
+    }
+
     fn repo(&self, path: &str) -> Result<Arc<Repo>, debutuuru_core::Error> {
         let mut cache = self.repos.lock().unwrap_or_else(|e| e.into_inner());
         if let Some(r) = cache.get(path) {
@@ -271,6 +406,19 @@ impl Module for GitModule {
             PULL => handle_with(params, |p: PullParams| self.pull(p)),
             PUSH => handle_with(params, |p: PushParams| self.push(p)),
             PUSH_TAG => handle_with(params, |p: PushTagParams| self.push_tag(p)),
+            UPDATE_BRANCH => handle_with(params, |p: UpdateBranchParams| self.update_branch(p)),
+            DELETE_REMOTE_BRANCHES => handle_with(params, |p: DeleteRemoteBranchesParams| {
+                self.delete_remote_branches(p)
+            }),
+            BRANCH_DELETION_INFO => handle_with(params, |p: BranchesParams| {
+                self.repo(&p.repo)?.branch_deletion_info(&p.branches)
+            }),
+            DELETE_BRANCHES => handle_with(params, |p: DeleteBranchesParams| {
+                self.repo(&p.repo)?.delete_branches(&p.branches, p.force)
+            }),
+            FIND_REPOS => handle_with(params, |p: RepoParams| {
+                debutuuru_core::discover::find_repos(&p.repo)
+            }),
             CREATE_TAG => handle_with(params, |p: CreateTagParams| {
                 self.repo(&p.repo)?
                     .create_tag(&p.name, &p.rev, p.message.as_deref())
@@ -316,6 +464,9 @@ impl Module for GitModule {
             }),
             READ_BYTES => handle_with(params, |p: ReadFileParams| {
                 self.repo(&p.repo)?.read_bytes(p.rev.as_deref(), &p.path)
+            }),
+            LAST_CHANGE => handle_with(params, |p: ReadFileParams| {
+                self.repo(&p.repo)?.last_change(p.rev.as_deref(), &p.path)
             }),
             COMMIT_DETAILS => handle_with(params, |p: RevParams| {
                 self.repo(&p.repo)?.commit_details(&p.rev)

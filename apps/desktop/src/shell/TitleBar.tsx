@@ -1,7 +1,9 @@
-import { FolderOpen, GitBranch, RefreshCw } from "lucide-react";
+import { FolderOpen, GitBranch, PanelLeft, PanelRight, RefreshCw } from "lucide-react";
+import { useSettings } from "../settings/SettingsProvider";
 import { useEffect, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import type { RepoInfo } from "../bindings/RepoInfo";
+import { FxBar } from "./FxBar";
 import { WindowControls } from "./WindowControls";
 
 type Props = {
@@ -12,6 +14,32 @@ type Props = {
   /** "Open…" menu (folder, file, WSL, recent). */
   openMenu?: ReactNode;
 };
+
+/** Show or hide the side panels of repository tabs (Ctrl+B, Ctrl+Alt+B). */
+function PanelToggles() {
+  const { t } = useTranslation();
+  const { layout, updateLayout } = useSettings();
+  return (
+    <>
+      <button
+        className={"icon-btn" + (layout.sidebar ? " on" : "")}
+        aria-pressed={layout.sidebar}
+        title={`${layout.sidebar ? t("titlebar.hideSidebar") : t("titlebar.showSidebar")} (Ctrl+B)`}
+        onClick={() => updateLayout({ sidebar: !layout.sidebar })}
+      >
+        <PanelLeft size={15} />
+      </button>
+      <button
+        className={"icon-btn" + (layout.changes ? " on" : "")}
+        aria-pressed={layout.changes}
+        title={`${layout.changes ? t("titlebar.hideChanges") : t("titlebar.showChanges")} (Ctrl+Alt+B)`}
+        onClick={() => updateLayout({ changes: !layout.changes })}
+      >
+        <PanelRight size={15} />
+      </button>
+    </>
+  );
+}
 
 export function TitleBar({ repo, info, onOpen, onRefresh, openMenu }: Props) {
   const { t } = useTranslation();
@@ -52,10 +80,12 @@ export function TitleBar({ repo, info, onOpen, onRefresh, openMenu }: Props) {
       </form>
       <div className="titlebar-drag" data-tauri-drag-region />
       {openMenu}
+      {repo && <PanelToggles />}
       <button className="icon-btn" onClick={onRefresh} disabled={!repo} title={t("titlebar.refresh")}>
         <RefreshCw size={15} />
       </button>
       <WindowControls />
+      <FxBar at="top" />
     </header>
   );
 }

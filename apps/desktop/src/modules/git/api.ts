@@ -24,8 +24,17 @@ import type { FileBytes } from "../../bindings/FileBytes";
 import type { StatPathsParams } from "../../bindings/StatPathsParams";
 import type { CreateTagParams } from "../../bindings/CreateTagParams";
 import type { PushTagParams } from "../../bindings/PushTagParams";
+import type { FoundRepos } from "../../bindings/FoundRepos";
+import type { LastChange } from "../../bindings/LastChange";
+import type { BranchDeletion } from "../../bindings/BranchDeletion";
+import type { DeleteResult } from "../../bindings/DeleteResult";
+import type { DeleteBranchesParams } from "../../bindings/DeleteBranchesParams";
+import type { DeleteRemoteBranchesParams } from "../../bindings/DeleteRemoteBranchesParams";
+import type { UpdateBranchParams } from "../../bindings/UpdateBranchParams";
 
 export const git = {
+  /** `folder` is any folder: a repository, or one holding several. */
+  findRepos: (folder: string) => rpc<FoundRepos>(folder, "git.find_repos"),
   snapshot: (repo: string) => rpc<Snapshot>(repo, "git.snapshot"),
   log: (repo: string, p: Params<LogParams>) => rpc<LogEntry[]>(repo, "git.log", p),
   stage: (repo: string, p: Params<PathsParams>) => rpc<null>(repo, "git.stage", p),
@@ -41,6 +50,8 @@ export const git = {
   statPaths: (repo: string, p: Params<StatPathsParams>) => rpc<(EntryKind | null)[]>(repo, "git.stat_paths", p),
   /** A file's bytes as base64 (≤ 10 MiB), for images. */
   readBytes: (repo: string, p: Params<ReadFileParams>) => rpc<FileBytes>(repo, "git.read_bytes", p),
+  /** The last commit that changed a file, at `rev` (default HEAD) or before. */
+  lastChange: (repo: string, p: Params<ReadFileParams>) => rpc<LastChange | null>(repo, "git.last_change", p),
   /** Message, author and the files changed against the first parent. */
   commitDetails: (repo: string, p: Params<RevParams>) => rpc<CommitDetails>(repo, "git.commit_details", p),
   /** Both versions of a file (unstaged, staged, untracked or in a commit). */
@@ -56,6 +67,13 @@ export const git = {
   /** Local tag only; `pushTag` with `delete` removes it on the remote. */
   deleteTag: (repo: string, name: string) => rpc<null>(repo, "git.delete_tag", { name }),
   pushTag: (repo: string, p: Params<PushTagParams>) => rpc<OpOutcome>(repo, "git.push_tag", p),
+  /** What deleting each branch would mean (local `x`, remote `origin/x`). */
+  branchDeletionInfo: (repo: string, branches: string[]) => rpc<BranchDeletion[]>(repo, "git.branch_deletion_info", { branches }),
+  /** Local branches, one by one; `force` = also unmerged ones. */
+  deleteBranches: (repo: string, p: Params<DeleteBranchesParams>) => rpc<DeleteResult[]>(repo, "git.delete_branches", p),
+  deleteRemoteBranches: (repo: string, p: Params<DeleteRemoteBranchesParams>) => rpc<OpOutcome>(repo, "git.delete_remote_branches", p),
+  /** Fast-forward a branch that isn't checked out from its upstream, or fetch one remote branch. */
+  updateBranch: (repo: string, p: Params<UpdateBranchParams>) => rpc<OpOutcome>(repo, "git.update_branch", p),
   cancel: (repo: string, opId: string) => rpc<null>(repo, "git.cancel", { op_id: opId }),
   promptReply: (repo: string, id: string, answer: string | null) => rpc<null>(repo, "git.prompt_reply", { id, answer }),
 };

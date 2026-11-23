@@ -5,6 +5,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import type { Appearance } from "../bindings/Appearance";
 import type { DiffSettings } from "../bindings/DiffSettings";
 import type { TerminalSettings } from "../bindings/TerminalSettings";
+import type { LayoutSettings } from "../bindings/LayoutSettings";
 import type { GitSettings } from "../bindings/GitSettings";
 import type { LoadedSettings } from "../bindings/LoadedSettings";
 import type { Session } from "../bindings/Session";
@@ -25,6 +26,7 @@ type Ctx = {
   language: string | null;
   diff: DiffSettings;
   terminal: TerminalSettings;
+  layout: LayoutSettings;
   backgroundPath: string | null;
   readOnly: boolean;
   notice: string | null;
@@ -36,6 +38,7 @@ type Ctx = {
   updateLanguage: (language: string | null) => void;
   updateDiff: (patch: Partial<DiffSettings>) => void;
   updateTerminal: (patch: Partial<TerminalSettings>) => void;
+  updateLayout: (patch: Partial<LayoutSettings>) => void;
   setBackground: (bg: Appearance["background"], path: string | null) => void;
   dismissNotice: () => void;
 };
@@ -55,13 +58,15 @@ export const DEFAULT_SETTINGS: Settings = {
     density: "compact",
     style: "standard",
     rgb_animation: true,
+    file_icons: "color",
   },
-  session: { open_repos: [], active: null, recent_repos: [] },
+  session: { open_repos: [], active: null, recent_repos: [], groups: [], recent_groups: [] },
   git: { windows_ssh: "system", wsl_distro: null },
   updates: { check_on_start: true },
   language: null,
   diff: { layout: "unified", word_highlight: true, ignore_whitespace: false, context_lines: 3, syntax_highlight: true, wrap_lines: false },
   terminal: { default_profile: null, profiles: [], panel_height: 280 },
+  layout: { sidebar: true, changes: true },
 };
 
 /** Font names come from the user; keep only characters valid in a family name. */
@@ -148,6 +153,10 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     (patch: Partial<TerminalSettings>) => change((s) => ({ ...s, terminal: { ...s.terminal, ...patch } })),
     [change],
   );
+  const updateLayout = useCallback(
+    (patch: Partial<LayoutSettings>) => change((s) => ({ ...s, layout: { ...s.layout, ...patch } })),
+    [change],
+  );
   const setBackground = useCallback(
     (bg: Appearance["background"], path: string | null) => {
       setBackgroundPath(path);
@@ -165,6 +174,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     language: settings.language,
     diff: settings.diff,
     terminal: settings.terminal,
+    layout: settings.layout,
     backgroundPath,
     readOnly,
     notice,
@@ -176,6 +186,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     updateLanguage,
     updateDiff,
     updateTerminal,
+    updateLayout,
     setBackground,
     dismissNotice: () => setNotice(null),
   };

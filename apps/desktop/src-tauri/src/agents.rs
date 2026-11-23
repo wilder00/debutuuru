@@ -3,15 +3,16 @@
 //! Agent events are forwarded to the UI as `agent-event`, with the repo path
 //! translated back to the form the UI uses.
 
-use crate::wsl;
+use crate::{logs, wsl};
 use debutuuru_agent::client::StdioClient;
 use debutuuru_agent::{Agent, EventSink, Transport};
 use debutuuru_core::Location;
-use debutuuru_protocol::{ErrorCode, Event, Hello, RpcError};
+use debutuuru_protocol::{ErrorCode, Event, Hello, RpcError, LOG_COMMAND, SET_LOGGING};
 use serde::Serialize;
 use serde_json::Value;
 use std::collections::HashMap;
 use std::path::PathBuf;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use tauri::{AppHandle, Emitter};
 use ts_rs::TS;
@@ -33,6 +34,8 @@ pub struct Agents {
     local: Arc<Agent>,
     wsl: Mutex<HashMap<String, Arc<StdioClient>>>,
     linux_agent: Option<PathBuf>,
+    /// The log window is open: agents report every git command.
+    logging: AtomicBool,
 }
 
 impl Agents {
@@ -44,6 +47,33 @@ impl Agents {
             local,
             wsl: Mutex::default(),
             linux_agent,
+            logging: AtomicBool::new(false),
+        }
+    }
+
+    pub fn log_request(&self, repo: &str, method: &str, millis: u64, error: Option<String>) {
+        logs::request(&self.app, repo, method, millis, error);
+    }
+
+    pub fn logging(&self) -> bool {
+        self.logging.load(Ordering::Relaxed)
+    }
+
+    /// Turns command logging on or off in every agent, now and for WSL
+    /// agents started later. Blocking (WSL agents answer over a pipe).
+    pub fn set_logging(&self, on: bool) {
+        self.logging.store(on, Ordering::Relaxed);
+        self.local.set_logging(on);
+        let clients: Vec<_> = self
+            .wsl
+            .lock()
+            .unwrap_or_else(|e| e.into_inner())
+            .values()
+            .cloned()
+            .collect();
+        for c in clients {
+            // Older agents don't know the method: they just don't log.
+            let _ = c.call(SET_LOGGING, serde_json::json!({ "enabled": on }));
         }
     }
 
@@ -78,6 +108,9 @@ impl Agents {
             binary,
             forwarder(self.app.clone(), Some(distro.to_string())),
         )?);
+        if self.logging() {
+            let _ = client.call(SET_LOGGING, serde_json::json!({ "enabled": true }));
+        }
         clients.insert(distro.to_string(), client.clone());
         Ok(client)
     }
@@ -114,6 +147,17 @@ impl Agents {
 /// path (e.g. `/home/me/app`) to the UI's (`\\wsl.localhost\Ubuntu\home\me\app`).
 fn forwarder(app: AppHandle, distro: Option<String>) -> EventSink {
     Arc::new(move |ev: Event| {
+        // Git commands go to the log window only, with the path in UI form.
+        if ev.topic == LOG_COMMAND {
+            if let Ok(c) = serde_json::from_value::<debutuuru_core::trace::CommandLog>(ev.payload) {
+                let repo = match &distro {
+                    Some(d) => Location::from_inside_wsl(d, &c.repo).user_string(),
+                    None => c.repo.clone(),
+                };
+                logs::command(&app, c, repo);
+            }
+            return;
+        }
         let mut payload = ev.payload;
         if let (Some(d), Some(Value::String(repo))) = (&distro, payload.get_mut("repo")) {
             *repo = Location::from_inside_wsl(d, repo).user_string();

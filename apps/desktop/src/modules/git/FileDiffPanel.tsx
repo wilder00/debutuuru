@@ -51,7 +51,13 @@ export function FileDiffPanel({ repo, source, path, origPath, reloadKey, onClose
 
   const current = loaded?.key === key ? loaded : null;
   const sourceLabel =
-    source.kind === "commit" ? source.rev.slice(0, 8) : source.kind === "staged" ? t("git.diff.staged") : t("git.diff.workingTree");
+    source.kind === "commit"
+      ? source.rev.slice(0, 8)
+      : source.kind === "staged"
+        ? t("git.diff.staged")
+        : source.kind === "head"
+          ? t("git.diff.headToWorkingTree")
+          : t("git.diff.workingTree");
 
   return (
     <section className="diff panel">

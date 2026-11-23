@@ -154,6 +154,11 @@ input[type="checkbox"]:disabled { opacity: .45; cursor: default; }
 
 /* Git view layout */
 .git-view { flex: 1; display: grid; grid-template-columns: 240px minmax(0, 1fr) 320px; min-height: 0; }
+/* Side panels hidden (Ctrl+B / Ctrl+Alt+B): the center takes the room. */
+.git-view.no-sidebar { grid-template-columns: minmax(0, 1fr) 320px; }
+.git-view.no-changes { grid-template-columns: 240px minmax(0, 1fr); }
+.git-view.no-sidebar.no-changes { grid-template-columns: minmax(0, 1fr); }
+.git-view.no-sidebar > .sidebar, .git-view.no-changes > .changes { display: none; }
 .center { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
 
 /* Sidebar */
@@ -330,10 +335,40 @@ ul { list-style: none; margin: 0; padding: 0; }
 .tab.on { color: var(--text); background: var(--bg-app); border-color: var(--border-subtle); }
 .tab.on::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px; background: var(--bg-app); }
 .tab.on::before { content: ""; position: absolute; left: 10px; right: 10px; top: -1px; height: 2px; border-radius: 2px; background: var(--accent); }
+
+/* Accent bars of the Gamer and Circuit styles (FxBar.tsx); the moving part
+   only uses transform. Animations pause while the window isn't in use
+   (data-active, set in main.tsx). */
+.fx-bar { display: none; position: absolute; left: 0; right: 0; overflow: hidden; pointer-events: none; z-index: 1; }
+.fx-bar.fx-top { bottom: -1px; height: 2px; }
+.fx-bar.fx-bottom { top: -1px; height: 1px; }
+.fx-bar.fx-tab { top: -1px; height: 2px; }
+.fx-move { position: absolute; top: 0; bottom: 0; left: 0; will-change: transform; }
+:is([data-style="gamer"], [data-style="circuit"]) .fx-bar { display: block; }
+:is([data-style="gamer"], [data-style="circuit"]) .tab.on::before { display: none; }
+:is([data-style="gamer"], [data-style="circuit"]) .statusbar { position: relative; }
+[data-active="false"] .fx-move,
+[data-active="false"] .brand-mark::before { animation-play-state: paused !important; }
 .tab-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
 .tab-tag { padding: 0 5px; border-radius: 4px; font: 600 .72em var(--font-mono); color: var(--info); background: color-mix(in srgb, var(--info) 14%, transparent); }
 .tab-close { width: 20px; height: 20px; visibility: hidden; }
 .tab:hover .tab-close, .tab.on .tab-close { visibility: visible; }
+/* Tab groups: a folder of repositories (a ticket's worktrees) */
+.tab-group {
+  display: flex; align-items: center; gap: 5px; flex: none; align-self: center; height: 22px; margin: 0 2px 0 6px; padding: 0 2px 0 8px;
+  border-radius: 99px; background: color-mix(in srgb, var(--group-color) 22%, transparent); color: var(--text);
+  font-size: .82em; font-weight: 600; cursor: pointer; user-select: none;
+}
+.tab-group:hover { background: color-mix(in srgb, var(--group-color) 32%, transparent); }
+.tab-group svg { color: var(--group-color); flex: none; }
+.tab-group .tab-close svg { color: inherit; }
+.tab-group-name { max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tab-group-count { padding: 0 5px; border-radius: 99px; background: var(--bg-raised); font: 500 .9em var(--font-mono); }
+.tab-group:hover .tab-close { visibility: visible; }
+.tab.grouped { box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--group-color) 70%, transparent); }
+.tab.grouped.on { box-shadow: none; }
+.pick-actions { display: flex; gap: 12px; }
+.pick-list { max-height: 320px; overflow: auto; display: flex; flex-direction: column; gap: 4px; }
 [hidden] { display: none !important; }
 .graph-empty { padding: 16px 14px; }
 
@@ -356,6 +391,75 @@ ul { list-style: none; margin: 0; padding: 0; }
 .menu button { justify-content: flex-start; background: none; border: 0; height: 30px; }
 .menu button:hover:not(:disabled) { background: var(--bg-hover); border: 0; }
 .menu button.danger { color: var(--danger); }
+/* Right-click menus open where the pointer is. */
+.menu.context-menu { position: fixed; top: auto; z-index: 40; min-width: 210px; }
+.menu-sep { height: 1px; margin: 4px 6px; background: var(--border-subtle); }
+
+/* Tool windows (logs, dictionary): own window, title bar, toolbar, content. */
+.tool-window .titlebar { height: 38px; }
+.tool-toolbar {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 6px 10px;
+  border-bottom: 1px solid var(--border-subtle); background: var(--bg-panel);
+}
+.tool-toolbar .spacer { flex: 1; }
+.tool-filter { flex: 0 1 260px; min-width: 140px; }
+.toggle-row.inline { align-items: center; gap: 6px; white-space: nowrap; }
+.toggle-row.inline input { margin: 0; }
+.inline-field { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.tool-body { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.log-empty { margin: 24px auto; max-width: 520px; text-align: center; color: var(--text-muted); font-family: var(--font-ui); white-space: normal; }
+
+.log-list { flex: 1; overflow: auto; padding: 4px 0; font-size: .86em; user-select: text; }
+.log-row {
+  display: grid; grid-template-columns: auto auto auto minmax(60px, 140px) minmax(0, 1fr) auto; align-items: center; gap: 8px;
+  padding: 2px 10px; border-bottom: 1px solid color-mix(in srgb, var(--border-subtle) 50%, transparent); cursor: default;
+}
+.log-row:hover { background: var(--bg-hover); }
+.log-row.bad .log-cmd { color: var(--danger); }
+.log-time, .log-ms { color: var(--text-faint); }
+.log-ms { text-align: right; min-width: 56px; }
+.log-kind { padding: 0 6px; border-radius: 999px; font-size: .85em; background: var(--bg-raised); color: var(--text-muted); }
+.log-kind.git { background: var(--accent-soft); color: var(--accent); }
+.log-repo, .log-cmd { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.log-repo { color: var(--text-muted); }
+.log-exit { color: var(--danger); }
+.log-output {
+  grid-column: 1 / -1; margin: 2px 0 4px; padding: 6px 8px; border-radius: var(--radius);
+  background: var(--bg-raised); white-space: pre-wrap; word-break: break-word; max-height: 40vh; overflow: auto;
+}
+
+.dict-table { flex: 1; overflow: auto; padding: 0 0 12px; user-select: text; }
+.dict-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 5px 14px;
+  border-bottom: 1px solid color-mix(in srgb, var(--border-subtle) 50%, transparent);
+  content-visibility: auto; contain-intrinsic-size: auto 30px;
+}
+.dict-row:hover { background: var(--bg-hover); }
+.dict-row.head {
+  position: sticky; top: 0; z-index: 1; font-weight: 650; color: var(--text-muted);
+  background: var(--bg-solid); content-visibility: visible;
+}
+.dict-row .tag-badge { margin-left: 6px; }
+.dict-var { padding: 0 4px; margin: 0 1px; border-radius: 4px; font-family: var(--font-mono); font-size: .85em; background: var(--bg-raised); color: var(--text-muted); }
+.dict-to { font-size: 1.08em; }
+.dict-to.covered { cursor: pointer; border-radius: var(--radius); filter: blur(6px); transition: filter .15s; }
+.dict-to.covered:focus-visible { outline: 2px solid var(--accent-ring); }
+.dict-tip { margin: 6px 14px; }
+
+/* Delete branches: what happens to each one */
+.modal.wide { width: 640px; }
+.del-list { display: flex; flex-direction: column; gap: 10px; max-height: 52vh; overflow: auto; padding-right: 4px; }
+.del-item { display: flex; gap: 10px; align-items: flex-start; }
+.del-item > svg { flex: none; margin-top: 2px; }
+.del-item.skipped { opacity: .7; }
+.del-name { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.del-notes { list-style: none; margin: 2px 0 0; padding: 0; display: flex; flex-direction: column; gap: 2px; font-size: .92em; color: var(--text-muted); user-select: text; }
+.del-notes .link-btn { display: inline-flex; align-items: center; gap: 4px; margin-left: 6px; }
+.del-detail { margin: 4px 0 0; padding: 6px 8px; border-radius: var(--radius); background: var(--bg-raised); white-space: pre-wrap; font-size: .85em; }
+.del-summary { margin: 2px 0 0; font-weight: 600; }
+.danger-option { padding: 8px 10px; border-radius: var(--radius); background: color-mix(in srgb, var(--danger) 8%, transparent); }
+.danger-btn { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 60%, transparent); background: color-mix(in srgb, var(--danger) 12%, transparent); }
+.danger-btn:hover:not(:disabled) { background: color-mix(in srgb, var(--danger) 22%, transparent); border-color: var(--danger); }
 .op-progress { display: inline-flex; align-items: center; gap: 6px; max-width: 45%; color: var(--text-muted); font-size: .9em; }
 .op-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .op-meter { position: absolute; left: 0; bottom: -1px; height: 2px; background: var(--accent); transition: width .2s; }
@@ -417,9 +521,24 @@ select { height: 28px; background: var(--bg-raised); border: 1px solid var(--bor
 .chev.open { transform: rotate(90deg); }
 .ficon { flex: none; color: var(--text-muted); }
 .ficon.dir { color: var(--accent); }
+/* File icons (Material Icon Theme): their own colors, or the theme's. */
+.ficon-img, .ficon-mask { width: 16px; height: 16px; }
+.ficon-mask { background: var(--text-muted); mask: no-repeat center / contain; }
+.ficon-mask.dir { background: var(--accent); }
 .change-dot { width: 6px; height: 6px; margin-right: 5px; border-radius: 50%; background: var(--warn); flex: none; }
 .files-content { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
 .file-pane { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+/* Files › Changes: the open file's diff, with what is compared spelled out */
+.changes-toggle { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px; font-size: .9em; }
+.changes-toggle.on { background: var(--accent-soft); border-color: var(--accent); color: var(--text); }
+.file-changes { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+.changes-explain {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; padding: 7px 12px; flex: none;
+  border-bottom: 1px solid var(--border-subtle); background: color-mix(in srgb, var(--info) 10%, transparent); color: var(--text);
+}
+.changes-explain > svg { color: var(--info); flex: none; }
+.changes-explain .compare { display: inline-flex; align-items: center; gap: 5px; padding: 1px 8px; border-radius: 99px; background: var(--bg-raised); font-size: .85em; }
+.changes-explain .commit-line { color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
 .file-pane .diff-head .path { flex: 1; min-width: 0; }
 .code-viewer { flex: 1; min-height: 0; overflow: hidden; }
 @media (prefers-reduced-motion: reduce) { .chev { transition: none; } }
@@ -536,23 +655,19 @@ select { height: 28px; background: var(--bg-raised); border: 1px solid var(--bor
   --glow: 0 0 0 1px var(--accent-ring), 0 0 14px -3px var(--accent-ring);
   --edge: color-mix(in srgb, var(--accent) 24%, var(--border-subtle));
 }
-@keyframes rgb-cycle { to { background-position: 200% 0; } }
-[data-style="gamer"] .titlebar::after,
-[data-style="gamer"] .statusbar::before,
-[data-style="gamer"] .tab.on::before {
-  background: var(--rgb); background-size: 200% 100%;
-}
-[data-style="gamer"] .titlebar::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; opacity: .9; }
-[data-style="gamer"] .statusbar { position: relative; }
-[data-style="gamer"] .statusbar::before { content: ""; position: absolute; left: 0; right: 0; top: -1px; height: 1px; opacity: .75; }
-[data-style="gamer"] .tab.on::before { left: 0; right: 0; border-radius: 0; box-shadow: 0 0 10px var(--accent-ring); }
-[data-style="gamer"][data-rgb="on"] .titlebar::after,
-[data-style="gamer"][data-rgb="on"] .statusbar::before,
-[data-style="gamer"][data-rgb="on"] .tab.on::before { animation: rgb-cycle 6s linear infinite; }
+/* RGB bars: two copies of the colors side by side, slid by half (transform
+   only, see FxBar.tsx) so the loop is seamless. */
+@keyframes rgb-flow { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+[data-style="gamer"] .fx-bar .fx-move { width: 200%; background: var(--rgb); background-size: 50% 100%; }
+[data-style="gamer"] .fx-bar.fx-top { opacity: .9; }
+[data-style="gamer"] .fx-bar.fx-bottom { opacity: .75; }
+[data-style="gamer"] .fx-bar.fx-tab { box-shadow: 0 0 10px var(--accent-ring); }
+[data-style="gamer"][data-rgb="on"] .fx-bar .fx-move { animation: rgb-flow 6s linear infinite; }
 
 [data-style="gamer"] .brand { text-transform: uppercase; letter-spacing: .12em; text-shadow: 0 0 12px var(--accent-ring); }
-[data-style="gamer"] .brand-mark { border-radius: 3px; background: var(--rgb); background-size: 200% 100%; box-shadow: 0 0 14px var(--accent-ring); }
-[data-style="gamer"][data-rgb="on"] .brand-mark { animation: rgb-cycle 6s linear infinite; }
+[data-style="gamer"] .brand-mark { position: relative; overflow: hidden; border-radius: 3px; box-shadow: 0 0 14px var(--accent-ring); }
+[data-style="gamer"] .brand-mark::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 200%; background: var(--rgb); background-size: 50% 100%; }
+[data-style="gamer"][data-rgb="on"] .brand-mark::before { animation: rgb-flow 6s linear infinite; }
 [data-style="gamer"] .activity.on { color: var(--accent); }
 [data-style="gamer"] .activity.on svg { filter: drop-shadow(0 0 5px var(--accent-ring)); }
 [data-style="gamer"] .activity.on::before { box-shadow: 0 0 8px var(--accent); }
@@ -600,7 +715,9 @@ select { height: 28px; background: var(--bg-raised); border: 1px solid var(--bor
 @supports (color: oklch(from red l c h)) {
   :root[data-style="circuit"] { --grad-end: oklch(from var(--accent) calc(l + 0.1) c calc(h - 95)); }
 }
-@keyframes circuit-sweep { from { background-position: -40% 0, 0 0; } to { background-position: 140% 0, 0 0; } }
+/* The light is 30% of the bar wide: -100% puts it just before the start,
+   333% just past the end. */
+@keyframes circuit-sweep { from { transform: translateX(-100%); } to { transform: translateX(333%); } }
 
 [data-style="circuit"] :is(.titlebar, .statusbar, .activitybar, .sidebar, .changes, .tabbar, .commit-table, .files-view, .welcome, .drawer) {
   background-image: var(--carbon);
@@ -608,22 +725,14 @@ select { height: 28px; background: var(--bg-raised); border: 1px solid var(--bor
 [data-style="circuit"] .welcome { background-image: radial-gradient(ellipse 60% 45% at 50% 40%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 70%), var(--carbon); }
 
 /* Gradient bars, glowing; a light sweeps across them when animated. */
-[data-style="circuit"] .titlebar::after,
-[data-style="circuit"] .statusbar::before,
-[data-style="circuit"] .tab.on::before {
-  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--text) 85%, transparent), transparent) no-repeat, var(--grad);
-  background-size: 30% 100%, 100% 100%;
-  background-position: -40% 0, 0 0;
-  box-shadow: 0 0 10px var(--accent-ring), 0 0 14px -4px var(--grad-end);
+[data-style="circuit"] .fx-bar { background: var(--grad); box-shadow: 0 0 10px var(--accent-ring), 0 0 14px -4px var(--grad-end); }
+[data-style="circuit"] .fx-bar .fx-move {
+  width: 30%; transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--text) 85%, transparent), transparent);
 }
-[data-style="circuit"] .titlebar { position: relative; z-index: 20; }
-[data-style="circuit"] .titlebar::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; }
-[data-style="circuit"] .statusbar { position: relative; }
-[data-style="circuit"] .statusbar::before { content: ""; position: absolute; left: 0; right: 0; top: -1px; height: 1px; }
-[data-style="circuit"] .tab.on::before { left: 0; right: 0; border-radius: 0; }
-[data-style="circuit"][data-rgb="on"] .titlebar::after,
-[data-style="circuit"][data-rgb="on"] .statusbar::before,
-[data-style="circuit"][data-rgb="on"] .tab.on::before { animation: circuit-sweep 3.5s ease-in-out infinite; }
+/* One sweep now and then (main.tsx sets data-sweep): between sweeps
+   nothing runs, so the window draws no frames at all. */
+[data-style="circuit"][data-rgb="on"][data-sweep="on"] .fx-bar .fx-move { animation: circuit-sweep 1.6s ease-in-out 1; }
 
 /* Logo and titles: bold italic, gradient fill, glow (like the banner's lettering). */
 [data-style="circuit"] .brand {
@@ -687,8 +796,11 @@ select { height: 28px; background: var(--bg-raised); border: 1px solid var(--bor
 /* Expanded diff / commit panel: it takes the whole tab; the sidebar, the
    changes, the remote bar and the history step aside until restored. */
 .git-view.expanded { grid-template-columns: minmax(0, 1fr); }
+/* A staged/unstaged file's diff keeps the changed files at its side, to
+   move between them without leaving the expanded view. */
+.git-view.expanded.keep-changes { grid-template-columns: minmax(0, 1fr) 320px; }
 .git-view.expanded > .sidebar,
-.git-view.expanded > .changes,
+.git-view.expanded:not(.keep-changes) > .changes,
 .git-view.expanded .remote-area,
 .git-view.expanded .view-tabs,
 .git-view.expanded .view-pane { display: none; }

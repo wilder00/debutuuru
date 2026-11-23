@@ -1,4 +1,4 @@
-use crate::{Error, Location, Result};
+use crate::{trace, Error, Location, Result};
 use std::process::{Command, Output, Stdio};
 
 /// Runs git for a [`Location`], either directly or through `wsl.exe`.
@@ -42,7 +42,19 @@ impl GitRunner {
 
     /// Runs git and returns raw output (any exit status).
     pub fn output(&self, args: &[&str]) -> Result<Output> {
-        self.command(args).output().map_err(|source| Error::Spawn {
+        let started = trace::start();
+        let out = self.command(args).output();
+        if started.is_some() {
+            let (code, stderr) = match &out {
+                Ok(o) => (
+                    o.status.code(),
+                    String::from_utf8_lossy(&o.stderr).into_owned(),
+                ),
+                Err(e) => (None, e.to_string()),
+            };
+            trace::record(started, &self.location.path, args, code, &stderr);
+        }
+        out.map_err(|source| Error::Spawn {
             program: if self.location.wsl_distro.is_some() {
                 "wsl.exe"
             } else {

@@ -58,6 +58,7 @@ pub fn run(op: RemoteOp<'_>, events: &Events, ops: &Ops) -> OpOutcome {
     };
     let op_id = op.options.op_id.clone();
     let args: Vec<&str> = op.args.iter().map(String::as_str).collect();
+    let started = debutuuru_core::trace::start();
     let mut cmd = op.repo.runner().command(&args);
     configure_env(&mut cmd, &askpass, &op_id, op.repo_key, op.options);
     cmd.stdout(Stdio::piped()).stderr(Stdio::piped());
@@ -97,6 +98,13 @@ pub fn run(op: RemoteOp<'_>, events: &Events, ops: &Ops) -> OpOutcome {
     let cancelled = lock(&ops.cancelled).remove(&op_id);
 
     let full = format!("{stdout}{log}");
+    debutuuru_core::trace::record(
+        started,
+        &op.repo.runner().location.path,
+        &args,
+        status.as_ref().ok().and_then(|s| s.code()),
+        &full,
+    );
     if cancelled {
         return OpOutcome {
             message: Some(OutcomeMessage::Cancelled),

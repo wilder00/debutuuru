@@ -19,12 +19,19 @@
     "pathLabel": "Repository path",
     "linkedWorktree": "Linked worktree",
     "currentBranch": "Current branch",
-    "refresh": "Refresh (F5)"
+    "refresh": "Refresh (F5)",
+    "hideSidebar": "Hide the left panel",
+    "showSidebar": "Show the left panel",
+    "hideChanges": "Hide the changes panel",
+    "showChanges": "Show the changes panel"
   },
   "tabs": {
     "label": "Open repositories",
     "insideWsl": "Inside WSL ({{distro}})",
-    "close": "Close tab (middle-click)"
+    "close": "Close tab (middle-click)",
+    "collapseGroup": "Click to collapse the group",
+    "expandGroup": "Click to show the group's tabs",
+    "closeGroup": "Close the group's tabs"
   },
   "activity": {
     "label": "Modules",
@@ -50,7 +57,8 @@
     "language": {
       "title": "Language",
       "system": "System ({{language}})",
-      "hint": "Git's own messages (errors, the details of a fetch or push) keep the language of your git installation."
+      "hint": "Git's own messages (errors, the details of a fetch or push) keep the language of your git installation.",
+      "dictionary": "Open the UI dictionary, to learn words of another language"
     },
     "theme": {
       "title": "Theme",
@@ -164,6 +172,12 @@
       "icon": "Icon",
       "iconAuto": "Automatic ({{name}})",
       "iconGeneric": "Terminal"
+    },
+    "fileIcons": {
+      "title": "File icons",
+      "color": "Their own colors",
+      "theme": "Theme color",
+      "hint": "Icons by Material Icon Theme (MIT), as in VS Code. “Theme color” keeps their shapes in the theme's color."
     }
   },
   "git": {
@@ -189,7 +203,20 @@
       "noRemotes": "No remotes",
       "openHint": "Click to open",
       "bare": "bare",
-      "tags": "Tags"
+      "tags": "Tags",
+      "selectHint": "Click to select · Ctrl+click adds · Shift+click a range · right-click for actions",
+      "menu": {
+        "checkout": "Check out",
+        "copy_one": "Copy name",
+        "copy_other": "Copy {{count}} names",
+        "delete_one": "Delete branch…",
+        "delete_other": "Delete {{count}} branches…",
+        "pull": "Pull from {{upstream}}",
+        "update": "Update from {{upstream}}",
+        "updateHint": "Brings in the new commits of its remote branch without switching to it. It only moves forward: if the branch has commits the remote doesn't, nothing changes.",
+        "fetchOne": "Fetch {{branch}}",
+        "fetchOneHint": "Downloads only this branch from its remote. Your local branches don't change."
+      }
     },
     "changes": {
       "staged": "Staged",
@@ -244,7 +271,8 @@
       "contextLines_one": "{{count}} line",
       "contextLines_other": "{{count}} lines",
       "expand": "Expand to the whole window (Esc to restore)",
-      "restore": "Restore the normal layout (Esc)"
+      "restore": "Restore the normal layout (Esc)",
+      "headToWorkingTree": "HEAD → working tree"
     },
     "filesView": {
       "revision": "Which version of the files to show",
@@ -265,7 +293,19 @@
       "back": "Back (Alt+←)",
       "markdownMode": "Markdown view",
       "rendered": "Rendered",
-      "source": "Source"
+      "source": "Source",
+      "changes": {
+        "toggle": "Changes",
+        "toggleHint": "Show this file's changes instead of its content",
+        "uncommitted": "Uncommitted changes in this file (staged and unstaged together):",
+        "untracked": "New file, not committed yet: all of it is new.",
+        "yourCopy": "your copy",
+        "noHistory": "No commit has this file yet.",
+        "lastCommit": "No uncommitted changes. Showing the last commit that changed this file:",
+        "thisCommit": "Changes this commit made to the file:",
+        "before": "This file didn't change in {{rev}}. Showing the last commit before it that did:",
+        "parent": "previous commit"
+      }
     },
     "remote": {
       "starting": "Starting…",
@@ -307,7 +347,12 @@
         "host_key_declined": "Connection stopped: the server's host key was not trusted",
         "tag_pushed": "Pushed tag {{tag}} → {{remote}}",
         "tag_deleted_on_remote": "Deleted tag {{tag}} on {{remote}}",
-        "several_remotes_tag": "Several remotes and none is origin: push the tag from a terminal with `git push <remote> <tag>`."
+        "several_remotes_tag": "Several remotes and none is origin: push the tag from a terminal with `git push <remote> <tag>`.",
+        "remote_branches_deleted": "Deleted {{branches}} on {{remote}}",
+        "branch_updated": "Updated {{branch}} from {{from}}",
+        "branch_up_to_date": "{{branch}} is already up to date",
+        "branch_diverged": "{{branch}} has commits that {{upstream}} doesn't, so it can't just move forward. Check it out and pull to combine them.",
+        "branch_in_worktree": "{{branch}} is checked out in {{worktree}}: pull it there."
       },
       "advice": {
         "sshAuthWindows": "SSH from Windows couldn't authenticate. If your SSH keys live in WSL, turn on “Use WSL's SSH keys for Windows repositories” in Settings (Ctrl+,).",
@@ -368,6 +413,45 @@
       "messagePlaceholder": "Release notes, or what this version is",
       "pushAfter": "Push it to the remote after creating it",
       "createButton": "Create tag"
+    },
+    "branches": {
+      "delete": {
+        "title_one": "Delete branch",
+        "title_other": "Delete {{count}} branches",
+        "checking": "Checking what each deletion means…",
+        "close": "Close",
+        "failed": "Deleting failed",
+        "deleted": "deleted",
+        "notDeleted": "not deleted",
+        "force_one": "Delete anyway the branch with commits that exist only there (git branch -D)",
+        "force_other": "Delete anyway the {{count}} branches with commits that exist only there (git branch -D)",
+        "forceHint": "Those commits stop showing in the history. git keeps them for a while (about 90 days, in the reflog), and the command shown next to each branch brings it back.",
+        "alsoRemote_one": "Also delete its branch on the remote",
+        "alsoRemote_other": "Also delete their {{count}} branches on the remote",
+        "alsoRemoteHint": "Affects everyone who uses the remote: they won't be able to fetch it anymore, and an open pull request from it may close. Their own local copies stay.",
+        "nothing": "Nothing can be deleted with these options.",
+        "summary": "Will delete — local: {{local}} · on the remote: {{remote}}",
+        "confirm_one": "Delete {{count}}",
+        "confirm_other": "Delete {{count}}",
+        "isHead": "It's the checked-out branch: git can't delete it. Switch to another branch first.",
+        "inWorktree": "Checked out in the worktree {{path}}: git can't delete it while it's there.",
+        "remoteEveryone": "Deletes {{branch}} on {{remote}} for everyone with access. Local branches that track it stay.",
+        "remoteUnique_one": "{{count}} commit exists only on this remote branch: after deleting it, nobody can fetch that commit anymore.",
+        "remoteUnique_other": "{{count}} commits exist only on this remote branch: after deleting it, nobody can fetch them anymore.",
+        "remoteSafe": "Its commits are also on other branches: no work is lost.",
+        "mergedInto": "Merged into {{head}}: no work is lost.",
+        "nothingLost": "All its commits are also on other branches or tags: no work is lost.",
+        "unique_one": "{{count}} commit exists only on this branch (not merged anywhere).",
+        "unique_other": "{{count}} commits exist only on this branch (not merged anywhere).",
+        "restore": "To bring it back after deleting:",
+        "skippedUnlessForce": "Skipped unless you choose \"delete anyway\" below.",
+        "notPushed_one": "{{count}} commit not pushed to {{upstream}}.",
+        "notPushed_other": "{{count}} commits not pushed to {{upstream}}.",
+        "upstreamToo": "{{upstream}} will be deleted on the remote too.",
+        "upstreamStays": "{{upstream}} stays on the remote.",
+        "skipped": "skipped",
+        "copyCommand": "Copy the command"
+      }
     }
   },
   "time": {
@@ -446,7 +530,14 @@
       "newTerminal": "New terminal",
       "maximizeTerminal": "Terminal only (whole window)",
       "createTag": "Create tag…",
-      "showTag": "Go to tag…"
+      "showTag": "Go to tag…",
+      "closeGroup": "Close this tab's group",
+      "toggleSidebar": "Show/hide the left panel",
+      "toggleChanges": "Show/hide the changes panel",
+      "focusMode": "Focus: hide/show both side panels",
+      "deleteBranch": "Delete branch…",
+      "showLogs": "Show logs",
+      "dictionary": "UI dictionary (learn words)"
     }
   },
   "open": {
@@ -456,7 +547,16 @@
     "browseWsl": "Browse in WSL ({{distro}})…",
     "recent": "Recent",
     "forget": "Remove from recent",
-    "drop": "Drop a folder to open it as a repository, or a file to open it in its repository"
+    "drop": "Drop a folder to open it as a repository, or a file to open it in its repository",
+    "noRepos": "No Git repositories in {{folder}} (searched two folder levels down)",
+    "groupHint": "Opens the repositories inside it as a group of tabs",
+    "group": "group",
+    "pickTitle_one": "{{count}} repository in this folder",
+    "pickTitle_other": "{{count}} repositories in this folder",
+    "pickAll": "All",
+    "pickNone": "None",
+    "pickOpen_one": "Open {{count}}",
+    "pickOpen_other": "Open {{count}}"
   },
   "window": {
     "minimize": "Minimize",
@@ -480,5 +580,41 @@
     "noProfiles": "No shell found. Add a profile in Settings › Terminal.",
     "rename": "Rename terminal",
     "renameHint": "double-click to rename"
+  },
+  "logs": {
+    "title": "Logs",
+    "filter": "Filter (repository, command, output)",
+    "kind": "Show",
+    "kindAll": "Everything",
+    "kindGit": "Git commands",
+    "kindRequest": "App requests",
+    "request": "request",
+    "errorsOnly": "Errors only",
+    "count_one": "{{count}} line",
+    "count_other": "{{count}} lines",
+    "follow": "Follow new lines",
+    "pause": "Pause",
+    "resume": "Resume",
+    "copy": "Copy the lines shown",
+    "clear": "Clear",
+    "empty": "Every git command and app request appears here while this window is open, with its output (click a line). Nothing is recorded while it's closed.",
+    "paused": "Paused: new lines wait until you resume."
+  },
+  "dictionary": {
+    "title": "UI dictionary",
+    "search": "Search a word",
+    "learn": "Learn",
+    "section": "Section",
+    "allSections": "All sections",
+    "short": "Words and short phrases",
+    "shortHint": "Hides long sentences, which are harder to memorize",
+    "count_one": "{{count}} entry",
+    "count_other": "{{count}} entries",
+    "shuffle": "Shuffle",
+    "inOrder": "Back to order",
+    "practice": "Practice: hide the translations",
+    "showAll": "Show all translations",
+    "practiceHint": "Guess each translation, then click it to check.",
+    "none": "Nothing matches."
   }
 }

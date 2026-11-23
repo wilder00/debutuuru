@@ -30,6 +30,12 @@ Phase 1, verified end to end on Windows 11 + Ubuntu (WSL2):
   content-hashed name, and reached over one long-lived `wsl.exe` pipe.
 - Agent file watchers (`notify`: inotify / ReadDirectoryChangesW) push
   `git.changed` events, so the UI refreshes by itself, also for WSL repos.
+  Reads (inotify reports every file git opens) and the git folders
+  themselves (Windows reports `.git` when `index.lock` comes and goes) are
+  ignored, or each refresh's own `git status` would trigger the next one.
+  A refresh reads the history (`git log`, 2,000 commits) only when a
+  branch, tag or worktree HEAD moved; a hidden tab doesn't refresh, it
+  refreshes when shown again.
 - A killed WSL agent is detected (`agent.disconnected`), restarted on the next
   call, and watchers are re-armed automatically.
 - Single instance: `debutuuru <path>` hands the path to the running app,
@@ -253,6 +259,53 @@ means adding a module, not a new transport.
   (Han unification), and `:lang()` picks the Japanese or Korean fallback
   fonts. Agent results carry `OpOutcome.message` (git module v5) so the UI
   words them itself; git's own output stays in git's language.
+- Updating a branch without checking it out (git module v13):
+  `git.update_branch` runs `fetch <remote> <merge>:refs/heads/<branch>`
+  with the branch's own `branch.<name>.remote`/`.merge`, which git only
+  fast-forwards (a diverged branch is refused and reported as such) and
+  refuses for a branch checked out anywhere (the UI offers Pull for the
+  current one; one open in another worktree is reported). A remote branch
+  fetches alone (`+refs/heads/x:refs/remotes/<remote>/x`).
+- File icons: Material Icon Theme (MIT) through a Vite plugin
+  (`vite.config.ts`): `virtual:file-icons` is its VS Code manifest reduced
+  to name/extension/folder → icon, and its SVGs are served as
+  `/file-icons/<icon>.svg` (copied into the build), loaded on first view.
+- Tool windows: extras that aren't the core open in their own app window
+  (`open_tool_window`, labels `logs` and `dictionary`), never modal, closed
+  with the main window. The page reads `window.__DEBUTUURU_VIEW__` to render
+  the tool instead of the app.
+- Logs: `debutuuru_core::trace` records each git command (args, time, exit
+  code, stderr shortened to 8 KiB) only while a sink is set; otherwise it
+  costs one atomic load. The `set_logging` agent method (protocol-level,
+  additive) sets the sink, and the agent sends a `log.command` event per
+  command. The shell turns logging on in every agent (and WSL agents started
+  later) when the log window opens and off when it closes, adds a line per
+  UI request, and sends lines to that window only. Prompt answers never
+  appear: they go through askpass, never in arguments.
+- UI dictionary: reads the translations the app already ships
+  (`i18n.getResourceBundle`), UI language beside the one chosen to learn.
+- Deleting branches (git module v12): `git.branch_deletion_info` checks
+  each branch first (checked out here or in a worktree, merged into HEAD,
+  commits no other ref has via `rev-list <ref> --not --exclude=<ref> --all`,
+  commits not pushed via `x@{upstream}..x`), so the UI explains the
+  consequences before deleting. `git.delete_branches` runs `git branch -d`
+  (or `-D` when the user chose to) per branch, so one refusal doesn't stop
+  the rest; `git.delete_remote_branches` is a remote operation
+  (`push <remote> --delete`).
+- A file's changes in Files (git module v11): `DiffSource::Head` (HEAD →
+  working tree, staged and unstaged together) for files with uncommitted
+  changes, else `git.last_change` (`git log -1 --follow`, with the old name
+  when that commit renamed it) shown as that commit's diff. The panel says
+  which of the two it is. Side panels can be hidden (`Settings.layout`).
+- Folders of repositories (git module v10): opening a folder asks the agent
+  `git.find_repos` first. Inside a repository it opens as before; otherwise
+  the agent lists the clones and worktrees (`.git` folder or file) up to two
+  levels down, skipping hidden folders and `node_modules`/`target`/…, and
+  the UI opens them as a tab group (`Session.groups`, with
+  `recent_groups`). More than 8 found: the user picks which. The agent does
+  the search, so WSL folders are searched inside WSL. Names shown for tabs,
+  recents, the palette and worktrees add parent folders only when two would
+  look the same (`lib/names.ts`).
 - Tags (git module v9): `Snapshot.tags` lists them with one `for-each-ref`
   (kind, peeled commit, tagger, date, message without the signature, whether
   it's signed; signatures aren't verified). `git.create_tag` and

@@ -55,6 +55,21 @@ pub enum DiffSource {
     Untracked,
     /// First parent → this commit.
     Commit { rev: String },
+    /// HEAD → working tree: every uncommitted change, staged or not.
+    Head,
+}
+
+/// The last commit that changed a file, for "what changed here".
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct LastChange {
+    pub hash: String,
+    pub subject: String,
+    pub author: String,
+    #[ts(type = "number")]
+    pub time: i64,
+    /// The file's name before that commit, when the commit renamed it.
+    pub orig_path: Option<String>,
 }
 
 /// Both sides of a file diff; `None` where the file doesn't exist (added or
@@ -150,6 +165,10 @@ impl Repo {
                 old: None,
                 new: self.on_disk(&path)?,
             },
+            DiffSource::Head => FileVersions {
+                old: self.blob("HEAD", &old_path)?,
+                new: self.on_disk(&path)?,
+            },
             DiffSource::Commit { rev } => {
                 let rev = check_rev(rev)?;
                 FileVersions {
@@ -159,6 +178,67 @@ impl Repo {
                 }
             }
         })
+    }
+
+    /// The last commit that changed `path`, at `rev` or before it (`None` =
+    /// HEAD), following renames. `None` if no commit has it.
+    pub fn last_change(&self, rev: Option<&str>, path: &str) -> Result<Option<LastChange>> {
+        let path = clean_rel(path)?;
+        if path.is_empty() {
+            return Err(Error::InvalidPath("a file path is required".into()));
+        }
+        let rev = match rev {
+            Some(r) => check_rev(r)?,
+            None => "HEAD",
+        };
+        let out = match self.runner().git(&[
+            "log",
+            "-1",
+            "--follow",
+            "-M",
+            "--name-status",
+            "--format=%x1e%H%x1f%s%x1f%an%x1f%at",
+            rev,
+            "--",
+            &path,
+        ]) {
+            Ok(o) => o,
+            // No commits yet (unborn HEAD).
+            Err(Error::Git(m))
+                if [
+                    "does not have any commits",
+                    "unknown revision",
+                    "bad revision",
+                ]
+                .iter()
+                .any(|x| m.contains(x)) =>
+            {
+                return Ok(None)
+            }
+            Err(e) => return Err(e),
+        };
+        let Some(record) = out.split('\u{1e}').map(str::trim).find(|r| !r.is_empty()) else {
+            return Ok(None);
+        };
+        let mut lines = record.lines();
+        let head: Vec<&str> = lines.next().unwrap_or("").split('\u{1f}').collect();
+        if head.len() < 4 {
+            return Err(Error::Parse(record.to_string()));
+        }
+        // `R087\told\tnew` when that commit renamed the file.
+        let orig_path = lines
+            .map(|l| l.split('\t').collect::<Vec<_>>())
+            .find(|f| f.len() == 3 && f[0].starts_with('R'))
+            .map(|f| f[1].to_string());
+        Ok(Some(LastChange {
+            hash: head[0].to_string(),
+            subject: head[1].to_string(),
+            author: head[2].to_string(),
+            time: head[3]
+                .parse()
+                .map_err(|_| Error::Parse(record.to_string()))?,
+            orig_path,
+        }))
     }
 
     /// `path` at `rev` (`""` = the index), or `None` if it isn't there.

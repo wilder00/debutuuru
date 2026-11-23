@@ -19,12 +19,19 @@
     "pathLabel": "リポジトリのパス",
     "linkedWorktree": "リンクされたワークツリー",
     "currentBranch": "現在のブランチ",
-    "refresh": "再読み込み (F5)"
+    "refresh": "再読み込み (F5)",
+    "hideSidebar": "左パネルを隠す",
+    "showSidebar": "左パネルを表示",
+    "hideChanges": "変更パネルを隠す",
+    "showChanges": "変更パネルを表示"
   },
   "tabs": {
     "label": "開いているリポジトリ",
     "insideWsl": "WSL 内 ({{distro}})",
-    "close": "タブを閉じる (中クリック)"
+    "close": "タブを閉じる (中クリック)",
+    "collapseGroup": "クリックでグループを折りたたむ",
+    "expandGroup": "クリックでグループのタブを表示",
+    "closeGroup": "グループのタブを閉じる"
   },
   "activity": {
     "label": "モジュール",
@@ -50,7 +57,8 @@
     "language": {
       "title": "言語",
       "system": "システム ({{language}})",
-      "hint": "git 自体のメッセージ (エラーや、フェッチ・プッシュの詳細) は、お使いの git の言語のまま表示されます。"
+      "hint": "git 自体のメッセージ (エラーや、フェッチ・プッシュの詳細) は、お使いの git の言語のまま表示されます。",
+      "dictionary": "UI 辞書を開いて、ほかの言語の単語を覚える"
     },
     "theme": {
       "title": "テーマ",
@@ -164,6 +172,12 @@
       "icon": "アイコン",
       "iconAuto": "自動（{{name}}）",
       "iconGeneric": "ターミナル"
+    },
+    "fileIcons": {
+      "title": "ファイルアイコン",
+      "color": "アイコン本来の色",
+      "theme": "テーマの色",
+      "hint": "Material Icon Theme(MIT)のアイコンで、VS Code と同じです。「テーマの色」は形はそのままに、テーマの色で表示します。"
     }
   },
   "git": {
@@ -189,7 +203,18 @@
       "noRemotes": "リモートなし",
       "openHint": "クリックして開く",
       "bare": "ベア",
-      "tags": "タグ"
+      "tags": "タグ",
+      "selectHint": "クリックで選択 · Ctrl+クリックで追加 · Shift+クリックで範囲 · 右クリックで操作",
+      "menu": {
+        "checkout": "チェックアウト",
+        "copy_other": "名前をコピー ({{count}})",
+        "delete_other": "ブランチを削除 ({{count}})…",
+        "pull": "{{upstream}} からプル",
+        "update": "{{upstream}} から更新",
+        "updateHint": "切り替えずに、リモートブランチの新しいコミットを取り込みます。前に進めるだけなので、リモートにないコミットがある場合は何も変わりません。",
+        "fetchOne": "{{branch}} をフェッチ",
+        "fetchOneHint": "このブランチだけをリモートからダウンロードします。ローカルブランチは変わりません。"
+      }
     },
     "changes": {
       "staged": "ステージ済み",
@@ -242,7 +267,8 @@
       "options": "表示オプション",
       "contextLines_other": "{{count}} 行",
       "expand": "ウィンドウ全体に広げる (Esc で元に戻す)",
-      "restore": "通常の表示に戻す (Esc)"
+      "restore": "通常の表示に戻す (Esc)",
+      "headToWorkingTree": "HEAD → 作業ツリー"
     },
     "filesView": {
       "revision": "表示するファイルのバージョン",
@@ -263,7 +289,19 @@
       "back": "戻る (Alt+←)",
       "markdownMode": "Markdown の表示",
       "rendered": "プレビュー",
-      "source": "ソース"
+      "source": "ソース",
+      "changes": {
+        "toggle": "変更",
+        "toggleHint": "内容の代わりにこのファイルの変更を表示",
+        "uncommitted": "このファイルの未コミットの変更（ステージ済みと未ステージをまとめて）:",
+        "untracked": "まだコミットされていない新しいファイルです。すべてが新規です。",
+        "yourCopy": "あなたのコピー",
+        "noHistory": "このファイルを含むコミットはまだありません。",
+        "lastCommit": "未コミットの変更はありません。このファイルを最後に変更したコミットを表示しています:",
+        "thisCommit": "このコミットでのファイルの変更:",
+        "before": "このファイルは {{rev}} で変更されていません。それ以前に変更した最後のコミットを表示しています:",
+        "parent": "前のコミット"
+      }
     },
     "remote": {
       "starting": "開始中…",
@@ -305,7 +343,12 @@
         "host_key_declined": "接続を中止しました: サーバーのホストキーが信頼されませんでした",
         "tag_pushed": "タグ {{tag}} をプッシュしました → {{remote}}",
         "tag_deleted_on_remote": "{{remote}} のタグ {{tag}} を削除しました",
-        "several_remotes_tag": "リモートが複数あり、origin がありません。ターミナルで `git push <remote> <tag>` を実行してください。"
+        "several_remotes_tag": "リモートが複数あり、origin がありません。ターミナルで `git push <remote> <tag>` を実行してください。",
+        "remote_branches_deleted": "{{remote}} の {{branches}} を削除しました",
+        "branch_updated": "{{branch}} を {{from}} から更新しました",
+        "branch_up_to_date": "{{branch}} はすでに最新です",
+        "branch_diverged": "{{branch}} には {{upstream}} にないコミットがあるため、前に進めるだけでは更新できません。チェックアウトしてプルし、統合してください。",
+        "branch_in_worktree": "{{branch}} は {{worktree}} でチェックアウトされています。そこでプルしてください。"
       },
       "advice": {
         "sshAuthWindows": "Windows からの SSH で認証できませんでした。SSH キーが WSL にある場合は、設定 (Ctrl+,) で「Windows のリポジトリで WSL の SSH キーを使う」をオンにしてください。",
@@ -365,6 +408,38 @@
       "messagePlaceholder": "リリースノート、またはこのバージョンの説明",
       "pushAfter": "作成後にリモートへプッシュする",
       "createButton": "タグを作成"
+    },
+    "branches": {
+      "delete": {
+        "title_other": "ブランチを削除 ({{count}})",
+        "checking": "それぞれの削除の影響を確認しています…",
+        "close": "閉じる",
+        "failed": "削除に失敗しました",
+        "deleted": "削除しました",
+        "notDeleted": "削除されませんでした",
+        "force_other": "そこにしかないコミットがあるブランチ ({{count}}) も削除する (git branch -D)",
+        "forceHint": "それらのコミットは履歴に表示されなくなります。git はしばらく (約 90 日、reflog に) 保持し、各ブランチの横のコマンドで復元できます。",
+        "alsoRemote_other": "リモートのブランチ ({{count}}) も削除する",
+        "alsoRemoteHint": "リモートを使う全員に影響します。取得できなくなり、そこからの開いているプルリクエストが閉じることがあります。各自のローカルのコピーは残ります。",
+        "nothing": "この設定では削除できるものがありません。",
+        "summary": "削除 — ローカル: {{local}} · リモート: {{remote}}",
+        "confirm_other": "{{count}} 件を削除",
+        "isHead": "チェックアウト中のブランチなので git は削除できません。先に別のブランチに切り替えてください。",
+        "inWorktree": "ワークツリー {{path}} でチェックアウトされているため、git は削除できません。",
+        "remoteEveryone": "{{remote}} の {{branch}} をアクセスできる全員から削除します。それを追跡するローカルブランチは残ります。",
+        "remoteUnique_other": "{{count}} 件のコミットはこのリモートブランチにしかありません。削除後は誰も取得できなくなります。",
+        "remoteSafe": "コミットは他のブランチにもあります。作業は失われません。",
+        "mergedInto": "{{head}} にマージ済みです。作業は失われません。",
+        "nothingLost": "すべてのコミットは他のブランチやタグにもあります。作業は失われません。",
+        "unique_other": "{{count}} 件のコミットはこのブランチにしかありません (どこにもマージされていません)。",
+        "restore": "削除後に戻すには:",
+        "skippedUnlessForce": "下の「それでも削除」を選ばない限りスキップされます。",
+        "notPushed_other": "{{count}} 件のコミットが {{upstream}} にプッシュされていません。",
+        "upstreamToo": "リモートの {{upstream}} も削除されます。",
+        "upstreamStays": "リモートの {{upstream}} は残ります。",
+        "skipped": "スキップ",
+        "copyCommand": "コマンドをコピー"
+      }
     }
   },
   "time": {
@@ -443,7 +518,14 @@
       "newTerminal": "新しいターミナル",
       "maximizeTerminal": "ターミナルのみ (ウィンドウ全体)",
       "createTag": "タグを作成…",
-      "showTag": "タグへ移動…"
+      "showTag": "タグへ移動…",
+      "closeGroup": "このタブのグループを閉じる",
+      "toggleSidebar": "左パネルの表示/非表示",
+      "toggleChanges": "変更パネルの表示/非表示",
+      "focusMode": "集中: 両側のパネルを隠す/表示",
+      "deleteBranch": "ブランチを削除…",
+      "showLogs": "ログを表示",
+      "dictionary": "UI 辞書(単語を覚える)"
     }
   },
   "open": {
@@ -453,7 +535,14 @@
     "browseWsl": "WSL で参照 ({{distro}})…",
     "recent": "最近使用したもの",
     "forget": "最近使用した一覧から削除",
-    "drop": "フォルダーをドロップするとリポジトリとして開き、ファイルをドロップするとそのリポジトリで開きます"
+    "drop": "フォルダーをドロップするとリポジトリとして開き、ファイルをドロップするとそのリポジトリで開きます",
+    "noRepos": "{{folder}} に Git リポジトリがありません（2 階層下まで検索しました）",
+    "groupHint": "中のリポジトリをタブのグループとして開きます",
+    "group": "グループ",
+    "pickTitle_other": "このフォルダーのリポジトリ: {{count}} 件",
+    "pickAll": "すべて",
+    "pickNone": "なし",
+    "pickOpen_other": "{{count}} 件を開く"
   },
   "window": {
     "minimize": "最小化",
@@ -477,5 +566,39 @@
     "noProfiles": "シェルが見つかりません。設定 › ターミナルでプロファイルを追加してください。",
     "rename": "ターミナルの名前を変更",
     "renameHint": "ダブルクリックで名前を変更"
+  },
+  "logs": {
+    "title": "ログ",
+    "filter": "絞り込み(リポジトリ、コマンド、出力)",
+    "kind": "表示",
+    "kindAll": "すべて",
+    "kindGit": "Git コマンド",
+    "kindRequest": "アプリのリクエスト",
+    "request": "リクエスト",
+    "errorsOnly": "エラーのみ",
+    "count_other": "{{count}} 行",
+    "follow": "新しい行を追う",
+    "pause": "一時停止",
+    "resume": "再開",
+    "copy": "表示中の行をコピー",
+    "clear": "クリア",
+    "empty": "このウィンドウを開いている間、Git コマンドとアプリのリクエストがその出力とともにここに表示されます(行をクリック)。閉じている間は何も記録されません。",
+    "paused": "一時停止中:新しい行は再開まで待機します。"
+  },
+  "dictionary": {
+    "title": "UI 辞書",
+    "search": "単語を検索",
+    "learn": "学ぶ言語",
+    "section": "セクション",
+    "allSections": "すべてのセクション",
+    "short": "単語と短いフレーズ",
+    "shortHint": "覚えにくい長い文を隠します",
+    "count_other": "{{count}} 件",
+    "shuffle": "シャッフル",
+    "inOrder": "元の順に戻す",
+    "practice": "練習:訳を隠す",
+    "showAll": "すべての訳を表示",
+    "practiceHint": "訳を思い浮かべてから、クリックして確かめましょう。",
+    "none": "一致するものがありません。"
   }
 }
