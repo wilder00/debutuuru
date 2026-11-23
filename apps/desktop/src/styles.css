@@ -274,6 +274,10 @@ ul { list-style: none; margin: 0; padding: 0; }
 .item.file { padding-left: 8px; }
 .item.file .label { color: var(--text); }
 .item.file .dir { margin-left: 6px; color: var(--text-faint); font-size: .88em; }
+.changes-bar { display: flex; align-items: center; padding: 6px 8px 0; }
+.changes-bar .segmented button { height: 22px; padding: 0 6px; display: inline-flex; align-items: center; }
+.item.file .path-dir { color: var(--text-faint); }
+.item.file.folder .label { color: var(--text-muted); }
 .status { width: 16px; flex: none; text-align: center; font: 700 .8em var(--font-mono); border-radius: 3px; }
 .s-M { color: var(--warn); } .s-A { color: var(--ok); } .s-D { color: var(--danger); }
 .s-R, .s-C { color: var(--info); } .s-q { color: var(--ok); opacity: .8; } .s-U { color: var(--danger); }
@@ -866,3 +870,16 @@ select { height: 28px; background: var(--bg-raised); border: 1px solid var(--bor
 .profile-card > button { align-self: flex-start; }
 .block-field { display: flex; flex-direction: column; gap: 4px; }
 .block-field textarea { resize: vertical; }
+
+/* Definitions of a name (Ctrl+click in Files) */
+.def-picker {
+  flex: none; display: flex; flex-direction: column; max-height: 45%; min-height: 0;
+  border-bottom: 1px solid var(--border); background: var(--bg-raised); outline: none;
+}
+.def-picker-head { display: flex; align-items: center; gap: 8px; padding: 4px 8px 4px 12px; color: var(--text-muted); border-bottom: 1px solid var(--border-subtle); }
+.def-picker-head code { color: var(--text); }
+.def-picker-list { overflow: auto; padding: 4px; }
+.def-row { gap: 8px; }
+.def-row .def-file { flex: none; color: var(--text); white-space: nowrap; }
+.def-row .def-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-muted); font-size: .9em; }
+.def-row .def-dir { flex: none; max-width: 40%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

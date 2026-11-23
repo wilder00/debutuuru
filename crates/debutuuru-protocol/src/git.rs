@@ -26,7 +26,8 @@ pub const MODULE: &str = "git";
 ///     `git.delete_remote_branches`.
 /// 13: `git.update_branch` (bring one branch up to date from its remote
 ///     without checking it out).
-pub const MODULE_VERSION: u32 = 13;
+/// 14: `git.grep` (find where a name is defined).
+pub const MODULE_VERSION: u32 = 14;
 
 /// [`RepoParams`] → [`Snapshot`]
 pub const SNAPSHOT: &str = "git.snapshot";
@@ -57,6 +58,9 @@ pub const FILE_VERSIONS: &str = "git.file_versions";
 pub const LAST_CHANGE: &str = "git.last_change";
 /// [`StatPathsParams`] → `Vec<Option<EntryKind>>`, one per path: what exists.
 pub const STAT_PATHS: &str = "git.stat_paths";
+/// [`GrepParams`] → `Vec<`[`debutuuru_core::search::GrepMatch`]`>`: lines
+/// matching any of the patterns.
+pub const GREP: &str = "git.grep";
 /// [`ReadFileParams`] → [`debutuuru_core::files::FileBytes`] (base64, ≤ 10 MiB).
 pub const READ_BYTES: &str = "git.read_bytes";
 /// [`TreeParams`] (only `rev` is used) → `Vec<String>`: every file, for quick open.
@@ -229,6 +233,26 @@ pub struct StatPathsParams {
     pub rev: Option<String>,
     /// Repo-relative, `/`-separated (at most 64).
     pub paths: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export)]
+pub struct GrepParams {
+    pub repo: String,
+    /// Commit; `None` = the working tree (tracked and untracked files).
+    #[serde(default)]
+    #[ts(optional)]
+    pub rev: Option<String>,
+    /// POSIX extended regexes; a line matches if any does (at most 32).
+    pub patterns: Vec<String>,
+    /// Git pathspecs (`*.ts`…) limiting the files; empty = all.
+    #[serde(default)]
+    #[ts(optional)]
+    pub paths: Option<Vec<String>>,
+    /// Most matches returned (default 200, at most 1000).
+    #[serde(default)]
+    #[ts(optional)]
+    pub max: Option<u32>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]

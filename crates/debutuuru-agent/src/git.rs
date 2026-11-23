@@ -456,6 +456,15 @@ impl Module for GitModule {
             READ_FILE => handle_with(params, |p: ReadFileParams| {
                 self.repo(&p.repo)?.read_file(p.rev.as_deref(), &p.path)
             }),
+            GREP => handle_with(params, |p: GrepParams| {
+                let max = p.max.unwrap_or(200) as usize;
+                self.repo(&p.repo)?.grep(
+                    p.rev.as_deref(),
+                    &p.patterns,
+                    p.paths.as_deref().unwrap_or_default(),
+                    max,
+                )
+            }),
             STAT_PATHS => handle_with(params, |p: StatPathsParams| {
                 self.repo(&p.repo)?.stat_paths(p.rev.as_deref(), &p.paths)
             }),

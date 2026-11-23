@@ -229,7 +229,15 @@
       "unstage": "스테이징 취소",
       "messagePlaceholder": "커밋 메시지",
       "commit": "커밋",
-      "commitFiles_other": "파일 {{count}}개 커밋"
+      "commitFiles_other": "파일 {{count}}개 커밋",
+      "stageFolder": "폴더 스테이지",
+      "unstageFolder": "폴더 스테이지 해제",
+      "view": {
+        "label": "파일 보기",
+        "list": "목록: 이름 뒤에 폴더",
+        "path": "경로: 각 파일의 전체 경로",
+        "tree": "트리: 폴더별로 묶기"
+      }
     },
     "graph": {
       "label": "커밋 기록",
@@ -303,6 +311,14 @@
         "thisCommit": "이 커밋이 파일에서 바꾼 내용:",
         "before": "이 파일은 {{rev}}에서 바뀌지 않았습니다. 그 이전에 바꾼 마지막 커밋을 표시합니다:",
         "parent": "이전 커밋"
+      },
+      "definition": {
+        "hint": "Ctrl+클릭하여 정의로 이동",
+        "searching": "{{name}}이(가) 정의된 곳을 찾는 중…",
+        "notFound": "{{name}}이(가) 정의된 곳을 찾을 수 없습니다",
+        "here": "{{name}}은(는) 여기에서 정의됩니다",
+        "title_other": "<code>{{name}}</code> 정의 {{count}}개",
+        "close": "닫기"
       }
     },
     "remote": {

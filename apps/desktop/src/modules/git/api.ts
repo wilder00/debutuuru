@@ -18,6 +18,8 @@ import type { TreeParams } from "../../bindings/TreeParams";
 import type { CommitDetails } from "../../bindings/CommitDetails";
 import type { FileVersions } from "../../bindings/FileVersions";
 import type { FileVersionsParams } from "../../bindings/FileVersionsParams";
+import type { GrepMatch } from "../../bindings/GrepMatch";
+import type { GrepParams } from "../../bindings/GrepParams";
 import type { RevParams } from "../../bindings/RevParams";
 import type { EntryKind } from "../../bindings/EntryKind";
 import type { FileBytes } from "../../bindings/FileBytes";
@@ -48,6 +50,8 @@ export const git = {
   listFiles: (repo: string, p: { rev?: string }) => rpc<string[]>(repo, "git.list_files", p),
   /** What each path is (file, folder…) or null: up to 64 per call. */
   statPaths: (repo: string, p: Params<StatPathsParams>) => rpc<(EntryKind | null)[]>(repo, "git.stat_paths", p),
+  /** Lines matching any of the patterns (POSIX extended regexes). */
+  grep: (repo: string, p: Params<GrepParams>) => rpc<GrepMatch[]>(repo, "git.grep", p),
   /** A file's bytes as base64 (≤ 10 MiB), for images. */
   readBytes: (repo: string, p: Params<ReadFileParams>) => rpc<FileBytes>(repo, "git.read_bytes", p),
   /** The last commit that changed a file, at `rev` (default HEAD) or before. */

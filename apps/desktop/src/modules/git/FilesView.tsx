@@ -2,14 +2,17 @@
 // tree (with live changes marked) or for any commit. Ctrl+click on an import
 // opens the imported file; Markdown is shown rendered by default.
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { ArrowLeft, FileDiff } from "lucide-react";
+import { ArrowLeft, FileDiff, X } from "lucide-react";
 import { Trans, useTranslation } from "react-i18next";
 import type { FileBytes } from "../../bindings/FileBytes";
 import type { FileContent } from "../../bindings/FileContent";
+import type { GrepMatch } from "../../bindings/GrepMatch";
 import type { Snapshot } from "../../bindings/Snapshot";
 import { formatBytes } from "../../lib/format";
 import { git } from "./api";
 import { CodeViewer } from "./CodeViewer";
+import { findDefinitions, type Def, type Sym } from "./definitions";
+import { FileIcon } from "./fileIcons";
 import { FileChanges } from "./FileChanges";
 import { BookmarkButton, FileTreeRows, useBookmarks, useFileTree, type FileTreeState } from "./FileTree";
 import { candidates, langOf, type Link } from "./links";
@@ -85,6 +88,7 @@ export function FilesView({ repo, snapshot, rev, revOptions, onRev, openRequest 
     tree,
     useCallback((p: string) => git.readFile(repo, { rev: rev ?? undefined, path: p }), [repo, rev]),
     useCallback((paths: string[]) => git.statPaths(repo, { rev: rev ?? undefined, paths }), [repo, rev]),
+    useCallback((patterns: string[], paths: string[]) => git.grep(repo, { rev: rev ?? undefined, patterns, paths, max: 200 }), [repo, rev]),
   );
 
   useEffect(() => {
@@ -137,6 +141,7 @@ export function FilesView({ repo, snapshot, rev, revOptions, onRev, openRequest 
             <span>{follow.notice}</span>
           </div>
         )}
+        {follow.picker && <DefinitionPicker {...follow.picker} onPick={follow.open} onClose={follow.closePicker} />}
         {tree.gone ? (
           <div className="empty">
             <span>
@@ -153,6 +158,8 @@ export function FilesView({ repo, snapshot, rev, revOptions, onRev, openRequest 
             onBookmark={() => bookmarks.toggle(selected)}
             changes={{ on: showChanges, onToggle: setShowChanges, view: <FileChanges repo={repo} path={selected} rev={rev} snapshot={snapshot} /> }}
             onFollow={follow.follow}
+            onDefine={follow.define}
+            goto={follow.goto}
             onBack={tree.canGoBack ? tree.back : undefined}
           />
         ) : (
@@ -164,12 +171,63 @@ export function FilesView({ repo, snapshot, rev, revOptions, onRev, openRequest 
 }
 
 /** Ctrl+click on an import or a link: opens the first candidate that exists,
- *  or says it found none. */
-export function useFollow(tree: FileTreeState, readFile: (path: string) => Promise<FileContent>, statPaths: (paths: string[]) => Promise<(string | null)[]>) {
+ *  or says it found none. On a name: goes to its definition, or offers them
+ *  all when there are several (`grep` searches the whole repository). */
+export function useFollow(
+  tree: FileTreeState,
+  readFile: (path: string) => Promise<FileContent>,
+  statPaths: (paths: string[]) => Promise<(string | null)[]>,
+  grep: ((patterns: string[], paths: string[]) => Promise<GrepMatch[]>) | null = null,
+) {
   const { t } = useTranslation();
   const [notice, setNotice] = useState<string | null>(null);
+  const [picker, setPicker] = useState<{ name: string; defs: Def[] } | null>(null);
+  const [goto, setGoto] = useState<{ path: string; line: number; key: number } | null>(null);
   const selected = tree.selected;
   const { go } = tree;
+
+  /** Opens a definition at its line. */
+  const open = useCallback(
+    (d: Def) => {
+      setPicker(null);
+      go(d.path);
+      setGoto({ path: d.path, line: d.line, key: Date.now() });
+    },
+    [go],
+  );
+
+  // Another file opened from the tree: forget the line.
+  useEffect(() => {
+    if (goto && selected !== goto.path) setGoto(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selected]);
+
+  const search = useRef(0);
+  const define = useCallback(
+    async (path: string, text: string, sym: Sym) => {
+      const n = ++search.current;
+      setNotice(null);
+      setPicker(null);
+      const searching = window.setTimeout(() => n === search.current && setNotice(t("git.filesView.definition.searching", { name: sym.name })), 400);
+      const read = (p: string) =>
+        readFile(p)
+          .then((c) => c.text ?? null)
+          .catch(() => null);
+      try {
+        const found = await findDefinitions(sym, path, text, langOf(path), { read, stat: statPaths, grep });
+        if (n !== search.current) return;
+        setNotice(null);
+        if (found.defs.length === 1) open(found.defs[0]);
+        else if (found.defs.length > 1) setPicker({ name: sym.name, defs: found.defs });
+        else setNotice(t(found.here ? "git.filesView.definition.here" : "git.filesView.definition.notFound", { name: sym.name }));
+      } catch (e) {
+        if (n === search.current) setNotice(e instanceof Error ? e.message : String(e));
+      } finally {
+        window.clearTimeout(searching);
+      }
+    },
+    [readFile, statPaths, grep, open, t],
+  );
   const follow = useCallback(
     async (link: Link) => {
       const from = selected ?? "";
@@ -203,7 +261,66 @@ export function useFollow(tree: FileTreeState, readFile: (path: string) => Promi
     return () => window.clearTimeout(id);
   }, [notice]);
 
-  return { follow, notice };
+  return { follow, notice, define, picker, open, closePicker: () => setPicker(null), goto };
+}
+
+/** Several definitions of a name: pick one (arrows and Enter, or a click). */
+export function DefinitionPicker({ name, defs, onPick, onClose }: { name: string; defs: Def[]; onPick: (d: Def) => void; onClose: () => void }) {
+  const { t } = useTranslation();
+  const [i, setI] = useState(0);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    ref.current?.focus();
+  }, []);
+  useEffect(() => {
+    ref.current?.querySelector(".def-row.selected")?.scrollIntoView({ block: "nearest" });
+  }, [i]);
+  const onKey = (e: React.KeyboardEvent) => {
+    if (e.key === "ArrowDown") setI((x) => Math.min(defs.length - 1, x + 1));
+    else if (e.key === "ArrowUp") setI((x) => Math.max(0, x - 1));
+    else if (e.key === "Enter") onPick(defs[i]);
+    else if (e.key === "Escape") onClose();
+    else return;
+    e.preventDefault();
+    e.stopPropagation();
+  };
+  return (
+    <div className="def-picker" ref={ref} tabIndex={-1} onKeyDown={onKey} role="listbox" aria-label={t("git.filesView.definition.title", { count: defs.length, name }).replace(/<\/?code>/g, "")}>
+      <div className="def-picker-head">
+        <span>
+          <Trans i18nKey="git.filesView.definition.title" count={defs.length} values={{ name }} components={{ code: <code className="mono" /> }} />
+        </span>
+        <span className="spacer" />
+        <button className="icon-btn" onClick={onClose} title={t("git.filesView.definition.close")}>
+          <X size={14} />
+        </button>
+      </div>
+      <div className="def-picker-list">
+        {defs.map((d, k) => {
+          const file = d.path.slice(d.path.lastIndexOf("/") + 1);
+          return (
+            <div
+              key={`${d.path}:${d.line}`}
+              role="option"
+              aria-selected={k === i}
+              className={"item def-row" + (k === i ? " selected" : "")}
+              onMouseEnter={() => setI(k)}
+              onClick={() => onPick(d)}
+              title={`${d.path}:${d.line}`}
+            >
+              <FileIcon name={file} />
+              <span className="def-file">
+                {file}
+                <span className="hint">:{d.line}</span>
+              </span>
+              <span className="def-text mono">{d.text}</span>
+              <span className="hint def-dir">{d.path.slice(0, Math.max(0, d.path.length - file.length - 1))}</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 type PaneProps = {
@@ -218,11 +335,15 @@ type PaneProps = {
   /** Repositories: the "Changes" toggle and what it shows. */
   changes?: { on: boolean; onToggle: (on: boolean) => void; view: ReactNode };
   onFollow: (link: Link) => void;
+  /** Ctrl+click on a name: its definition (`text` is the file's). */
+  onDefine?: (path: string, text: string, sym: Sym) => void;
+  /** The line to show, when a definition was opened in this file. */
+  goto?: { path: string; line: number; key: number } | null;
   onBack?: () => void;
 };
 
 /** One file: rendered Markdown or the code viewer, and its header. */
-export function FilePane({ path, content, readBytes, revLabel, bookmarked, onBookmark, changes, onFollow, onBack }: PaneProps) {
+export function FilePane({ path, content, readBytes, revLabel, bookmarked, onBookmark, changes, onFollow, onDefine, goto, onBack }: PaneProps) {
   const { t } = useTranslation();
   const markdown = langOf(path) === "markdown";
   const [rendered, setRendered] = useState(true);
@@ -283,7 +404,13 @@ export function FilePane({ path, content, readBytes, revLabel, bookmarked, onBoo
               <MarkdownView readBytes={readBytes} path={path} text={c.text ?? ""} onFollow={onFollow} />
             </Suspense>
           ) : (
-            <CodeViewer path={path} text={c.text ?? ""} onFollow={onFollow} />
+            <CodeViewer
+              path={path}
+              text={c.text ?? ""}
+              onFollow={onFollow}
+              onDefine={onDefine && ((s) => onDefine(path, c.text ?? "", s))}
+              goto={goto?.path === path ? goto : null}
+            />
           )}
         </>
       )}

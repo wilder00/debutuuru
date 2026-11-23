@@ -229,7 +229,15 @@
       "unstage": "ステージング解除",
       "messagePlaceholder": "コミット メッセージ",
       "commit": "コミット",
-      "commitFiles_other": "{{count}} 個のファイルをコミット"
+      "commitFiles_other": "{{count}} 個のファイルをコミット",
+      "stageFolder": "フォルダーをステージ",
+      "unstageFolder": "フォルダーのステージを解除",
+      "view": {
+        "label": "ファイルの表示",
+        "list": "リスト: 名前の後にフォルダー",
+        "path": "パス: 各ファイルのフルパス",
+        "tree": "ツリー: フォルダーごとにまとめる"
+      }
     },
     "graph": {
       "label": "コミット履歴",
@@ -303,6 +311,14 @@
         "thisCommit": "このコミットでのファイルの変更:",
         "before": "このファイルは {{rev}} で変更されていません。それ以前に変更した最後のコミットを表示しています:",
         "parent": "前のコミット"
+      },
+      "definition": {
+        "hint": "Ctrl+クリックで定義へ移動",
+        "searching": "{{name}} の定義を探しています…",
+        "notFound": "{{name}} の定義が見つかりません",
+        "here": "{{name}} はここで定義されています",
+        "title_other": "<code>{{name}}</code> の定義 {{count}} 件",
+        "close": "閉じる"
       }
     },
     "remote": {

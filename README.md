@@ -44,13 +44,17 @@ runner, GitHub/GitLab integration, containers and more.
   letters of its name; Ctrl+Shift+P runs commands (fetch, pull, push, switch
   branch, change theme or language…), like in VS Code.
 - **Code navigation**: Ctrl+click an import (TS/JS, CSS, Rust, Go, Python,
-  C/C++, Markdown and HTML links) to open that file; Alt+← goes back.
+  C/C++, Markdown and HTML links) to open that file, or a function, variable,
+  type or field to go to its definition (a list when there are several);
+  Alt+← goes back.
 - **Markdown**: READMEs and docs render like on GitHub (tables, task lists,
   alerts, math, Mermaid diagrams), with a switch to the source.
 - **Diffs**: click a commit to see the files it changed and their diffs; the
   same viewer shows staged and unstaged changes. Unified, side by side or the
   whole file, with changed words highlighted, syntax colors, ignore
   whitespace and adjustable context.
+- **Changes panel**: staged and unstaged files as a list, as full paths or as
+  a folder tree, where a whole folder can be staged or unstaged at once.
 - **Branches**: select several (Ctrl+click, Shift+click) and right-click to
   delete them. Before anything happens it tells you, per branch, whether
   work would be lost (commits that exist only there, with the command to
