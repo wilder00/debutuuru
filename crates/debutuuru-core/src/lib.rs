@@ -10,6 +10,7 @@ pub mod graph;
 pub mod location;
 pub mod repo;
 pub mod runner;
+pub mod search;
 pub mod tags;
 pub mod trace;
 

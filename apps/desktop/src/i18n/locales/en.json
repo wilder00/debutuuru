@@ -315,6 +315,15 @@
         "thisCommit": "Changes this commit made to the file:",
         "before": "This file didn't change in {{rev}}. Showing the last commit before it that did:",
         "parent": "previous commit"
+      },
+      "definition": {
+        "hint": "Ctrl+click to go to the definition",
+        "searching": "Looking for where {{name}} is defined…",
+        "notFound": "Couldn't find where {{name}} is defined",
+        "here": "This is where {{name}} is defined",
+        "title_one": "{{count}} definition of <code>{{name}}</code>",
+        "title_other": "{{count}} definitions of <code>{{name}}</code>",
+        "close": "Close"
       }
     },
     "remote": {

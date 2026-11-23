@@ -229,6 +229,15 @@ means adding a module, not a new transport.
   workspace crates, the `go.mod` module, Python packages. `git.stat_paths`
   (≤ 64 per call, working tree or a commit) says which exist; the first one
   opens. No language server: external packages aren't followed.
+- Go to definition (Ctrl+click on a name, `definitions.ts`), still without a
+  language server: per-language patterns (functions, variables, constants,
+  types, methods, fields…) written once as JS regexes and translated to POSIX
+  ERE. In order: the file the name is imported from (resolved like an
+  import), this file (the nearest definition above, for locals), then the
+  whole repo with `git.grep` (`git grep -E`, same language, working tree with
+  untracked files or a commit; module v14). One result jumps to its line;
+  several open a picker. No types: `obj.save()` offers every `save`. The
+  Folder tab has no repo search, only the first two steps.
 - Markdown renders by default (Rendered / Source): react-markdown with GFM,
   emoji, GitHub alerts, KaTeX math and Mermaid (loaded only when a document
   has a diagram). Repo content is untrusted, so raw HTML goes through

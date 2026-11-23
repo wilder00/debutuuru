@@ -870,3 +870,16 @@ select { height: 28px; background: var(--bg-raised); border: 1px solid var(--bor
 .profile-card > button { align-self: flex-start; }
 .block-field { display: flex; flex-direction: column; gap: 4px; }
 .block-field textarea { resize: vertical; }
+
+/* Definitions of a name (Ctrl+click in Files) */
+.def-picker {
+  flex: none; display: flex; flex-direction: column; max-height: 45%; min-height: 0;
+  border-bottom: 1px solid var(--border); background: var(--bg-raised); outline: none;
+}
+.def-picker-head { display: flex; align-items: center; gap: 8px; padding: 4px 8px 4px 12px; color: var(--text-muted); border-bottom: 1px solid var(--border-subtle); }
+.def-picker-head code { color: var(--text); }
+.def-picker-list { overflow: auto; padding: 4px; }
+.def-row { gap: 8px; }
+.def-row .def-file { flex: none; color: var(--text); white-space: nowrap; }
+.def-row .def-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-muted); font-size: .9em; }
+.def-row .def-dir { flex: none; max-width: 40%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

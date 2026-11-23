@@ -311,6 +311,14 @@
         "thisCommit": "이 커밋이 파일에서 바꾼 내용:",
         "before": "이 파일은 {{rev}}에서 바뀌지 않았습니다. 그 이전에 바꾼 마지막 커밋을 표시합니다:",
         "parent": "이전 커밋"
+      },
+      "definition": {
+        "hint": "Ctrl+클릭하여 정의로 이동",
+        "searching": "{{name}}이(가) 정의된 곳을 찾는 중…",
+        "notFound": "{{name}}이(가) 정의된 곳을 찾을 수 없습니다",
+        "here": "{{name}}은(는) 여기에서 정의됩니다",
+        "title_other": "<code>{{name}}</code> 정의 {{count}}개",
+        "close": "닫기"
       }
     },
     "remote": {

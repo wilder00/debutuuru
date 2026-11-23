@@ -9,7 +9,7 @@ import type { FileContent } from "../../bindings/FileContent";
 import { useBus } from "../../lib/bus";
 import { AGENT_DISCONNECTED, onAgentEvent, repoName, wslDistro } from "../../lib/rpc";
 import { FileTreeRows, useBookmarks, useFileTree } from "../git/FileTree";
-import { FilePane, useFollow } from "../git/FilesView";
+import { DefinitionPicker, FilePane, useFollow } from "../git/FilesView";
 import { fs, FS_CHANGED } from "./api";
 
 type Props = {
@@ -125,6 +125,7 @@ export function FolderView({ folder, active, refreshKey, onOpen }: Props) {
               <span>{follow.notice}</span>
             </div>
           )}
+          {follow.picker && <DefinitionPicker {...follow.picker} onPick={follow.open} onClose={follow.closePicker} />}
           {tree.gone ? (
             <div className="empty">
               <span>
@@ -149,6 +150,8 @@ export function FolderView({ folder, active, refreshKey, onOpen }: Props) {
               bookmarked={bookmarks.has(selected)}
               onBookmark={() => bookmarks.toggle(selected)}
               onFollow={follow.follow}
+              onDefine={follow.define}
+              goto={follow.goto}
               onBack={tree.canGoBack ? tree.back : undefined}
             />
           ) : (

@@ -319,6 +319,16 @@
         "thisCommit": "Cambios que hizo este commit en el archivo:",
         "before": "Este archivo no cambió en {{rev}}. Se muestra el último commit anterior que lo cambió:",
         "parent": "commit anterior"
+      },
+      "definition": {
+        "hint": "Ctrl+clic para ir a la definición",
+        "searching": "Buscando dónde se define {{name}}…",
+        "notFound": "No se encontró dónde se define {{name}}",
+        "here": "Aquí es donde se define {{name}}",
+        "title_one": "{{count}} definición de <code>{{name}}</code>",
+        "title_many": "{{count}} definiciones de <code>{{name}}</code>",
+        "title_other": "{{count}} definiciones de <code>{{name}}</code>",
+        "close": "Cerrar"
       }
     },
     "remote": {
