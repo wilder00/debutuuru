@@ -205,6 +205,10 @@ pub struct Session {
     /// Folders opened as groups, most recent first. Added without a schema
     /// bump.
     pub recent_groups: Vec<String>,
+    /// Files marked as favorites, per tab (a repository or a folder):
+    /// paths relative to it, `/`-separated, in the order they were marked.
+    /// Kept after the tab closes. Added without a schema bump.
+    pub bookmarks: BTreeMap<String, Vec<String>>,
 }
 
 /// Repositories opened from one folder, shown together in the tab bar.

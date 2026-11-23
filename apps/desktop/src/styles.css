@@ -527,6 +527,26 @@ select { height: 28px; background: var(--bg-raised); border: 1px solid var(--bor
 .ficon-mask.dir { background: var(--accent); }
 .change-dot { width: 6px; height: 6px; margin-right: 5px; border-radius: 50%; background: var(--warn); flex: none; }
 .files-content { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+/* Favorites: a star on each file (shown on hover, always when marked) and
+   the marked files listed above the tree. */
+.bookmark-btn { flex: none; width: 20px; height: 20px; margin-left: auto; padding: 0; opacity: 0; color: var(--text-faint); }
+.tree-row:hover .bookmark-btn, .bookmark-btn:focus-visible, .bookmark-btn.on, .bookmark-btn.shown { opacity: 1; }
+.bookmark-btn.on { color: var(--accent); }
+.bookmark-btn.on svg { fill: currentColor; }
+.tree-row .status + .bookmark-btn, .tree-row .change-dot + .bookmark-btn, .tree-row .hint + .bookmark-btn { margin-left: 2px; }
+.tree-row > .status, .tree-row > .change-dot, .tree-row > .hint { margin-left: auto; }
+.bookmarks { padding-bottom: 4px; margin-bottom: 4px; border-bottom: 1px solid var(--border-subtle); }
+.bookmarks-title { display: flex; align-items: center; gap: 5px; padding: 4px 8px; font-size: .78em; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--text-faint); }
+.bookmark-row { gap: 6px; padding: 0 6px 0 10px; }
+.bookmark-row .label { flex: none; max-width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
+.bookmark-dir { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; direction: rtl; text-align: left; }
+.diff-head .bookmark-btn { margin-left: 0; }
+/* Folder tab: a group's own folder, read-only. */
+.folder-view { flex: 1; display: flex; min-height: 0; }
+.folder-head { color: var(--text-muted); min-height: 39px; }
+.folder-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; color: var(--text); }
+.folder-repo { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
+.tab-icon { flex: none; color: var(--group-color, var(--text-muted)); }
 .file-pane { flex: 1; display: flex; flex-direction: column; min-height: 0; }
 /* Files › Changes: the open file's diff, with what is compared spelled out */
 .changes-toggle { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px; font-size: .9em; }

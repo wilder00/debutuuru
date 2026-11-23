@@ -2,8 +2,9 @@
 // opened from one folder (a ticket's worktrees) sit together behind a
 // colored chip with the folder's name: click it to collapse or expand the
 // group, its × closes all of them. Same-named tabs get their parent folder
-// (`ssr-site · NED-2550`).
-import { ChevronRight, Layers, X } from "lucide-react";
+// (`ssr-site · NED-2550`). A group's first tab is its folder: the loose
+// files next to the repositories (notes, plans).
+import { ChevronRight, FolderOpen, Layers, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { TabGroup } from "../bindings/TabGroup";
 import { distinctNames } from "../lib/names";
@@ -33,8 +34,12 @@ export function TabBar({ repos, active, groups, onSelect, onClose, onToggleGroup
   const names = distinctNames(repos);
   const groupNames = distinctNames(groups.map((g) => g.folder));
 
+  // A group's own folder (its notes, loose files) is a tab too.
+  const folders = new Set(groups.map((g) => g.folder));
+
   const tab = (r: string, label: string, color?: string) => {
     const distro = wslDistro(r);
+    const folder = folders.has(r);
     return (
       <div
         key={r}
@@ -43,13 +48,15 @@ export function TabBar({ repos, active, groups, onSelect, onClose, onToggleGroup
         aria-selected={r === active}
         className={"tab" + (r === active ? " on" : "") + (color ? " grouped" : "")}
         style={color ? ({ "--group-color": color } as React.CSSProperties) : undefined}
-        title={r}
+        title={folder ? `${r}
+${t("tabs.folderHint")}` : r}
         onClick={() => onSelect(r)}
         onKeyDown={(e) => e.key === "Enter" && onSelect(r)}
         onAuxClick={(e) => e.button === 1 && onClose(r)}
       >
         {r === active && <FxBar at="tab" />}
-        <span className="tab-name">{label}</span>
+        {folder && <FolderOpen size={12} className="tab-icon" />}
+        <span className="tab-name">{folder ? t("tabs.folder") : label}</span>
         {distro && <span className="tab-tag" title={t("tabs.insideWsl", { distro })}>WSL</span>}
         <button
           className="icon-btn tab-close"

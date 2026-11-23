@@ -20,12 +20,12 @@ import remarkEmoji from "remark-emoji";
 import remarkGfm from "remark-gfm";
 import { remarkAlert } from "remark-github-blockquote-alert";
 import remarkMath from "remark-math";
-import { git } from "./api";
+import type { FileBytes } from "../../bindings/FileBytes";
 import { joinPath, type Link } from "./links";
 
 type Props = {
-  repo: string;
-  rev: string | null;
+  /** Reads an image of the repository or folder (stable between renders). */
+  readBytes: (path: string) => Promise<FileBytes>;
   path: string;
   text: string;
   /** Opens a repo file or folder (relative links). */
@@ -61,7 +61,7 @@ const textOf = (node: ReactNode): string =>
     .map((c) => (typeof c === "string" || typeof c === "number" ? String(c) : isValidElement<{ children?: ReactNode }>(c) ? textOf(c.props.children) : ""))
     .join("");
 
-export function MarkdownView({ repo, rev, path, text, onFollow }: Props) {
+export function MarkdownView({ readBytes, path, text, onFollow }: Props) {
   const dir = dirOf(path);
   // The latest callback, without making the components below new.
   const follow = useRef(onFollow);
@@ -98,7 +98,7 @@ export function MarkdownView({ repo, rev, path, text, onFollow }: Props) {
           {children}
         </a>
       ),
-      img: ({ src, alt, title }) => <RepoImage repo={repo} rev={rev} dir={dir} src={typeof src === "string" ? src : ""} alt={alt ?? ""} title={title} />,
+      img: ({ src, alt, title }) => <RepoImage read={readBytes} dir={dir} src={typeof src === "string" ? src : ""} alt={alt ?? ""} title={title} />,
       input: (p: ComponentProps<"input">) => <input {...p} disabled />,
       pre: ({ children }) => <>{children}</>,
       code: ({ className, children }) => {
@@ -110,7 +110,7 @@ export function MarkdownView({ repo, rev, path, text, onFollow }: Props) {
         return <CodeBlock code={code} lang={lang} />;
       },
     };
-  }, [repo, rev, dir]);
+  }, [readBytes, dir]);
 
   // Parsing only when the text (or where its images come from) changes.
   const body = useMemo(
@@ -145,9 +145,9 @@ const MIME: Record<string, string> = {
   svg: "image/svg+xml",
 };
 
-/** Images from the repo (any revision) as data URLs. External images are
+/** Images from the repo (any revision) or folder as data URLs. External images are
  *  blocked by the CSP (no tracking pixels): their alt text shows instead. */
-function RepoImage({ repo, rev, dir, src, alt, title }: { repo: string; rev: string | null; dir: string; src: string; alt: string; title?: string }) {
+function RepoImage({ read, dir, src, alt, title }: { read: (path: string) => Promise<FileBytes>; dir: string; src: string; alt: string; title?: string }) {
   const [url, setUrl] = useState<string | null>(null);
   const [failed, setFailed] = useState(false);
   const path = src && !/^[a-z][a-z0-9+.-]*:/i.test(src) && !src.startsWith("//") ? joinPath(src.startsWith("/") ? "" : dir, decodeURIComponent(src.split(/[?#]/)[0])) : null;
@@ -158,14 +158,13 @@ function RepoImage({ repo, rev, dir, src, alt, title }: { repo: string; rev: str
     setFailed(false);
     if (!path || !mime) return;
     let stale = false;
-    git
-      .readBytes(repo, { rev: rev ?? undefined, path })
+    read(path)
       .then((b) => !stale && setUrl(`data:${mime};base64,${b.base64}`))
       .catch(() => !stale && setFailed(true));
     return () => {
       stale = true;
     };
-  }, [repo, rev, path, mime]);
+  }, [read, path, mime]);
 
   if (src.startsWith("data:image/")) return <img src={src} alt={alt} title={title} />;
   if (url) return <img src={url} alt={alt} title={title} />;

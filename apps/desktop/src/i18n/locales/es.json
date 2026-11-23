@@ -31,7 +31,9 @@
     "close": "Cerrar pestaña (clic central)",
     "collapseGroup": "Clic para contraer el grupo",
     "expandGroup": "Clic para mostrar las pestañas del grupo",
-    "closeGroup": "Cerrar las pestañas del grupo"
+    "closeGroup": "Cerrar las pestañas del grupo",
+    "folder": "Carpeta",
+    "folderHint": "Los archivos propios de la carpeta: notas, planes y todo lo que no está en un repositorio"
   },
   "activity": {
     "label": "Módulos",
@@ -632,5 +634,20 @@
     "showAll": "Mostrar todas las traducciones",
     "practiceHint": "Adivina cada traducción y luego haz clic para comprobarla.",
     "none": "Nada coincide."
+  },
+  "folder": {
+    "label": "Archivos de la carpeta",
+    "empty": "Esta carpeta no tiene archivos propios",
+    "repo": "repositorio",
+    "isRepo": "<code>{{name}}</code> es un repositorio",
+    "openRepo": "Abrir en su propia pestaña",
+    "select": "Selecciona un archivo para leerlo"
+  },
+  "files": {
+    "bookmarks": {
+      "title": "Favoritos",
+      "add": "Marcar como favorito",
+      "remove": "Quitar de favoritos"
+    }
   }
 }

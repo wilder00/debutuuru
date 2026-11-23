@@ -13,6 +13,8 @@ type Props = {
   onRefresh: () => void;
   /** "Open…" menu (folder, file, WSL, recent). */
   openMenu?: ReactNode;
+  /** The active tab has side panels (repositories do, a Folder tab doesn't). */
+  panels?: boolean;
 };
 
 /** Show or hide the side panels of repository tabs (Ctrl+B, Ctrl+Alt+B). */
@@ -41,7 +43,7 @@ function PanelToggles() {
   );
 }
 
-export function TitleBar({ repo, info, onOpen, onRefresh, openMenu }: Props) {
+export function TitleBar({ repo, info, onOpen, onRefresh, openMenu, panels = true }: Props) {
   const { t } = useTranslation();
   // Shows the active tab's path in the form the user can type back
   // (for WSL repos the UNC path, not the Linux path the agent reports).
@@ -80,7 +82,7 @@ export function TitleBar({ repo, info, onOpen, onRefresh, openMenu }: Props) {
       </form>
       <div className="titlebar-drag" data-tauri-drag-region />
       {openMenu}
-      {repo && <PanelToggles />}
+      {repo && panels && <PanelToggles />}
       <button className="icon-btn" onClick={onRefresh} disabled={!repo} title={t("titlebar.refresh")}>
         <RefreshCw size={15} />
       </button>

@@ -21,14 +21,20 @@ runner, GitHub/GitLab integration, containers and more.
   worktrees (say, one folder per ticket with a worktree of each project) and
   they open together as a group of tabs with the folder's name; collapse or
   close the group in one click, and reopen it from Recent. Same-named repos
-  show their parent folder (`ssr-site · NED-2550`).
+  show their parent folder (`ssr-site · NED-2550`). The group's first tab,
+  **Folder**, shows the files that aren't in any of the repos (notes and
+  plans written by agents, say): read Markdown rendered, follow its links,
+  find them with Ctrl+P, and see new or edited files appear as they're
+  written. Repos inside open in their own tab from there.
 - **Files**: browse the file tree, with an icon for each kind of file and
   folder (Material Icon Theme, in its colors or the theme's), and read any file (syntax highlighting,
   search), as it is now with changes marked, or at any commit (double-click it
   in History). Ignored files are hidden unless you ask for them. **Changes**
   shows the open file's diff and says what it compares: your uncommitted
   edits against HEAD, or, when there are none, the last commit that changed
-  the file against the one before.
+  the file against the one before. Mark files as **favorites** (the star on
+  each file): they're listed above the tree, per repository or folder, and
+  kept between sessions.
 - **Focus**: hide the left panel (Ctrl+B), the changes panel (Ctrl+Alt+B) or
   both, from the title bar or the palette.
 - **Open anything**: Open folder or file (Ctrl+O) with the system dialog,

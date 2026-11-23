@@ -23,4 +23,10 @@ groups: Array<TabGroup>,
  * Folders opened as groups, most recent first. Added without a schema
  * bump.
  */
-recent_groups: Array<string>, };
+recent_groups: Array<string>, 
+/**
+ * Files marked as favorites, per tab (a repository or a folder):
+ * paths relative to it, `/`-separated, in the order they were marked.
+ * Kept after the tab closes. Added without a schema bump.
+ */
+bookmarks: { [key in string]: Array<string> }, };
